@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission 01 — Your Case for Change | Reframe</title>
+  <meta name="description" content="Mission 1 of the Reframe workbook by Simon Lamb. Your case for change starts here." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #D85A30;
+      --orange-light: #FAECE7;
+      --orange-mid: #F0997B;
+      --yellow: #EF9F27;
+      --dark: #1a1a18;
+      --mid: #5a5a56;
+      --light: #f7f5f0;
+      --white: #ffffff;
+      --border: rgba(0,0,0,0.08);
+      --max: 680px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--dark);
+      padding: 64px 40px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-shape-1 {
+      position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.22;
+      pointer-events: none;
+    }
+    .hero-shape-2 {
+      position: absolute; bottom: -40px; right: 140px;
+      width: 120px; height: 120px;
+      background: var(--orange); border-radius: 50%; opacity: 0.18;
+      pointer-events: none;
+    }
+    .hero-inner { max-width: var(--max); position: relative; z-index: 1; }
+    .mission-label {
+      font-size: 11px; font-weight: 500; letter-spacing: 3px;
+      color: var(--yellow); text-transform: uppercase; margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 6vw, 58px);
+      font-weight: 700; color: var(--white);
+      line-height: 1.02; margin-bottom: 18px;
+    }
+    .hero-sub {
+      font-size: 16px; font-weight: 300;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.75; max-width: 480px;
+    }
+
+    /* ── QUOTE BAND ── */
+    .quote-band {
+      background: var(--orange-light);
+      border-left: 3px solid var(--orange);
+      padding: 22px 40px;
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .quote-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px; line-height: 1;
+      color: var(--orange); opacity: 0.35;
+      flex-shrink: 0; margin-top: -8px;
+    }
+    .quote-inner { max-width: var(--max); }
+    .quote-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px; font-style: italic;
+      line-height: 1.65; color: var(--mid);
+    }
+    .quote-attr {
+      font-size: 12px; color: var(--orange);
+      margin-top: 6px; font-style: normal;
+    }
+
+    /* ── PROGRESS ── */
+    .progress-bar {
+      background: var(--white);
+      border-bottom: 0.5px solid var(--border);
+      padding: 14px 40px;
+      display: flex; gap: 8px; align-items: center;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.25s;
+      border: 1.5px solid var(--border);
+      background: var(--white); color: var(--mid);
+      flex-shrink: 0;
+    }
+    .step-dot.active { background: var(--orange); color: var(--white); border-color: var(--orange); }
+    .step-dot.done { background: var(--dark); color: var(--white); border-color: var(--dark); }
+    .step-connector { flex: 1; height: 1px; background: var(--border); }
+    .step-label { font-size: 12px; color: var(--mid); margin-left: 12px; white-space: nowrap; }
+
+    /* ── BODY ── */
+    .body {
+      padding: 36px 40px 64px;
+      max-width: calc(var(--max) + 80px);
+    }
+
+    /* ── PART HEADER ── */
+    .part-badge {
+      display: inline-block;
+      background: var(--orange); color: var(--white);
+      font-size: 11px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; padding: 4px 11px;
+      border-radius: 4px; margin-bottom: 12px;
+    }
+    .part-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px; font-weight: 700;
+      color: var(--dark); margin-bottom: 10px;
+    }
+    .part-body {
+      font-size: 15px; font-weight: 300;
+      line-height: 1.8; color: var(--mid);
+      margin-bottom: 32px; max-width: 560px;
+    }
+
+    /* ── QUESTION BLOCKS ── */
+    .q-block { margin-bottom: 32px; }
+    .q-row {
+      display: flex; gap: 11px;
+      align-items: flex-start; margin-bottom: 10px;
+    }
+    .q-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--orange); flex-shrink: 0; margin-top: 8px;
+    }
+    .q-text {
+      font-size: 15px; font-weight: 400;
+      line-height: 1.65; color: var(--dark);
+    }
+
+    textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 300;
+      line-height: 1.75; color: var(--dark);
+      background: var(--white);
+      resize: vertical; min-height: 96px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      display: block;
+      -webkit-appearance: none;
+    }
+    textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(216,90,48,0.08);
+    }
+    textarea::placeholder { color: rgba(0,0,0,0.2); }
+
+    .wc {
+      font-size: 11px; color: rgba(0,0,0,0.25);
+      text-align: right; margin-top: 5px;
+    }
+
+    /* ── LUMEN TRIGGER ── */
+    .lumen-trigger-row {
+      margin-top: 10px;
+      display: none; align-items: center; gap: 10px;
+    }
+    .lumen-trigger-row.visible { display: flex; }
+    .lumen-trigger-btn {
+      background: none;
+      border: 1px solid rgba(239,159,39,0.4);
+      color: var(--yellow); border-radius: 6px;
+      padding: 7px 14px; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .lumen-trigger-btn:hover {
+      background: rgba(239,159,39,0.08);
+      border-color: var(--yellow);
+    }
+    .lumen-l {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--yellow); color: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; flex-shrink: 0;
+    }
+
+    /* ── LUMEN CONVERSATION ── */
+    .lumen-panel {
+      margin-top: 12px;
+      border-left: 2px solid var(--yellow);
+      border-radius: 0 10px 10px 0;
+      background: var(--dark);
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+    .lumen-panel.open { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lumen-panel-header {
+      padding: 12px 18px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .lumen-panel-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--yellow);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .lumen-panel-close {
+      background: none; border: none;
+      color: rgba(255,255,255,0.3);
+      font-size: 20px; cursor: pointer;
+      line-height: 1; padding: 0 2px;
+      transition: color 0.2s; font-family: 'DM Sans', sans-serif;
+    }
+    .lumen-panel-close:hover { color: rgba(255,255,255,0.7); }
+
+    .lumen-messages {
+      padding: 16px 18px;
+      display: flex; flex-direction: column; gap: 14px;
+      max-height: 400px; overflow-y: auto;
+    }
+
+    .msg { display: flex; gap: 10px; align-items: flex-start; animation: fadeUp 0.25s ease; }
+    .msg-avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 9px; font-weight: 700;
+      margin-top: 2px;
+    }
+    .lumen-av { background: var(--yellow); color: var(--dark); }
+    .user-av { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); font-size: 8px; }
+    .msg-bubble { font-size: 14px; font-weight: 300; line-height: 1.75; }
+    .lumen-bubble { color: rgba(255,255,255,0.85); font-style: italic; }
+    .user-bubble { color: rgba(255,255,255,0.55); }
+    .thinking-bubble { color: rgba(255,255,255,0.3); font-style: italic; }
+
+    .lumen-input-row {
+      padding: 10px 18px 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; gap: 8px; align-items: flex-end;
+    }
+    textarea.lumen-reply {
+      flex: 1; min-height: 40px; max-height: 120px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 10px 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 300;
+      color: var(--white); resize: none; line-height: 1.5;
+    }
+    textarea.lumen-reply:focus { border-color: rgba(239,159,39,0.5); box-shadow: none; }
+    textarea.lumen-reply::placeholder { color: rgba(255,255,255,0.2); }
+
+    .lumen-send {
+      background: var(--yellow); border: none;
+      border-radius: 7px; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: opacity 0.2s;
+    }
+    .lumen-send:hover { opacity: 0.85; }
+    .lumen-send svg { width: 13px; height: 13px; fill: var(--dark); }
+
+    .lumen-done-row {
+      padding: 0 18px 12px;
+      display: flex; justify-content: flex-end;
+    }
+    .lumen-done-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,0.28); font-size: 12px;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s; padding: 4px 0;
+    }
+    .lumen-done-btn:hover { color: rgba(255,255,255,0.55); }
+
+    /* ── INSIGHT BOX ── */
+    .insight-box {
+      background: var(--orange-light); border-radius: 10px;
+      padding: 20px 24px; margin: 28px 0;
+      display: flex; gap: 16px; align-items: flex-start;
+      border: 0.5px solid var(--orange-mid);
+    }
+    .insight-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--orange); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .insight-title {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--orange); margin-bottom: 6px;
+    }
+    .insight-body {
+      font-size: 14px; font-weight: 300;
+      line-height: 1.75; color: var(--mid);
+    }
+
+    /* ── PART REFLECTION ── */
+    .part-reflection {
+      background: var(--dark); border-radius: 12px;
+      padding: 24px 28px; margin: 24px 0;
+      border-left: 3px solid var(--yellow);
+      display: none; animation: fadeUp 0.4s ease;
+    }
+    .part-reflection.show { display: block; }
+    .pr-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--yellow);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .pr-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
+    .pr-text {
+      font-size: 15px; font-weight: 300;
+      line-height: 1.85; color: rgba(255,255,255,0.82);
+      font-style: italic;
+    }
+    .pr-actions {
+      margin-top: 18px; display: none;
+      gap: 12px; align-items: center;
+    }
+    .pr-actions.show { display: flex; }
+    .pr-continue {
+      background: var(--orange); color: var(--white);
+      border: none; border-radius: 8px;
+      padding: 11px 20px; font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s;
+    }
+    .pr-continue:hover { opacity: 0.87; }
+    .pr-skip {
+      background: none; border: none;
+      color: rgba(255,255,255,0.3); font-size: 14px;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s;
+    }
+    .pr-skip:hover { color: rgba(255,255,255,0.55); }
+
+    /* ── COMMITMENT ── */
+    .commit-block {
+      background: var(--dark); border-radius: 16px;
+      padding: 32px; margin-top: 8px;
+      position: relative; overflow: hidden;
+    }
+    .commit-shape {
+      position: absolute; bottom: -24px; right: -24px;
+      width: 100px; height: 100px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.1;
+      pointer-events: none;
+    }
+    .commit-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; color: var(--white); margin-bottom: 8px;
+    }
+    .commit-desc {
+      font-size: 14px; font-weight: 300;
+      color: rgba(255,255,255,0.5); line-height: 1.75; margin-bottom: 18px;
+    }
+    textarea.commit-input {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--white); min-height: 80px;
+    }
+    textarea.commit-input:focus { border-color: rgba(239,159,39,0.5); box-shadow: none; }
+    textarea.commit-input::placeholder { color: rgba(255,255,255,0.18); }
+
+    /* ── ARC REFLECTION ── */
+    .arc-block {
+      background: var(--dark); border-radius: 14px;
+      padding: 28px 32px; margin-bottom: 24px;
+      position: relative; overflow: hidden;
+      display: none; animation: fadeUp 0.4s ease;
+    }
+    .arc-block.show { display: block; }
+    .arc-shape {
+      position: absolute; bottom: -24px; right: -24px;
+      width: 100px; height: 100px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.1;
+      pointer-events: none;
+    }
+    .arc-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--yellow);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .arc-text {
+      font-size: 15px; font-weight: 300;
+      line-height: 1.85; color: rgba(255,255,255,0.82);
+      font-style: italic; margin-bottom: 24px;
+    }
+    .arc-divider { height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px; }
+
+    /* ── COMPLETE ── */
+    .complete-banner {
+      background: var(--orange-light); border-radius: 10px;
+      padding: 20px 24px; text-align: center; margin-top: 20px;
+      border: 0.5px solid var(--orange-mid); display: none;
+    }
+    .complete-banner.show { display: block; animation: fadeUp 0.3s ease; }
+    .complete-banner h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px; color: var(--dark); margin-bottom: 6px;
+    }
+    .complete-banner p { font-size: 13px; color: var(--mid); }
+
+    /* ── NAV ── */
+    .nav-buttons { display: flex; gap: 10px; margin-top: 32px; }
+    .btn-back {
+      background: var(--white); color: var(--mid);
+      border: 0.5px solid var(--border); border-radius: 8px;
+      padding: 12px 20px; font-size: 14px; font-weight: 500;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+    }
+    .btn-back:hover { background: var(--light); }
+    .btn-next {
+      background: var(--orange); color: var(--white);
+      border: none; border-radius: 8px;
+      padding: 12px 24px; font-size: 14px; font-weight: 500;
+      cursor: pointer; flex: 1; font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s;
+    }
+    .btn-next:hover { opacity: 0.87; }
+
+    /* ── STEP PANELS ── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      .hero { padding: 48px 24px 40px; }
+      .quote-band { padding: 18px 24px; }
+      .progress-bar { padding: 12px 24px; }
+      .body { padding: 28px 24px 48px; }
+      .step-label { display: none; }
+      .commit-block { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-shape-1"></div>
+    <div class="hero-shape-2"></div>
+    <div class="hero-inner">
+      <div class="mission-label">Mission 01 · Chapter 3</div>
+      <h1>Your Case<br>for Change</h1>
+      <p class="hero-sub">You already know something needs to shift. This mission makes the invisible cost of staying put undeniable — and names the version of you that is already waiting.</p>
+    </div>
+  </div>
+
+  <!-- QUOTE -->
+  <div class="quote-band">
+    <div class="quote-mark">"</div>
+    <div class="quote-inner">
+      <div class="quote-text">Every action you take is a vote for the type of person you wish to become.</div>
+      <div class="quote-attr">— James Clear, Atomic Habits</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="step-dot active" id="dot-1" onclick="goTo(1)">1</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-2" onclick="goTo(2)">2</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-3" onclick="goTo(3)">3</div>
+    <span class="step-label" id="step-label">Look Back</span>
+  </div>
+
+  <div class="body">
+
+    <!-- ══ PART 1 ══ -->
+    <div class="step-panel active" id="panel-1">
+      <div class="part-badge">Part 1</div>
+      <div class="part-title">Experiment — Look Back</div>
+      <p class="part-body">Your recent history is honest data. Before you decide what to change, you need to see clearly where your energy has actually been going. Look back at the last six months.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments made you feel most alive, proud, or fully yourself?</span></div>
+        <textarea id="p1q1" placeholder="Write what's actually true..." oninput="onType('p1q1','wc-p1q1','trow-p1q1')"></textarea>
+        <div class="wc" id="wc-p1q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q1">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q1','p1q1','What moments made you feel most alive, proud, or fully yourself?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q1">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q1')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p1q1"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p1q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q1','What moments made you feel most alive, proud, or fully yourself?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q1','What moments made you feel most alive, proud, or fully yourself?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p1q1')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments left you drained, frustrated, or quietly compromised?</span></div>
+        <textarea id="p1q2" placeholder="Be honest about the cost..." oninput="onType('p1q2','wc-p1q2','trow-p1q2')"></textarea>
+        <div class="wc" id="wc-p1q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q2">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q2','p1q2','What moments left you drained, frustrated, or quietly compromised?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p1q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p1q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q2','What moments left you drained, frustrated, or quietly compromised?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q2','What moments left you drained, frustrated, or quietly compromised?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p1q2')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What kind of person do the actions of the last six months suggest you are — not who you say you are, who you have been?</span></div>
+        <textarea id="p1q3" placeholder="Not who you say you are — who you've been..." oninput="onType('p1q3','wc-p1q3','trow-p1q3')"></textarea>
+        <div class="wc" id="wc-p1q3">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q3">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q3','p1q3','What kind of person do the actions of the last six months suggest you are — not who you say you are, who you have been?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q3">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q3')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p1q3"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p1q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q3','What kind of person do the actions of the last six months suggest you are?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q3','What kind of person do the actions of the last six months suggest you are?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p1q3')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-icon">◈</div>
+        <div>
+          <div class="insight-title">The provocation</div>
+          <div class="insight-body">Your identity is not shaped by your intentions. It is shaped by the pattern of what you actually do. There is always a gap between who we say we are and who we are being. This mission is about closing it — or at least seeing it clearly.</div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-1">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen — across your answers</div>
+        <div class="pr-text" id="pr-1-text"></div>
+        <div class="pr-actions" id="pr-1-actions">
+          <button class="pr-continue" onclick="goTo(2)">Continue to Part 2 →</button>
+          <button class="pr-skip" onclick="goTo(2)">Move on</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-next" onclick="partReflect(1)">See what Lumen noticed across your answers →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 2 ══ -->
+    <div class="step-panel" id="panel-2">
+      <div class="part-badge">Part 2</div>
+      <div class="part-title">Reflect — Name Your Reality</div>
+      <p class="part-body">No softening. No framing. Just the truth of where you are.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What do I genuinely love about my life and work right now?</span></div>
+        <textarea id="p2q1" placeholder="Start with what's real and good..." oninput="onType('p2q1','wc-p2q1','trow-p2q1')"></textarea>
+        <div class="wc" id="wc-p2q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q1">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q1','p2q1','What do I genuinely love about my life and work right now?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q1">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p2q1')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p2q1"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p2q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q1','What do I genuinely love about my life and work right now?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p2q1','What do I genuinely love about my life and work right now?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q1')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What frustrates, drains, or quietly diminishes me?</span></div>
+        <textarea id="p2q2" placeholder="Name it without softening it..." oninput="onType('p2q2','wc-p2q2','trow-p2q2')"></textarea>
+        <div class="wc" id="wc-p2q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q2">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q2','p2q2','What frustrates, drains, or quietly diminishes me?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p2q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p2q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p2q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q2','What frustrates, drains, or quietly diminishes me?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p2q2','What frustrates, drains, or quietly diminishes me?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q2')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What hard truth have I been avoiding? What do I already know but haven't named?</span></div>
+        <textarea id="p2q3" placeholder="Say the thing you haven't said yet..." oninput="onType('p2q3','wc-p2q3','trow-p2q3')"></textarea>
+        <div class="wc" id="wc-p2q3">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q3">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q3','p2q3','What hard truth have I been avoiding?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q3">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p2q3')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p2q3"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p2q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q3','What hard truth have I been avoiding?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p2q3','What hard truth have I been avoiding?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q3')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">If nothing changes — what does my life look like in three years?</span></div>
+        <textarea id="p2q4" placeholder="Be specific. Make it real..." oninput="onType('p2q4','wc-p2q4','trow-p2q4')"></textarea>
+        <div class="wc" id="wc-p2q4">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q4">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q4','p2q4','If nothing changes — what does my life look like in three years?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q4">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p2q4')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p2q4"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p2q4" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q4','If nothing changes — what does my life look like in three years?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p2q4','If nothing changes — what does my life look like in three years?')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q4')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-2">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen — across your answers</div>
+        <div class="pr-text" id="pr-2-text"></div>
+        <div class="pr-actions" id="pr-2-actions">
+          <button class="pr-continue" onclick="goTo(3)">Continue to Part 3 →</button>
+          <button class="pr-skip" onclick="goTo(3)">Move on</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(1)">← Back</button>
+        <button class="btn-next" onclick="partReflect(2)">See what Lumen noticed across your answers →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 3 ══ -->
+    <div class="step-panel" id="panel-3">
+      <div class="part-badge">Part 3</div>
+      <div class="part-title">Practice — Write Both Versions</div>
+      <p class="part-body">First, write the tension. Then rewrite it as identity. The difference between these two sentences is the shift you are making.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Version 1 — The BUT statement: what I love, and what's in the way.</span></div>
+        <textarea id="p3q1" placeholder="I love... but..." oninput="onType('p3q1','wc-p3q1','trow-p3q1')"></textarea>
+        <div class="wc" id="wc-p3q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p3q1">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p3q1','p3q1','Version 1 — the BUT statement: what I love and what is in the way.')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p3q1">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p3q1')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p3q1"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p3q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p3q1','The BUT statement')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p3q1','The BUT statement')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p3q1')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Version 2 — The identity shift: who I already am when I'm at my best.</span></div>
+        <textarea id="p3q2" placeholder="I am someone who..." oninput="onType('p3q2','wc-p3q2','trow-p3q2')"></textarea>
+        <div class="wc" id="wc-p3q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p3q2">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p3q2','p3q2','Version 2 — the identity shift: who I already am when I am at my best.')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p3q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p3q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p3q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p3q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p3q2','The identity shift')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p3q2','The identity shift')">
+              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
+            </button>
+          </div>
+          <div class="lumen-done-row">
+            <button class="lumen-done-btn" onclick="closeLumen('lp-p3q2')">I'm done here — close Lumen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="arc-block" id="arc-block">
+        <div class="arc-shape"></div>
+        <div class="arc-label"><div class="pr-dot"></div>Lumen — holding the whole arc</div>
+        <div class="arc-text" id="arc-text"></div>
+        <div class="arc-divider"></div>
+        <div class="commit-title">My commitment</div>
+        <div class="commit-desc">Write the one shift that, if you made it, would change the most. Keep it visible. Return to it.</div>
+        <textarea class="commit-input" id="ta-commit" placeholder="The one shift I am making is..." oninput="checkComplete()"></textarea>
+      </div>
+
+      <div class="complete-banner" id="complete-banner">
+        <h4>Mission 1 complete.</h4>
+        <p>Your commitment is set. Return to it tomorrow. Notice what has shifted.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(2)">← Back</button>
+        <button class="btn-next" id="arc-btn" onclick="arcReflect()">Lumen holds the arc →</button>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <script>
+    // ── State ──
+    let currentStep = 1;
+    const convos = {};
+
+    const LUMEN_SYSTEM = `You are Lumen — the AI mirror companion embedded in the Reframe workbook by Simon Lamb and Christina Watt.
+
+The Reframe methodology is built on the belief that real change comes from inside out — not from new habits or better strategies, but from shifting the stories we carry about who we are and what is possible. The core insight is that our behaviours are driven by survival scripts formed early in life, and that we can rewrite them through honest reflection, courageous naming, and deliberate practice.
+
+Your role as Lumen is to be a mirror, not a coach. You:
+- Notice ONE specific thing in what the person wrote — a word they chose, a tension, an absence, something repeated, something avoided
+- Reflect it back with precision and warmth
+- Ask ONE question that takes them one layer deeper into what they have already written
+- Trust the person's intelligence completely
+- Never summarise, praise, advise, or tell them what to do or feel
+- Never use the words "certainly", "absolutely", or "I understand"
+- Keep responses to 2–3 sentences maximum
+- Are quiet, unhurried, and precise
+- Continue the conversation for as long as the person wants — they decide when to stop`;
+
+    // ── Navigation ──
+    function goTo(n) {
+      document.getElementById('panel-' + currentStep).classList.remove('active');
+      document.getElementById('dot-' + currentStep).classList.remove('active');
+      if (currentStep < n) document.getElementById('dot-' + currentStep).classList.add('done');
+      currentStep = n;
+      document.getElementById('panel-' + n).classList.add('active');
+      document.getElementById('dot-' + n).classList.add('active');
+      const labels = ['','Look Back','Name Your Reality','Write Both Versions'];
+      document.getElementById('step-label').textContent = labels[n];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Word count / trigger ──
+    function onType(taId, wcId, trowId) {
+      const v = document.getElementById(taId).value.trim();
+      const w = v ? v.split(/\s+/).length : 0;
+      document.getElementById(wcId).textContent = w + ' word' + (w !== 1 ? 's' : '');
+      if (w >= 12) document.getElementById(trowId).classList.add('visible');
+    }
+
+    function getVal(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    }
+
+    // ── Lumen panel ──
+    function openLumen(panelId, taId, question) {
+      const panel = document.getElementById(panelId);
+      if (panel.classList.contains('open')) return;
+      panel.classList.add('open');
+      const qKey = taId;
+      if (!convos[qKey]) {
+        convos[qKey] = [];
+        const answer = getVal(taId);
+        const userMsg = `The question I was asked: "${question}"\n\nWhat I wrote: "${answer}"`;
+        convos[qKey].push({ role: 'user', content: userMsg });
+        const msgsId = 'msgs-' + taId;
+        addThinking(msgsId);
+        callLumen(
+          `Read the person's answer in the context of the question. Notice ONE specific thing. Reflect it and ask ONE question to go deeper. 2–3 sentences. No preamble.`,
+          convos[qKey],
+          (reply) => {
+            removeThinking(msgsId);
+            convos[qKey].push({ role: 'assistant', content: reply });
+            addMsg(msgsId, 'lumen', reply);
+          }
+        );
+      }
+    }
+
+    function closeLumen(panelId) {
+      document.getElementById(panelId).classList.remove('open');
+    }
+
+    // ── Message rendering ──
+    function addMsg(msgsId, role, text) {
+      const container = document.getElementById(msgsId);
+      const div = document.createElement('div');
+      div.className = 'msg';
+      const isLumen = role === 'lumen';
+      div.innerHTML = `
+        <div class="msg-avatar ${isLumen ? 'lumen-av' : 'user-av'}">${isLumen ? 'L' : 'you'}</div>
+        <div class="msg-bubble ${isLumen ? 'lumen-bubble' : 'user-bubble'}">${escHtml(text)}</div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function addThinking(msgsId) {
+      const container = document.getElementById(msgsId);
+      const div = document.createElement('div');
+      div.className = 'msg'; div.id = 'thinking-' + msgsId;
+      div.innerHTML = `<div class="msg-avatar lumen-av">L</div><div class="msg-bubble thinking-bubble">Reading what you wrote...</div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeThinking(msgsId) {
+      const el = document.getElementById('thinking-' + msgsId);
+      if (el) el.remove();
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+
+    // ── Reply ──
+    function replyKey(e, taId, question) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(taId, question); }
+    }
+
+    function sendReply(taId, question) {
+      const repEl = document.getElementById('rep-' + taId);
+      const userText = repEl.value.trim();
+      if (!userText) return;
+      repEl.value = '';
+      const msgsId = 'msgs-' + taId;
+      addMsg(msgsId, 'user', userText);
+      convos[taId] = convos[taId] || [];
+      convos[taId].push({ role: 'user', content: userText });
+      addThinking(msgsId);
+      callLumen(
+        `This is an ongoing Lumen conversation. The person has replied. Continue as a mirror. Notice what has shifted or deepened. Ask one question if it will genuinely open something, or make a brief closing observation if they seem to have landed. 2–3 sentences maximum.`,
+        convos[taId],
+        (reply) => {
+          removeThinking(msgsId);
+          convos[taId].push({ role: 'assistant', content: reply });
+          addMsg(msgsId, reply === 'error' ? 'lumen' : 'lumen', reply);
+        }
+      );
+    }
+
+    // ── Part reflection ──
+    function partReflect(part) {
+      const pr = document.getElementById('pr-' + part);
+      pr.classList.add('show');
+      const textEl = document.getElementById('pr-' + part + '-text');
+      textEl.textContent = 'Reading the pattern across what you\'ve written...';
+
+      let answers, sys;
+      if (part === 1) {
+        answers = `Q1 — Alive moments: "${getVal('p1q1')}"\nQ2 — Drained moments: "${getVal('p1q2')}"\nQ3 — Who their actions suggest: "${getVal('p1q3')}"`;
+        sys = `The person has answered all three questions in Part 1. Find ONE pattern, tension, or thread running across all three answers that they may not have named themselves. State it plainly in 2–3 sentences. Then one quiet question if something is worth sitting with. No advice. No praise.`;
+      } else {
+        answers = `Q1 — What they love: "${getVal('p2q1')}"\nQ2 — What drains them: "${getVal('p2q2')}"\nQ3 — Hard truth avoided: "${getVal('p2q3')}"\nQ4 — Life in 3 years unchanged: "${getVal('p2q4')}"`;
+        sys = `The person has answered all four questions in Part 2. Find the through-line or what they are circling but not fully landing on. Name it in 2–3 sentences. No advice. No praise. You are a mirror seeing the whole picture at once.`;
+      }
+
+      callLumen(sys, [{ role: 'user', content: answers }], (reply) => {
+        textEl.textContent = reply;
+        document.getElementById('pr-' + part + '-actions').classList.add('show');
+      });
+    }
+
+    // ── Arc reflection ──
+    function arcReflect() {
+      document.getElementById('arc-btn').style.display = 'none';
+      const arcBlock = document.getElementById('arc-block');
+      arcBlock.classList.add('show');
+      const textEl = document.getElementById('arc-text');
+      textEl.textContent = 'Reading everything you wrote across this mission...';
+
+      const all = `PART 1:\nAlive moments: "${getVal('p1q1')}"\nDrained moments: "${getVal('p1q2')}"\nWho actions suggest: "${getVal('p1q3')}"\n\nPART 2:\nWhat they love: "${getVal('p2q1')}"\nWhat drains them: "${getVal('p2q2')}"\nHard truth avoided: "${getVal('p2q3')}"\nLife unchanged in 3 years: "${getVal('p2q4')}"\n\nPART 3:\nThe tension: "${getVal('p3q1')}"\nThe identity shift: "${getVal('p3q2')}"`;
+      const sys = `The person has completed all three parts of Mission 1. Hold the whole journey back to them. Reflect the thread — what emerged, what shifted, what they named that they perhaps hadn't before. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
+
+      callLumen(sys, [{ role: 'user', content: all }], (reply) => {
+        textEl.textContent = reply;
+      });
+    }
+
+    function checkComplete() {
+      if (getVal('ta-commit').length > 20) {
+        document.getElementById('complete-banner').classList.add('show');
+      }
+    }
+
+    // ── API call ──
+    // Replace LUMEN_API_URL below with your Vercel serverless function URL once deployed
+    const LUMEN_API_URL = '/api/lumen';
+
+    async function callLumen(systemExtra, messages, onDone) {
+      try {
+        const res = await fetch(LUMEN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemExtra, messages })
+        });
+        const data = await res.json();
+        onDone(data.reply || 'Lumen is quiet. Keep writing.');
+      } catch (e) {
+        onDone('Lumen is quiet right now. Keep going.');
+      }
+    }
+  </script>
+
+</body>
+</html>
