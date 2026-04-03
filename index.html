@@ -220,30 +220,65 @@
     .missions { background: var(--dark); padding: 100px 64px; }
     .missions .section-title { color: white; }
     .missions .section-body { color: rgba(255,255,255,0.55); }
-    .missions-grid {
+    .missions-list {
+      margin-top: 64px;
+      display: flex; flex-direction: column;
+    }
+    .mission-row {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 1px; background: rgba(255,255,255,0.08);
-      margin-top: 64px; border-radius: 12px; overflow: hidden;
-    }
-    .mission-card {
-      background: var(--dark-2);
-      padding: 32px 28px;
+      grid-template-columns: 80px 1fr auto;
+      gap: 0 32px;
+      align-items: start;
+      padding: 28px 0;
+      border-bottom: 0.5px solid rgba(255,255,255,0.07);
+      position: relative;
       transition: background 0.2s;
+      border-radius: 8px;
+      padding-left: 16px; padding-right: 16px;
+      margin: 0 -16px;
     }
-    .mission-card:hover { background: #333330; }
-    .mission-num {
-      font-size: 11px; font-weight: 500; letter-spacing: 2px;
-      color: var(--yellow); text-transform: uppercase; margin-bottom: 16px;
+    .mission-row:hover { background: rgba(255,255,255,0.03); }
+    .mission-row.active {
+      background: rgba(216,90,48,0.1);
+      border-bottom-color: rgba(216,90,48,0.2);
     }
-    .mission-card h3 {
+    .mission-row-num {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 22px; font-weight: 400;
-      color: white; margin-bottom: 10px; line-height: 1.2;
+      font-size: 42px; font-weight: 300;
+      color: rgba(255,255,255,0.12);
+      line-height: 1; padding-top: 4px;
+      transition: color 0.2s;
     }
-    .mission-card p {
+    .mission-row:hover .mission-row-num { color: rgba(255,255,255,0.25); }
+    .mission-row.active .mission-row-num { color: var(--orange); opacity: 0.8; }
+    .mission-row-body { padding-top: 4px; }
+    .mission-row-title {
+      font-size: 17px; font-weight: 500;
+      color: white; margin-bottom: 5px; line-height: 1.3;
+    }
+    .mission-row.active .mission-row-title { color: var(--orange); }
+    .mission-row-desc {
       font-size: 13px; font-weight: 300;
-      color: rgba(255,255,255,0.45); line-height: 1.7;
+      color: rgba(255,255,255,0.4); line-height: 1.65;
+      max-width: 520px;
+    }
+    .mission-row-meta {
+      font-size: 11px; font-weight: 400; letter-spacing: 1px;
+      color: rgba(255,255,255,0.2); text-align: right;
+      padding-top: 6px; white-space: nowrap;
+    }
+    .mission-row.active .mission-row-meta { color: rgba(216,90,48,0.5); }
+    .mission-row-badge {
+      display: inline-block; margin-top: 8px;
+      background: var(--orange); color: white;
+      font-size: 10px; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 4px;
+    }
+    .mission-connector {
+      position: absolute; left: 36px; bottom: -1px;
+      width: 1px; height: 100%;
+      background: rgba(255,255,255,0.05);
+      pointer-events: none;
     }
 
     /* ── LUMEN SECTION ── */
@@ -442,7 +477,7 @@
       .what-left { padding-right: 0; margin-bottom: 48px; }
       .what-right { border-left: none; padding-left: 0; border-top: 0.5px solid var(--border); padding-top: 48px; }
       .missions { padding: 72px 24px; }
-      .missions-grid { grid-template-columns: repeat(2, 1fr); }
+      .missions { padding: 72px 24px; }
       .lumen-section { grid-template-columns: 1fr; padding: 72px 24px; gap: 40px; }
       .about { grid-template-columns: 1fr; padding: 72px 24px; gap: 40px; }
       .about-img-caption { display: none; }
@@ -547,78 +582,138 @@
     <div class="section-eyebrow" style="color:var(--yellow)">Fourteen missions</div>
     <h2 class="section-title" style="color:white">The work ahead</h2>
     <p class="section-body">Each mission follows the same rhythm: Experiment. Reflect. Share. Practice. Change doesn't come from thinking differently. It comes from being different.</p>
-    <div class="missions-grid">
-      <div class="mission-card">
-        <div class="mission-num">Mission 01 · Ch 3</div>
-        <h3>Your Case for Change</h3>
-        <p>Make the invisible cost of staying put undeniable. Name the version of you that is already waiting.</p>
+
+    <div class="missions-list">
+
+      <div class="mission-row active">
+        <div class="mission-row-num">01</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Your Case for Change</div>
+          <div class="mission-row-desc">Make the invisible cost of staying put undeniable. Name the version of you that is already waiting.</div>
+          <div class="mission-row-badge">Start here — free</div>
+        </div>
+        <div class="mission-row-meta">Chapter 3</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 02 · Ch 4</div>
-        <h3>The Immunity Map</h3>
-        <p>You are not failing to change. You are succeeding at something hidden. Map what you are protecting and why.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">02</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">The Immunity Map</div>
+          <div class="mission-row-desc">You are not failing to change. You are succeeding at something hidden. Map what you are protecting and why.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 4</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 03 · Ch 5</div>
-        <h3>Your Story Lifeline</h3>
-        <p>Your life is not a random sequence of events. It is a pattern with a logic. This mission traces it.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">03</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Your Story Lifeline</div>
+          <div class="mission-row-desc">Your life is not a random sequence of events. It is a pattern with a logic. This mission traces it.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 5</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 04 · Ch 6¾</div>
-        <h3>The Stories Behind the Stories</h3>
-        <p>The patterns in your life didn't start with you. Find where they came from — and begin to lift the weight.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">04</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">The Stories Behind the Stories</div>
+          <div class="mission-row-desc">The patterns in your life didn't start with you. Find where they came from — and begin to lift the weight of carrying them.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 6¾</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 05 · Ch 7</div>
-        <h3>The Value of Your Values</h3>
-        <p>Your values are not aspirations. They are the living record of what life has taught you matters.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">05</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">The Value of Your Values</div>
+          <div class="mission-row-desc">Your values are not aspirations. They are the living record of what life has taught you matters — forged in joy and in survival.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 7</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 06 · Ch 9</div>
-        <h3>Taming Your Triggers</h3>
-        <p>A trigger is not a weakness. It is the moment your body decides the past is happening again.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">06</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Taming Your Triggers</div>
+          <div class="mission-row-desc">A trigger is not a weakness. It is the moment your body decides the past is happening again. Build your map of those moments.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 9</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 07 · Ch 10</div>
-        <h3>Feedback is a Gift</h3>
-        <p>The patterns you've uncovered in yourself are patterns others have already noticed. Time to hear them.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">07</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Feedback is a Gift</div>
+          <div class="mission-row-desc">The patterns you've been uncovering are patterns others have already noticed. This mission gives you a structure to hear them.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 10</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 08 · Ch 11 · L1</div>
-        <h3>Zoom Out: Check the Facts</h3>
-        <p>Some of what you believe to be true was formed by a younger version of you with incomplete information.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">08</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Zoom Out: Check the Facts</div>
+          <div class="mission-row-desc">Some of what you believe to be true was formed by a younger version of you working with incomplete information.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 11 · Level 1</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 09 · Ch 11 · L2</div>
-        <h3>Zoom Out: Place the Pattern</h3>
-        <p>Not just questioning the story — understanding why it made perfect sense at the time. Your younger self wasn't wrong.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">09</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Zoom Out: Place the Pattern</div>
+          <div class="mission-row-desc">Not just questioning whether the story was accurate — but understanding why it made perfect sense at the time.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 11 · Level 2</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 10 · Ch 11 · L3</div>
-        <h3>Zoom Out: Name the Shift</h3>
-        <p>You've given the old story some grace. Now comes the question: who do you get to be now?</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">10</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Zoom Out: Name the Shift</div>
+          <div class="mission-row-desc">You've given the old story some grace. Now the question that follows: who do you get to be now that you're not carrying it the same way?</div>
+        </div>
+        <div class="mission-row-meta">Chapter 11 · Level 3</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 11 · Ch 12</div>
-        <h3>Who Do You Get to Be Now?</h3>
-        <p>Purpose is not a destination. It is the quality of presence you bring to every room, every choice.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">11</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Who Do You Get to Be Now?</div>
+          <div class="mission-row-desc">Purpose is not a destination or a title. It is the quality of presence you bring to every room, every conversation, every choice.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 12</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 12 · Ch 13</div>
-        <h3>Be In Choice</h3>
-        <p>Having a purpose changes something. You now have a reference point for every decision, every challenge.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">12</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Be In Choice</div>
+          <div class="mission-row-desc">Having a purpose changes something. You now have a reference point for every decision, every challenge, every moment the old patterns try to reassert.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 13</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 13 · Ch 14</div>
-        <h3>Courageous Conversations</h3>
-        <p>Purpose without the courage to speak honestly is just a nice idea. This mission gives you the structure.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">13</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Courageous Conversations</div>
+          <div class="mission-row-desc">Purpose without the courage to speak honestly is just a nice idea. This mission gives you the structure for the conversations you've been avoiding.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 14</div>
       </div>
-      <div class="mission-card">
-        <div class="mission-num">Mission 14 · Ch 15</div>
-        <h3>Committing to the Practice</h3>
-        <p>This is not the end. There is no end. This is the moment you decide the person you've been becoming is worth showing up for.</p>
+
+      <div class="mission-row">
+        <div class="mission-row-num">14</div>
+        <div class="mission-row-body">
+          <div class="mission-row-title">Committing to the Practice</div>
+          <div class="mission-row-desc">This is not the end. There is no end. This is the moment you decide the person you've been becoming is worth showing up for — again and again.</div>
+        </div>
+        <div class="mission-row-meta">Chapter 15</div>
       </div>
+
     </div>
+
     <div style="margin-top:48px;display:flex;align-items:center;gap:24px;">
       <a href="/workbook.html" class="btn-primary">Begin Mission 1 — free</a>
       <span style="font-size:13px;color:rgba(255,255,255,0.3);">No account needed to start · Takes about 45 minutes</span>
