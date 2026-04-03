@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rewrite Your Life — Simon Lamb & Purposeful Change</title>
+  <meta name="description" content="A living workbook and AI companion for the change that actually lasts. Eight missions. Your stories. Your code." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #D85A30;
+      --orange-light: #FAECE7;
+      --yellow: #EF9F27;
+      --dark: #1a1a18;
+      --dark-2: #2a2a26;
+      --mid: #5a5a56;
+      --light: #f7f5f0;
+      --white: #ffffff;
+      --border: rgba(0,0,0,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(247,245,240,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-mark {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-mark svg { width: 14px; height: 14px; fill: white; }
+    .nav-logo-text {
+      font-size: 13px; font-weight: 500; color: var(--dark); letter-spacing: 0.3px;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      font-size: 13px; font-weight: 400; color: var(--mid);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--dark); }
+    .nav-cta {
+      background: var(--orange); color: white;
+      border: none; border-radius: 6px;
+      padding: 9px 20px; font-size: 13px; font-weight: 500;
+      cursor: pointer; text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.87; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      background: var(--dark);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-left {
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 120px 64px 80px 64px;
+      position: relative; z-index: 2;
+    }
+    .hero-right {
+      position: relative; overflow: hidden;
+    }
+    .hero-right img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+      opacity: 0.75;
+    }
+    .hero-right::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, var(--dark) 0%, transparent 40%);
+    }
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: 3px;
+      color: var(--orange); text-transform: uppercase; margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 6vw, 86px);
+      font-weight: 300; color: white;
+      line-height: 0.95; margin-bottom: 32px;
+      opacity: 0; animation: fadeUp 0.8s ease 0.4s forwards;
+    }
+    .hero h1 em { font-style: italic; color: var(--yellow); }
+    .hero-sub {
+      font-size: 17px; font-weight: 300;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.8; max-width: 440px; margin-bottom: 48px;
+      opacity: 0; animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+    .hero-actions {
+      display: flex; gap: 16px; align-items: center;
+      opacity: 0; animation: fadeUp 0.8s ease 0.8s forwards;
+    }
+    .btn-primary {
+      background: var(--orange); color: white;
+      border: none; border-radius: 8px;
+      padding: 16px 32px; font-size: 15px; font-weight: 500;
+      cursor: pointer; text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s; display: inline-block;
+    }
+    .btn-primary:hover { opacity: 0.87; }
+    .btn-ghost {
+      color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 300;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: white; }
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 64px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      opacity: 0; animation: fadeUp 0.8s ease 1.2s forwards;
+    }
+    .hero-scroll-line {
+      width: 40px; height: 1px; background: rgba(255,255,255,0.2);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── INTRO BAND ── */
+    .intro-band {
+      background: var(--orange);
+      padding: 32px 64px;
+      display: flex; align-items: center; gap: 48px;
+      flex-wrap: wrap;
+    }
+    .intro-band-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 300; font-style: italic;
+      color: white; line-height: 1.4; flex: 1;
+    }
+    .intro-band-meta {
+      font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.7);
+      letter-spacing: 1px; text-align: right; flex-shrink: 0;
+    }
+
+    /* ── SECTION BASE ── */
+    section { padding: 100px 64px; }
+    .section-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: 3px;
+      color: var(--orange); text-transform: uppercase; margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 4vw, 56px);
+      font-weight: 300; line-height: 1.1;
+      color: var(--dark); margin-bottom: 24px;
+    }
+    .section-title em { font-style: italic; }
+    .section-body {
+      font-size: 16px; font-weight: 300;
+      line-height: 1.85; color: var(--mid);
+      max-width: 560px;
+    }
+
+    /* ── WHAT THIS IS ── */
+    .what-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0; margin-top: 80px;
+    }
+    .what-left { padding-right: 80px; }
+    .what-right {
+      border-left: 0.5px solid var(--border);
+      padding-left: 80px;
+      display: flex; flex-direction: column; gap: 40px;
+    }
+    .what-card {
+      display: flex; gap: 20px; align-items: flex-start;
+    }
+    .what-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px; font-weight: 300;
+      color: var(--orange); opacity: 0.4;
+      line-height: 1; flex-shrink: 0; width: 48px;
+    }
+    .what-card h3 {
+      font-size: 15px; font-weight: 500;
+      color: var(--dark); margin-bottom: 6px;
+    }
+    .what-card p {
+      font-size: 14px; font-weight: 300;
+      line-height: 1.75; color: var(--mid);
+    }
+
+    /* ── MISSIONS ── */
+    .missions { background: var(--dark); padding: 100px 64px; }
+    .missions .section-title { color: white; }
+    .missions .section-body { color: rgba(255,255,255,0.55); }
+    .missions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: rgba(255,255,255,0.08);
+      margin-top: 64px; border-radius: 12px; overflow: hidden;
+    }
+    .mission-card {
+      background: var(--dark-2);
+      padding: 32px 28px;
+      transition: background 0.2s;
+    }
+    .mission-card:hover { background: #333330; }
+    .mission-num {
+      font-size: 11px; font-weight: 500; letter-spacing: 2px;
+      color: var(--yellow); text-transform: uppercase; margin-bottom: 16px;
+    }
+    .mission-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400;
+      color: white; margin-bottom: 10px; line-height: 1.2;
+    }
+    .mission-card p {
+      font-size: 13px; font-weight: 300;
+      color: rgba(255,255,255,0.45); line-height: 1.7;
+    }
+
+    /* ── LUMEN SECTION ── */
+    .lumen-section {
+      background: var(--light);
+      padding: 100px 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .lumen-demo {
+      background: var(--dark); border-radius: 16px;
+      padding: 32px; position: relative; overflow: hidden;
+    }
+    .lumen-demo-shape {
+      position: absolute; top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.1;
+    }
+    .lumen-demo-label {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--yellow);
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .lumen-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
+    .lumen-msg {
+      display: flex; gap: 10px; margin-bottom: 16px;
+    }
+    .lumen-av {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--yellow); color: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+    }
+    .user-av-lp {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 500; flex-shrink: 0; margin-top: 2px;
+    }
+    .lumen-bubble-lp {
+      font-size: 14px; font-weight: 300; line-height: 1.7;
+      color: rgba(255,255,255,0.82); font-style: italic;
+    }
+    .user-bubble-lp {
+      font-size: 14px; font-weight: 300; line-height: 1.7;
+      color: rgba(255,255,255,0.5);
+    }
+    .lumen-input-demo {
+      margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; gap: 8px; align-items: center;
+    }
+    .lumen-input-demo-field {
+      flex: 1; background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; padding: 10px 14px;
+      font-size: 13px; color: rgba(255,255,255,0.4);
+      font-style: italic; font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── ABOUT ── */
+    .about {
+      background: white; padding: 100px 64px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+    }
+    .about-img {
+      position: relative;
+    }
+    .about-img img {
+      width: 100%; border-radius: 12px;
+      object-fit: cover;
+    }
+    .about-img-caption {
+      position: absolute; bottom: -16px; right: -16px;
+      background: var(--orange); color: white;
+      padding: 12px 20px; border-radius: 8px;
+      font-size: 12px; font-weight: 500; letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .about-content { padding-top: 8px; }
+    .about-content .section-body { max-width: none; margin-bottom: 24px; }
+    .about-quote {
+      border-left: 3px solid var(--orange);
+      padding: 20px 24px;
+      background: var(--orange-light);
+      border-radius: 0 8px 8px 0;
+      margin: 32px 0;
+    }
+    .about-quote p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-style: italic;
+      line-height: 1.6; color: var(--dark);
+    }
+    .about-links { display: flex; gap: 16px; flex-wrap: wrap; }
+    .about-link {
+      font-size: 13px; font-weight: 400; color: var(--orange);
+      text-decoration: none; display: flex; align-items: center; gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .about-link:hover { opacity: 0.7; }
+    .about-link::after { content: '→'; }
+
+    /* ── FOR YOU ── */
+    .for-you { background: var(--light); padding: 100px 64px; }
+    .for-you-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; margin-top: 64px;
+    }
+    .for-card {
+      background: white; border-radius: 12px;
+      padding: 36px 32px;
+      border: 0.5px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .for-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--orange);
+    }
+    .for-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px; font-weight: 400;
+      color: var(--dark); margin-bottom: 12px; line-height: 1.2;
+    }
+    .for-card p {
+      font-size: 14px; font-weight: 300;
+      line-height: 1.8; color: var(--mid);
+    }
+
+    /* ── STAGE SECTION ── */
+    .stage {
+      position: relative; height: 500px; overflow: hidden;
+    }
+    .stage img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center 30%;
+    }
+    .stage-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, rgba(26,26,24,0.92) 40%, rgba(26,26,24,0.4));
+      display: flex; align-items: center; padding: 0 64px;
+    }
+    .stage-content { max-width: 520px; }
+    .stage-content .section-title { color: white; margin-bottom: 20px; }
+    .stage-content p {
+      font-size: 15px; font-weight: 300;
+      line-height: 1.8; color: rgba(255,255,255,0.6); margin-bottom: 32px;
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      background: var(--dark); padding: 100px 64px;
+      text-align: center;
+    }
+    .cta-section .section-title { color: white; margin: 0 auto 20px; max-width: 600px; }
+    .cta-section .section-body {
+      color: rgba(255,255,255,0.5); margin: 0 auto 48px; text-align: center;
+    }
+    .cta-actions { display: flex; gap: 16px; justify-content: center; align-items: center; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark-2);
+      padding: 48px 64px;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 24px;
+      border-top: 0.5px solid rgba(255,255,255,0.07);
+    }
+    .footer-logo {
+      font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.4);
+    }
+    .footer-logo strong { color: rgba(255,255,255,0.7); font-weight: 500; }
+    .footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 12px; color: rgba(255,255,255,0.35);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.65); }
+    .footer-copy {
+      font-size: 12px; color: rgba(255,255,255,0.2);
+      width: 100%;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      section { padding: 72px 24px; }
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 100px 24px 60px; }
+      .hero-right { height: 300px; }
+      .hero-right::after { background: linear-gradient(to top, var(--dark) 0%, transparent 50%); }
+      .intro-band { padding: 28px 24px; }
+      .what-grid { grid-template-columns: 1fr; }
+      .what-left { padding-right: 0; margin-bottom: 48px; }
+      .what-right { border-left: none; padding-left: 0; border-top: 0.5px solid var(--border); padding-top: 48px; }
+      .missions { padding: 72px 24px; }
+      .missions-grid { grid-template-columns: 1fr 1fr; }
+      .lumen-section { grid-template-columns: 1fr; padding: 72px 24px; gap: 40px; }
+      .about { grid-template-columns: 1fr; padding: 72px 24px; gap: 40px; }
+      .about-img-caption { display: none; }
+      .for-you { padding: 72px 24px; }
+      .for-you-grid { grid-template-columns: 1fr; }
+      .stage-overlay { padding: 0 24px; }
+      .cta-section { padding: 72px 24px; }
+      .cta-actions { flex-direction: column; }
+      footer { padding: 40px 24px; }
+      .hero-scroll { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="https://purposefulchange.com" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"/></svg>
+      </div>
+      <span class="nav-logo-text">Purposeful Change</span>
+    </a>
+    <div class="nav-links">
+      <a href="https://purposefulchange.com/about-us/">About</a>
+      <a href="https://purposefulchange.com/products/">Work</a>
+      <a href="https://events.purposefulchange.com/apr26">Events</a>
+      <a href="https://purposefulchange.com/contact/">Contact</a>
+    </div>
+    <a href="/index.html" class="nav-cta">Begin Mission 1</a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Reframe · The Living Workbook</div>
+      <h1>Rewrite<br><em>Your Life</em></h1>
+      <p class="hero-sub">Most books tell you what to think. This one asks you who you are — and who you're ready to become. Eight missions. Your stories. Your code. An AI companion trained to hold the mirror.</p>
+      <div class="hero-actions">
+        <a href="/index.html" class="btn-primary">Begin Mission 1 — free</a>
+        <a href="#about" class="btn-ghost">Meet Simon →</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <img src="simon-stage.jpg" alt="Simon Lamb on stage" />
+    </div>
+    <div class="hero-scroll">
+      <div class="hero-scroll-line"></div>
+      Scroll to explore
+    </div>
+  </div>
+
+  <!-- INTRO BAND -->
+  <div class="intro-band">
+    <div class="intro-band-text">"This isn't just a book — it's a process. The kind that changes how you see yourself, not just what you do."</div>
+    <div class="intro-band-meta">Simon Lamb<br>Founder, Purposeful Change<br>25 years · Nearly a million people</div>
+  </div>
+
+  <!-- WHAT THIS IS -->
+  <section id="what">
+    <div class="what-grid">
+      <div class="what-left">
+        <div class="section-eyebrow">What this is</div>
+        <h2 class="section-title">Not a book.<br><em>A practice.</em></h2>
+        <p class="section-body">Rewrite Your Life is the Purposeful Change Reframe methodology — the same process that has helped nearly a million people across Microsoft, Nike, Shell, HSBC, and beyond — brought into your hands as a living workbook with an AI companion built to go deeper with you.</p>
+        <p class="section-body" style="margin-top:20px;">You don't read it. You do it. Then you come back and do it again, because the person reading it has changed.</p>
+      </div>
+      <div class="what-right">
+        <div class="what-card">
+          <div class="what-num">01</div>
+          <div>
+            <h3>Eight missions</h3>
+            <p>Each one a real piece of work — not reflection for reflection's sake, but the kind that produces a genuine shift in how you see yourself and what you do next.</p>
+          </div>
+        </div>
+        <div class="what-card">
+          <div class="what-num">02</div>
+          <div>
+            <h3>Lumen — your AI mirror</h3>
+            <p>Not a chatbot. Not a coach. A mirror trained in the Reframe methodology that reads what you actually wrote and asks the one question that takes you deeper.</p>
+          </div>
+        </div>
+        <div class="what-card">
+          <div class="what-num">03</div>
+          <div>
+            <h3>Your work, saved</h3>
+            <p>Everything you write is yours, saved and waiting. Come back in a week, a month, a year — your reflections are there, and so is the distance you've travelled.</p>
+          </div>
+        </div>
+        <div class="what-card">
+          <div class="what-num">04</div>
+          <div>
+            <h3>A community</h3>
+            <p>The work deepens in conversation. The Reframe community is a space to share, to be witnessed, and to find that you are not alone in the patterns you are working with.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSIONS -->
+  <section class="missions" id="missions">
+    <div class="section-eyebrow" style="color:var(--yellow)">Eight missions</div>
+    <h2 class="section-title" style="color:white">The work ahead</h2>
+    <p class="section-body">Each mission follows the same rhythm: Experiment. Reflect. Share. Practice. Change doesn't come from thinking differently. It comes from being different.</p>
+    <div class="missions-grid">
+      <div class="mission-card">
+        <div class="mission-num">Mission 01</div>
+        <h3>Your Case for Change</h3>
+        <p>Make the invisible cost of staying put undeniable. Name the version of you that is already waiting.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 02</div>
+        <h3>The Immunity Map</h3>
+        <p>You are not failing to change. You are succeeding at something else — something hidden. Map what you are protecting.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 03</div>
+        <h3>The Stories You Carry</h3>
+        <p>Every behaviour has a story behind it. Surface the narrative running underneath the pattern.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 04</div>
+        <h3>The Roots</h3>
+        <p>Pain travels through families until someone is ready to feel it. Trace what you inherited and what you can choose to set down.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 05</div>
+        <h3>The Value of Your Values</h3>
+        <p>Most values are inherited. Which ones are truly yours — and which are scripts absorbed from others?</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 06</div>
+        <h3>The Trigger Map</h3>
+        <p>Triggers are teachers. Map what activates you, where it comes from, and what it is asking you to see.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 07</div>
+        <h3>The Conversation</h3>
+        <p>Our work, our relationships, our lives succeed or fail one conversation at a time. Practise the one you've been avoiding.</p>
+      </div>
+      <div class="mission-card">
+        <div class="mission-num">Mission 08</div>
+        <h3>The Integration</h3>
+        <p>This is not something you finish. It is something you begin to live. Anchor the shift into practice.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LUMEN -->
+  <section class="lumen-section" id="lumen">
+    <div>
+      <div class="section-eyebrow">Meet Lumen</div>
+      <h2 class="section-title">A mirror,<br><em>not a coach</em></h2>
+      <p class="section-body">Lumen is an AI companion trained in the Reframe methodology and 25 years of Simon's coaching practice. It doesn't give you answers. It reads what you actually wrote — the word you chose, the tension, the absence — and asks the one question that takes you one layer deeper.</p>
+      <p class="section-body" style="margin-top:20px;">You decide when to go deeper. You decide when to stop. Lumen follows your lead.</p>
+      <p class="section-body" style="margin-top:20px;font-style:italic;color:var(--orange);">"Lumen isn't here to fix you. It's a support, not a solution. A prompt for your own wisdom."</p>
+    </div>
+    <div class="lumen-demo">
+      <div class="lumen-demo-shape"></div>
+      <div class="lumen-demo-label"><div class="lumen-dot"></div>Lumen in action</div>
+      <div class="lumen-msg">
+        <div class="user-av-lp">you</div>
+        <div class="user-bubble-lp">When I finished the book it felt like I closed a loop in my life. Tiring but relief.</div>
+      </div>
+      <div class="lumen-msg">
+        <div class="lumen-av">L</div>
+        <div class="lumen-bubble-lp">"Closed a loop" is doing a lot of work in that sentence — and what follows isn't relief alone, it's relief and tired. What was the loop actually holding for you, before the book closed it?</div>
+      </div>
+      <div class="lumen-msg">
+        <div class="user-av-lp">you</div>
+        <div class="user-bubble-lp">I left home at 15 and I never stopped moving until now.</div>
+      </div>
+      <div class="lumen-msg">
+        <div class="lumen-av">L</div>
+        <div class="lumen-bubble-lp">You've been in motion for so long that stopping didn't feel like rest — it felt like finishing. What does it mean that the book was the thing that finally did it?</div>
+      </div>
+      <div class="lumen-input-demo">
+        <div class="lumen-input-demo-field">Reply to Lumen...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-img">
+      <img src="simon-portrait.jpg" alt="Simon Lamb" />
+      <div class="about-img-caption">Founder · Purposeful Change</div>
+    </div>
+    <div class="about-content">
+      <div class="section-eyebrow">About Simon</div>
+      <h2 class="section-title">The squiggly<br><em>spiral</em></h2>
+      <p class="section-body">Simon Lamb has spent 25 years helping people and organisations change — not by telling them what to do, but by helping them see what they can't yet see about themselves.</p>
+      <p class="section-body" style="margin-top:16px;">He has taken this work into the rooms of Microsoft, Nike, Shell, HSBC, Co-op, and hundreds of others — not as a consultant but as a presence. Someone who gets on the stage without a script, holds the room, and makes it safe to be honest.</p>
+      <div class="about-quote">
+        <p>"Life is neither a straight line with a destination, nor a loop where we never change. It's a squiggly spiral — where even the collapses are part of the evolution."</p>
+      </div>
+      <p class="section-body">Rewrite Your Life is 25 years of that work, decoded and made available to everyone. Written with Christina Watt, CPCC ACC, and built as a living product — not a PDF, not a course, but a practice you can return to.</p>
+      <div class="about-links" style="margin-top:32px;">
+        <a href="https://purposefulchange.com/about-us/" class="about-link">About Purposeful Change</a>
+        <a href="https://events.purposefulchange.com/apr26" class="about-link">Join the next event</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOR YOU -->
+  <section class="for-you" id="for-you">
+    <div class="section-eyebrow">Who this is for</div>
+    <h2 class="section-title">Three ways <em>in</em></h2>
+    <div class="for-you-grid">
+      <div class="for-card">
+        <h3>You've read the book</h3>
+        <p>The workbook is the practice layer the book was always pointing toward. This is where the ideas become wiring — not just understanding, but a shift you can feel.</p>
+      </div>
+      <div class="for-card">
+        <h3>You know Simon's work</h3>
+        <p>If you've been in a Purposeful Change programme, workshop, or event, this is the same methodology — now available in your own time, at your own pace, with Lumen holding the thread.</p>
+      </div>
+      <div class="for-card">
+        <h3>You're arriving cold</h3>
+        <p>You don't need the book. You don't need the backstory. You need one honest hour with Mission 1 and you'll understand why nearly a million people have done this work.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE -->
+  <div class="stage">
+    <img src="simon-stage.jpg" alt="Simon Lamb on stage" />
+    <div class="stage-overlay">
+      <div class="stage-content">
+        <div class="section-eyebrow" style="color:var(--yellow)">Live events</div>
+        <h2 class="section-title">The work continues<br><em>in the room</em></h2>
+        <p>The Reframe Experience series brings this work into live conversation — 90 minutes, online, with Simon and a community of people doing the same honest reckoning.</p>
+        <a href="https://events.purposefulchange.com/apr26" class="btn-primary">See upcoming events</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="section-eyebrow" style="color:var(--yellow)">Begin now</div>
+    <h2 class="section-title">Your future self<br><em>is already within you</em></h2>
+    <p class="section-body">It's just a matter of voting for them, one habit or behaviour at a time. Mission 1 is free. No credit card. No commitment. Just an honest hour with yourself.</p>
+    <div class="cta-actions">
+      <a href="/index.html" class="btn-primary">Begin Mission 1 — free</a>
+      <a href="https://events.purposefulchange.com/apr26" class="btn-ghost" style="color:rgba(255,255,255,0.4)">Join the next live event →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo"><strong>Rewrite Your Life</strong> · A Purposeful Change product</div>
+    <div class="footer-links">
+      <a href="https://purposefulchange.com">purposefulchange.com</a>
+      <a href="https://purposefulchange.com/about-us/">About</a>
+      <a href="https://events.purposefulchange.com/apr26">Events</a>
+      <a href="https://purposefulchange.com/contact/">Contact</a>
+      <a href="https://purposefulchange.com/privacy-policy/">Privacy</a>
+      <a href="https://purposefulchange.com/terms-conditions/">Terms</a>
+    </div>
+    <div class="footer-copy">© 2026 Purposeful Change · Written by Simon Lamb with Christina Watt, CPCC ACC</div>
+  </footer>
+
+</body>
+</html>
