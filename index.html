@@ -34,6 +34,88 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── AUTH SCREEN ── */
+    .auth-screen {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .auth-screen.hidden { display: none; }
+    .auth-box {
+      background: var(--light); border-radius: 16px;
+      padding: 40px; width: 100%; max-width: 420px;
+    }
+    .auth-logo {
+      font-size: 11px; font-weight: 500; letter-spacing: 3px;
+      color: var(--orange); text-transform: uppercase; margin-bottom: 24px;
+    }
+    .auth-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px; font-weight: 700;
+      color: var(--dark); margin-bottom: 8px;
+    }
+    .auth-box p {
+      font-size: 14px; font-weight: 300;
+      color: var(--mid); line-height: 1.7; margin-bottom: 28px;
+    }
+    .auth-field { margin-bottom: 16px; }
+    .auth-field label {
+      display: block; font-size: 11px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--mid); margin-bottom: 6px;
+    }
+    .auth-field input {
+      width: 100%; border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 12px 16px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      color: var(--dark); background: var(--white);
+      outline: none; transition: border-color 0.2s;
+    }
+    .auth-field input:focus { border-color: var(--orange); }
+    .auth-submit {
+      width: 100%; background: var(--orange); color: white;
+      border: none; border-radius: 8px; padding: 14px;
+      font-size: 15px; font-weight: 500; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; margin-top: 8px;
+      transition: opacity 0.2s;
+    }
+    .auth-submit:hover { opacity: 0.87; }
+    .auth-toggle {
+      text-align: center; margin-top: 16px;
+      font-size: 13px; color: var(--mid);
+    }
+    .auth-toggle button {
+      background: none; border: none; color: var(--orange);
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .auth-error {
+      background: #FCEBEB; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px;
+      color: #A32D2D; margin-bottom: 16px; display: none;
+    }
+    .auth-error.show { display: block; }
+    .auth-saving {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--dark); color: rgba(255,255,255,0.7);
+      font-size: 12px; padding: 8px 14px; border-radius: 6px;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .auth-saving.show { opacity: 1; }
+    .auth-user-bar {
+      background: var(--dark); padding: 10px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .auth-user-email { font-size: 12px; color: rgba(255,255,255,0.4); }
+    .auth-signout {
+      background: none; border: none; color: rgba(255,255,255,0.4);
+      font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s;
+    }
+    .auth-signout:hover { color: rgba(255,255,255,0.7); }
+
     /* ── HERO ── */
     .hero {
       background: var(--dark);
@@ -465,6 +547,38 @@
   </style>
 </head>
 <body>
+
+  <!-- AUTH SCREEN -->
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-box">
+      <div class="auth-logo">Purposeful Change · Reframe</div>
+      <h2 id="auth-title">Welcome back</h2>
+      <p id="auth-desc">Sign in to continue your work. Your reflections are saved and waiting.</p>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="your@email.com" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') authSubmit()" />
+      </div>
+      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
+      <div class="auth-toggle">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE INDICATOR -->
+  <div class="auth-saving" id="save-indicator">Saving...</div>
+
+  <!-- USER BAR -->
+  <div class="auth-user-bar" id="user-bar" style="display:none">
+    <span class="auth-user-email" id="user-email"></span>
+    <button class="auth-signout" onclick="signOut()">Sign out</button>
+  </div>
 
   <!-- HERO -->
   <div class="hero">
@@ -976,7 +1090,158 @@
 
   </div><!-- /body -->
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
+    // ── Supabase config — replace these two values ──
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── Auth state ──
+    let currentUser = null;
+    let isSignUp = false;
+    let saveTimer = null;
+
+    // ── All question IDs ──
+    const ALL_QUESTIONS = [
+      'p1q1','p1q2','p1q3','p1q4','p1q5',
+      'p2q1','p2q2','p2q3','p2q4',
+      'p3q1','p3q2','p3q3',
+      'p4q1','p4q2','p4q3','ta-commit'
+    ];
+
+    // ── On load: check session ──
+    window.addEventListener('load', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        showWorkbook();
+        await loadAnswers();
+      }
+    });
+
+    // ── Auth toggle ──
+    function toggleAuth() {
+      isSignUp = !isSignUp;
+      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
+      document.getElementById('auth-desc').textContent = isSignUp
+        ? 'Your reflections will be saved so you can return to them anytime.'
+        : 'Sign in to continue your work. Your reflections are saved and waiting.';
+      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
+      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
+      document.getElementById('auth-error').classList.remove('show');
+    }
+
+    // ── Auth submit ──
+    async function authSubmit() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-btn');
+      const errEl = document.getElementById('auth-error');
+      errEl.classList.remove('show');
+      btn.textContent = 'Please wait...';
+      btn.disabled = true;
+
+      try {
+        let result;
+        if (isSignUp) {
+          result = await sb.auth.signUp({ email, password });
+        } else {
+          result = await sb.auth.signInWithPassword({ email, password });
+        }
+
+        if (result.error) {
+          errEl.textContent = result.error.message;
+          errEl.classList.add('show');
+          btn.textContent = isSignUp ? 'Create account' : 'Sign in';
+          btn.disabled = false;
+        } else {
+          currentUser = result.data.user;
+          showWorkbook();
+          if (!isSignUp) await loadAnswers();
+        }
+      } catch(e) {
+        errEl.textContent = 'Something went wrong. Please try again.';
+        errEl.classList.add('show');
+        btn.textContent = isSignUp ? 'Create account' : 'Sign in';
+        btn.disabled = false;
+      }
+    }
+
+    // ── Show workbook ──
+    function showWorkbook() {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('user-bar').style.display = 'flex';
+      document.getElementById('user-email').textContent = currentUser.email;
+    }
+
+    // ── Sign out ──
+    async function signOut() {
+      await sb.auth.signOut();
+      currentUser = null;
+      ALL_QUESTIONS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('user-bar').style.display = 'none';
+      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('auth-btn').textContent = 'Sign in';
+      document.getElementById('auth-btn').disabled = false;
+    }
+
+    // ── Load saved answers ──
+    async function loadAnswers() {
+      if (!currentUser) return;
+      const { data, error } = await sb
+        .from('answers')
+        .select('question, answer')
+        .eq('user_id', currentUser.id)
+        .eq('mission', 'mission-1');
+      if (data) {
+        data.forEach(row => {
+          const el = document.getElementById(row.question);
+          if (el) {
+            el.value = row.answer;
+            const wcId = 'wc-' + row.question;
+            const trowId = 'trow-' + row.question;
+            const wcEl = document.getElementById(wcId);
+            const trowEl = document.getElementById(trowId);
+            if (wcEl) {
+              const w = row.answer.trim() ? row.answer.trim().split(/\s+/).length : 0;
+              wcEl.textContent = w + ' word' + (w !== 1 ? 's' : '');
+            }
+            if (trowEl) {
+              const w = row.answer.trim() ? row.answer.trim().split(/\s+/).length : 0;
+              if (w >= 12) trowEl.classList.add('visible');
+            }
+          }
+        });
+      }
+    }
+
+    // ── Auto-save ──
+    function saveAnswer(questionId) {
+      if (!currentUser) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        const answer = document.getElementById(questionId)?.value || '';
+        const indicator = document.getElementById('save-indicator');
+        indicator.textContent = 'Saving...';
+        indicator.classList.add('show');
+        await sb.from('answers').upsert({
+          user_id: currentUser.id,
+          mission: 'mission-1',
+          question: questionId,
+          answer: answer
+        }, { onConflict: 'user_id,mission,question' });
+        indicator.textContent = 'Saved';
+        setTimeout(() => indicator.classList.remove('show'), 1500);
+      }, 800);
+    }
+
     // ── State ──
     let currentStep = 1;
     const convos = {};
@@ -1015,6 +1280,7 @@ Your role as Lumen is to be a mirror, not a coach. You:
       const w = v ? v.split(/\s+/).length : 0;
       document.getElementById(wcId).textContent = w + ' word' + (w !== 1 ? 's' : '');
       if (w >= 12) document.getElementById(trowId).classList.add('visible');
+      saveAnswer(taId);
     }
 
     function getVal(id) {
@@ -1103,13 +1369,12 @@ Your role as Lumen is to be a mirror, not a coach. You:
         (reply) => {
           removeThinking(msgsId);
           convos[taId].push({ role: 'assistant', content: reply });
-          addMsg(msgsId, reply === 'error' ? 'lumen' : 'lumen', reply);
+          addMsg(msgsId, 'lumen', reply);
         }
       );
     }
 
-    // ── Part reflection ──
-    // ── Extract sub-conversation summary for a question ──
+    // ── Extract sub-conversation summary ──
     function getConvoSummary(qId) {
       const convo = convos[qId];
       if (!convo || convo.length <= 1) return null;
@@ -1121,7 +1386,7 @@ Your role as Lumen is to be a mirror, not a coach. You:
       return exchanges.join('\n');
     }
 
-    // ── Build full context: written answer + any Lumen conversation ──
+    // ── Build full context ──
     function buildContext(qId, label) {
       const answer = getVal(qId);
       if (!answer) return null;
@@ -1206,11 +1471,10 @@ Your role as Lumen is to be a mirror, not a coach. You:
     function checkComplete() {
       if (getVal('ta-commit').length > 20) {
         document.getElementById('complete-banner').classList.add('show');
+        saveAnswer('ta-commit');
       }
     }
 
-    // ── API call ──
-    // Replace LUMEN_API_URL below with your Vercel serverless function URL once deployed
     const LUMEN_API_URL = '/api/lumen';
 
     async function callLumen(systemExtra, messages, onDone) {
