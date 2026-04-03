@@ -145,112 +145,116 @@
 
     /* ── MAIN COLUMN ── */
     .main { padding: 0 0 80px; }
-    .main-inner { padding: 36px 48px 0; margin-top: 0; }
+    .main-inner { padding: 32px 48px 0; }
 
     /* ── WELCOME STRIP ── */
     .welcome {
       background: var(--dark);
-      padding: 36px 48px; margin-bottom: 0;
+      padding: 24px 48px;
       position: relative; overflow: hidden;
       border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-between;
     }
     .welcome-shape-1 {
-      position: absolute; top: -40px; right: -40px;
-      width: 160px; height: 160px;
-      background: var(--blush); border-radius: 50%; opacity: 0.18;
+      position: absolute; top: -30px; right: -30px;
+      width: 100px; height: 100px;
+      background: var(--blush); border-radius: 50%; opacity: 0.25;
     }
     .welcome-shape-2 {
-      position: absolute; bottom: -30px; right: 120px;
-      width: 100px; height: 100px;
+      position: absolute; bottom: -20px; right: 160px;
+      width: 70px; height: 70px;
       background: var(--orange); border-radius: 50%; opacity: 0.15;
     }
     .welcome-shape-3 {
-      position: absolute; top: 20px; right: 220px;
-      width: 60px; height: 60px;
+      position: absolute; top: 10px; right: 220px;
+      width: 40px; height: 40px;
       background: var(--blush); border-radius: 50%; opacity: 0.12;
     }
+    .welcome-left { position: relative; z-index: 1; }
     .welcome-eyebrow {
-      font-size: 11px; font-weight: 700; letter-spacing: 3px;
-      color: var(--yellow); text-transform: uppercase; margin-bottom: 12px;
-      position: relative; z-index: 1;
+      font-size: 10px; font-weight: 700; letter-spacing: 3px;
+      color: var(--yellow); text-transform: uppercase; margin-bottom: 4px;
     }
     .welcome h1 {
-      font-size: 20px; font-weight: 400; color: rgba(255,255,255,0.7);
-      margin-bottom: 10px; position: relative; z-index: 1;
+      font-size: 16px; font-weight: 400; color: rgba(255,255,255,0.6);
+      position: relative; z-index: 1;
     }
-    .welcome-sub {
-      font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.55);
-      line-height: 1.7; max-width: 500px; position: relative; z-index: 1;
+    .welcome-progress {
+      position: relative; z-index: 1;
+      font-size: 12px; color: rgba(255,255,255,0.3);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .welcome-progress-bar {
+      width: 80px; height: 4px; background: rgba(255,255,255,0.1);
+      border-radius: 2px; overflow: hidden;
+    }
+    .welcome-progress-fill {
+      height: 100%; background: var(--yellow); border-radius: 2px;
+      transition: width 0.5s ease;
     }
 
-    /* ── WHAT ARE MISSIONS ── */
-    .missions-explainer {
-      background: var(--dark);
-      padding: 32px 48px; margin-bottom: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+    /* ── HOW IT WORKS TOGGLE ── */
+    .how-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; cursor: pointer; user-select: none;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
     }
-    .explainer-top {
-      display: flex; gap: 28px; align-items: flex-start; margin-bottom: 24px;
+    .how-toggle-left {
+      display: flex; align-items: center; gap: 10px;
     }
-    .explainer-icon {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: var(--orange); flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; color: white; margin-top: 2px;
+    .how-toggle-label {
+      font-size: 12px; font-weight: 500; color: var(--mid);
     }
-    .explainer-title {
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--yellow); margin-bottom: 8px;
+    .how-toggle-arrow {
+      font-size: 11px; color: var(--mid);
+      transition: transform 0.2s;
     }
-    .explainer-body {
-      font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.65);
-      line-height: 1.75; max-width: 600px;
+    .how-toggle-arrow.open { transform: rotate(180deg); }
+    .how-panel {
+      display: none; padding-bottom: 28px;
+      border-bottom: 1px solid var(--border); margin-bottom: 28px;
+      animation: fadeUp 0.25s ease;
+    }
+    .how-panel.open { display: block; }
+    .how-intro {
+      font-size: 14px; font-weight: 300; color: var(--mid);
+      line-height: 1.75; margin-bottom: 20px; max-width: 580px;
     }
     .explainer-phases {
       display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 12px; margin-top: 4px;
+      gap: 12px;
     }
     .phase-card {
       border-radius: 12px; padding: 16px 18px;
-      border-top: 3px solid;
+      border-top: 3px solid; background: var(--white);
     }
     .phase-card-num {
       font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; margin-bottom: 6px; opacity: 0.7;
+      text-transform: uppercase; margin-bottom: 6px;
     }
     .phase-card-title {
-      font-size: 14px; font-weight: 700; margin-bottom: 6px;
+      font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--dark);
     }
     .phase-card-desc {
-      font-size: 12px; font-weight: 300; line-height: 1.6; opacity: 0.8;
+      font-size: 12px; font-weight: 300; line-height: 1.6; color: var(--mid);
     }
-    .pc-1 { background: rgba(245,105,20,0.12); border-color: var(--orange); }
+    .pc-1 { border-color: var(--orange); }
     .pc-1 .phase-card-num { color: var(--orange); }
-    .pc-1 .phase-card-title { color: var(--orange); }
-    .pc-1 .phase-card-desc { color: rgba(255,255,255,0.7); }
-
-    .pc-2 { background: rgba(255,190,25,0.1); border-color: var(--yellow); }
-    .pc-2 .phase-card-num { color: var(--yellow); }
-    .pc-2 .phase-card-title { color: var(--yellow); }
-    .pc-2 .phase-card-desc { color: rgba(255,255,255,0.7); }
-
-    .pc-3 { background: rgba(155,215,230,0.1); border-color: var(--sky); }
-    .pc-3 .phase-card-num { color: var(--sky); }
-    .pc-3 .phase-card-title { color: var(--sky); }
-    .pc-3 .phase-card-desc { color: rgba(255,255,255,0.7); }
-
-    .pc-4 { background: rgba(55,115,100,0.15); border-color: var(--grow); }
-    .pc-4 .phase-card-num { color: #7DBFB0; }
-    .pc-4 .phase-card-title { color: #7DBFB0; }
-    .pc-4 .phase-card-desc { color: rgba(255,255,255,0.7); }
+    .pc-2 { border-color: var(--yellow); }
+    .pc-2 .phase-card-num { color: #856200; }
+    .pc-3 { border-color: var(--trust); }
+    .pc-3 .phase-card-num { color: var(--trust); }
+    .pc-4 { border-color: var(--grow); }
+    .pc-4 .phase-card-num { color: var(--grow); }
 
     /* ── MISSION LIST ── */
     .missions-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .missions-header h2 {
-      font-size: 18px; font-weight: 700; color: var(--dark);
+      font-size: 16px; font-weight: 700; color: var(--dark);
     }
     .missions-count {
       font-size: 12px; font-weight: 400; color: var(--mid);
@@ -477,55 +481,61 @@
         <div class="welcome-shape-1"></div>
         <div class="welcome-shape-2"></div>
         <div class="welcome-shape-3"></div>
-        <div class="welcome-eyebrow">Your Journey</div>
-        <h1 id="welcome-heading">Good to have you here.</h1>
-        <p class="welcome-sub">Your work is saved. Pick up where you left off, or take your time with what came up last time before moving on.</p>
-      </div>
-
-      <!-- WHAT ARE MISSIONS -->
-      <div class="missions-explainer">
-        <div class="explainer-top">
-          <div class="explainer-icon">◈</div>
-          <div>
-            <div class="explainer-title">How missions work</div>
-            <div class="explainer-body">Each mission is a small, self-organised personal development project. Read the chapter first, then do the mission. They build on each other — each one begins with a Bridge that connects where you just came from to where you are going next, so the whole arc builds on itself rather than starting fresh each time.</div>
-          </div>
+        <div class="welcome-left">
+          <div class="welcome-eyebrow">Rewrite Your Life</div>
+          <h1 id="welcome-heading">Good to have you here.</h1>
         </div>
-        <div class="explainer-phases">
-          <div class="phase-card pc-1">
-            <div class="phase-card-num">01</div>
-            <div class="phase-card-title">Experiment</div>
-            <div class="phase-card-desc">Notice your stories and self-talk in the moments that matter. Test things in the real world — this is where new wiring begins.</div>
+        <div class="welcome-progress">
+          <div class="welcome-progress-bar">
+            <div class="welcome-progress-fill" id="welcome-progress-fill" style="width:0%"></div>
           </div>
-          <div class="phase-card pc-2">
-            <div class="phase-card-num">02</div>
-            <div class="phase-card-title">Reflect</div>
-            <div class="phase-card-desc">Look for patterns in what repeats and what that might reveal. Insight that isn't named stays invisible.</div>
-          </div>
-          <div class="phase-card pc-3">
-            <div class="phase-card-num">03</div>
-            <div class="phase-card-title">Share</div>
-            <div class="phase-card-desc">Bring it into conversation. Let someone else's presence deepen your insight. Saying it out loud changes something.</div>
-          </div>
-          <div class="phase-card pc-4">
-            <div class="phase-card-num">04</div>
-            <div class="phase-card-title">What next</div>
-            <div class="phase-card-desc">Choose one small shift and stay with it until it begins to take root. Change doesn't come from thinking differently — it comes from being different.</div>
-          </div>
+          <span id="welcome-progress-text">0 of 14</span>
         </div>
       </div>
 
       <div class="main-inner">
 
-      <!-- MISSIONS -->
-      <div class="missions-header">
-        <h2>Your fourteen missions</h2>
-        <span class="missions-count" id="missions-count">0 of 14 complete</span>
-      </div>
+        <!-- HOW IT WORKS TOGGLE -->
+        <div class="how-toggle" onclick="toggleHow()">
+          <div class="how-toggle-left">
+            <span class="how-toggle-label">How missions work</span>
+          </div>
+          <span class="how-toggle-arrow" id="how-arrow">▼</span>
+        </div>
 
-      <div class="mission-list" id="mission-list">
-        <!-- Rendered by JS -->
-      </div>
+        <div class="how-panel" id="how-panel">
+          <p class="how-intro">Each mission is a small, self-organised personal development project. Read the chapter first, then do the mission. They build on each other — each one begins with a Bridge connecting where you just came from to where you are going next, so the whole arc builds on itself rather than starting fresh each time.</p>
+          <div class="explainer-phases">
+            <div class="phase-card pc-1">
+              <div class="phase-card-num">01</div>
+              <div class="phase-card-title">Experiment</div>
+              <div class="phase-card-desc">Notice your stories and self-talk in the moments that matter. Test things in the real world — this is where new wiring begins.</div>
+            </div>
+            <div class="phase-card pc-2">
+              <div class="phase-card-num">02</div>
+              <div class="phase-card-title">Reflect</div>
+              <div class="phase-card-desc">Look for patterns in what repeats and what that might reveal. Insight that isn't named stays invisible.</div>
+            </div>
+            <div class="phase-card pc-3">
+              <div class="phase-card-num">03</div>
+              <div class="phase-card-title">Share</div>
+              <div class="phase-card-desc">Bring it into conversation. Let someone else's presence deepen your insight. Saying it out loud changes something.</div>
+            </div>
+            <div class="phase-card pc-4">
+              <div class="phase-card-num">04</div>
+              <div class="phase-card-title">What next</div>
+              <div class="phase-card-desc">Choose one small shift and stay with it until it begins to take root. Change doesn't come from thinking differently — it comes from being different.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MISSIONS -->
+        <div class="missions-header">
+          <h2>Your fourteen missions</h2>
+          <span class="missions-count" id="missions-count">0 of 14 complete</span>
+        </div>
+
+        <div class="mission-list" id="mission-list"></div>
 
       </div><!-- /main-inner -->
 
@@ -582,6 +592,13 @@
 
     // Mission 1 question IDs — used to calculate progress
     const M1_QUESTIONS = ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p2q3','p2q4','p3q1','p3q2','p3q3','p4q1','p4q2','p4q3','ta-commit'];
+
+    function toggleHow() {
+      const panel = document.getElementById('how-panel');
+      const arrow = document.getElementById('how-arrow');
+      panel.classList.toggle('open');
+      arrow.classList.toggle('open');
+    }
 
     // ── Auth ──
     window.addEventListener('load', async () => {
@@ -716,6 +733,10 @@
 
       document.getElementById('missions-count').textContent =
         `${completeCount} of 14 complete`;
+
+      const pct = Math.round((completeCount / 14) * 100);
+      document.getElementById('welcome-progress-fill').style.width = pct + '%';
+      document.getElementById('welcome-progress-text').textContent = `${completeCount} of 14`;
     }
 
     // ── Lumen ──
