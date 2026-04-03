@@ -173,7 +173,7 @@
       position: relative; z-index: 1;
     }
     .welcome h1 {
-      font-size: 28px; font-weight: 700; color: white;
+      font-size: 20px; font-weight: 400; color: rgba(255,255,255,0.7);
       margin-bottom: 10px; position: relative; z-index: 1;
     }
     .welcome-sub {
@@ -308,34 +308,34 @@
 
     /* ── LUMEN SIDEBAR ── */
     .sidebar {
-      background: var(--dark);
+      background: var(--trust);
       min-height: calc(100vh - 52px);
       position: sticky; top: 52px;
       display: flex; flex-direction: column;
-      border-left: 1px solid rgba(255,255,255,0.05);
+      border-left: 1px solid rgba(255,255,255,0.08);
     }
     .sidebar-header {
       padding: 28px 24px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
       position: relative; overflow: hidden;
     }
     .sidebar-shape {
       position: absolute; top: -30px; right: -30px;
       width: 100px; height: 100px;
-      background: var(--yellow); border-radius: 50%; opacity: 0.1;
+      background: var(--sky); border-radius: 50%; opacity: 0.2;
     }
     .sidebar-shape-2 {
       position: absolute; bottom: -20px; left: -20px;
       width: 70px; height: 70px;
-      background: var(--trust); border-radius: 50%; opacity: 0.15;
+      background: white; border-radius: 50%; opacity: 0.06;
     }
     .lumen-label {
       font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--yellow);
+      text-transform: uppercase; color: var(--sky);
       display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
       position: relative; z-index: 1;
     }
-    .lumen-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); }
+    .lumen-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
     .sidebar-title {
       font-size: 17px; font-weight: 700; color: white;
       margin-bottom: 6px; position: relative; z-index: 1;
@@ -361,8 +361,8 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 9px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
     }
-    .lumen-av { background: var(--yellow); color: var(--dark); }
-    .user-av  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); font-size: 8px; }
+    .lumen-av { background: var(--sky); color: var(--trust); }
+    .user-av  { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-size: 8px; }
     .msg-text { font-size: 13px; font-weight: 300; line-height: 1.7; }
     .lumen-text { color: rgba(255,255,255,0.85); font-style: italic; }
     .user-text  { color: rgba(255,255,255,0.5); }
@@ -383,12 +383,12 @@
       outline: none; line-height: 1.6;
       transition: border-color 0.2s;
     }
-    textarea.lumen-ta:focus { border-color: rgba(255,190,25,0.5); }
-    textarea.lumen-ta::placeholder { color: rgba(255,255,255,0.2); }
+    textarea.lumen-ta:focus { border-color: rgba(155,215,230,0.6); }
+    textarea.lumen-ta::placeholder { color: rgba(255,255,255,0.25); }
     .lumen-send-btn {
-      background: var(--yellow); border: none; border-radius: 20px;
+      background: var(--sky); border: none; border-radius: 20px;
       padding: 10px 20px; font-size: 13px; font-weight: 500;
-      color: var(--dark); cursor: pointer; font-family: 'Rubik', sans-serif;
+      color: var(--trust); cursor: pointer; font-family: 'Rubik', sans-serif;
       transition: opacity 0.2s; align-self: flex-end;
     }
     .lumen-send-btn:hover { opacity: 0.85; }
@@ -459,10 +459,10 @@
           <div class="explainer-title">How missions work</div>
           <div class="explainer-body">Each mission is a small, self-organised personal development project. Read the chapter, then do the mission. They build on each other — your answers from earlier missions become the foundation for what comes next. Lumen holds the thread across all of them.</div>
           <div class="explainer-rhythm">
-            <span class="rhythm-pill rp-1">Experiment</span>
-            <span class="rhythm-pill rp-2">Reflect</span>
-            <span class="rhythm-pill rp-3">Share</span>
-            <span class="rhythm-pill rp-4">Practice</span>
+            <span class="rhythm-pill rp-1">Experiment — notice in the real world</span>
+            <span class="rhythm-pill rp-2">Reflect — look for the pattern</span>
+            <span class="rhythm-pill rp-3">Share — say it to someone</span>
+            <span class="rhythm-pill rp-4">Practice — choose one small shift</span>
           </div>
         </div>
       </div>
