@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Journey | Rewrite Your Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #F56914;
+      --yellow: #FFBE19;
+      --yellow-light: #FFF8E0;
+      --dark: #0A3228;
+      --dark-2: #0d3d31;
+      --mid: #377364;
+      --light: #F5E6CD;
+      --beige-mid: #EDD9B5;
+      --white: #ffffff;
+      --blush: #FFB9AA;
+      --sky: #9BD7E6;
+      --trust: #2D5A91;
+      --trust-light: #E8F0F9;
+      --grow: #377364;
+      --border: rgba(10,50,40,0.1);
+    }
+
+    html { height: 100%; }
+
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── AUTH GATE ── */
+    .auth-gate {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .auth-gate.hidden { display: none; }
+    .auth-box {
+      background: var(--light); border-radius: 20px;
+      padding: 40px; width: 100%; max-width: 400px;
+      position: relative; overflow: hidden;
+    }
+    .auth-box::before {
+      content: ''; position: absolute; top: -50px; right: -50px;
+      width: 140px; height: 140px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.3;
+    }
+    .auth-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 3px;
+      color: var(--orange); text-transform: uppercase; margin-bottom: 20px;
+      position: relative; z-index: 1;
+    }
+    .auth-box h2 {
+      font-size: 26px; font-weight: 700; color: var(--dark);
+      margin-bottom: 6px; position: relative; z-index: 1;
+    }
+    .auth-box p {
+      font-size: 14px; font-weight: 300; color: var(--mid);
+      line-height: 1.6; margin-bottom: 24px; position: relative; z-index: 1;
+    }
+    .auth-field { margin-bottom: 14px; position: relative; z-index: 1; }
+    .auth-field label {
+      display: block; font-size: 11px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--mid); margin-bottom: 5px;
+    }
+    .auth-field input {
+      width: 100%; border: 2px solid var(--border);
+      border-radius: 10px; padding: 11px 15px;
+      font-family: 'Rubik', sans-serif; font-size: 14px;
+      color: var(--dark); background: var(--white); outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-field input:focus { border-color: var(--orange); }
+    .auth-submit {
+      width: 100%; background: var(--orange); color: white;
+      border: none; border-radius: 20px; padding: 13px;
+      font-size: 15px; font-weight: 500; cursor: pointer;
+      font-family: 'Rubik', sans-serif; margin-top: 6px;
+      transition: opacity 0.2s; position: relative; z-index: 1;
+    }
+    .auth-submit:hover { opacity: 0.87; }
+    .auth-toggle {
+      text-align: center; margin-top: 14px; font-size: 13px;
+      color: var(--mid); position: relative; z-index: 1;
+    }
+    .auth-toggle button {
+      background: none; border: none; color: var(--orange);
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      font-family: 'Rubik', sans-serif;
+    }
+    .auth-error {
+      background: #fee; border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; color: #c0392b; margin-bottom: 14px;
+      display: none; position: relative; z-index: 1;
+    }
+    .auth-error.show { display: block; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--dark); padding: 12px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .topbar-mark {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+    .topbar-name {
+      font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7);
+    }
+    .topbar-right { display: flex; align-items: center; gap: 20px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .topbar-signout {
+      background: none; border: none; color: rgba(255,255,255,0.35);
+      font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif;
+      transition: color 0.2s;
+    }
+    .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      min-height: calc(100vh - 52px);
+      align-items: start;
+    }
+
+    /* ── MAIN COLUMN ── */
+    .main { padding: 48px 48px 80px; }
+
+    /* ── WELCOME STRIP ── */
+    .welcome {
+      background: var(--dark); border-radius: 20px;
+      padding: 36px 40px; margin-bottom: 40px;
+      position: relative; overflow: hidden;
+    }
+    .welcome-shape-1 {
+      position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.15;
+    }
+    .welcome-shape-2 {
+      position: absolute; bottom: -30px; right: 120px;
+      width: 100px; height: 100px;
+      background: var(--orange); border-radius: 50%; opacity: 0.18;
+    }
+    .welcome-shape-3 {
+      position: absolute; top: 20px; right: 200px;
+      width: 60px; height: 60px;
+      background: var(--sky); border-radius: 50%; opacity: 0.2;
+    }
+    .welcome-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 3px;
+      color: var(--yellow); text-transform: uppercase; margin-bottom: 12px;
+      position: relative; z-index: 1;
+    }
+    .welcome h1 {
+      font-size: 28px; font-weight: 700; color: white;
+      margin-bottom: 10px; position: relative; z-index: 1;
+    }
+    .welcome-sub {
+      font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.55);
+      line-height: 1.7; max-width: 500px; position: relative; z-index: 1;
+    }
+
+    /* ── WHAT ARE MISSIONS ── */
+    .missions-explainer {
+      background: var(--yellow-light); border-radius: 16px;
+      padding: 28px 32px; margin-bottom: 40px;
+      border: 1.5px solid var(--yellow);
+      display: flex; gap: 28px; align-items: flex-start;
+    }
+    .explainer-icon {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--yellow); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .explainer-title {
+      font-size: 13px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--dark); margin-bottom: 8px;
+    }
+    .explainer-body {
+      font-size: 14px; font-weight: 400; color: var(--dark);
+      line-height: 1.75;
+    }
+    .explainer-rhythm {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;
+    }
+    .rhythm-pill {
+      font-size: 12px; font-weight: 500; padding: 5px 14px;
+      border-radius: 20px; border: 1.5px solid;
+    }
+    .rp-1 { background: #FEF0E6; border-color: var(--orange); color: var(--orange); }
+    .rp-2 { background: var(--yellow-light); border-color: var(--yellow); color: #856200; }
+    .rp-3 { background: var(--trust-light); border-color: var(--trust); color: var(--trust); }
+    .rp-4 { background: #E8F5F0; border-color: var(--grow); color: var(--grow); }
+
+    /* ── MISSION LIST ── */
+    .missions-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .missions-header h2 {
+      font-size: 18px; font-weight: 700; color: var(--dark);
+    }
+    .missions-count {
+      font-size: 12px; font-weight: 400; color: var(--mid);
+    }
+
+    .mission-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .mission-item {
+      border-radius: 16px; padding: 20px 24px;
+      display: grid; grid-template-columns: 52px 1fr auto;
+      gap: 0 18px; align-items: center;
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+      position: relative; overflow: hidden; text-decoration: none;
+    }
+    .mission-item:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(10,50,40,0.1); }
+    .mission-item.locked { cursor: default; opacity: 0.6; }
+    .mission-item.locked:hover { transform: none; box-shadow: none; }
+
+    /* Mission colours — cycling through full brand palette */
+    .mc-1  { background: #FEF0E6; border: 2px solid #FAB882; }
+    .mc-2  { background: var(--yellow-light); border: 2px solid #FFD966; }
+    .mc-3  { background: var(--trust-light); border: 2px solid #8EB0D8; }
+    .mc-4  { background: #E8F5F0; border: 2px solid #7DBFB0; }
+    .mc-5  { background: #FFF0ED; border: 2px solid var(--blush); }
+    .mc-6  { background: #E5F6FB; border: 2px solid var(--sky); }
+    .mc-7  { background: #FEF0E6; border: 2px solid #FAB882; }
+    .mc-8  { background: var(--yellow-light); border: 2px solid #FFD966; }
+    .mc-9  { background: var(--trust-light); border: 2px solid #8EB0D8; }
+    .mc-10 { background: #E8F5F0; border: 2px solid #7DBFB0; }
+    .mc-11 { background: #FFF0ED; border: 2px solid var(--blush); }
+    .mc-12 { background: #E5F6FB; border: 2px solid var(--sky); }
+    .mc-13 { background: #FEF0E6; border: 2px solid #FAB882; }
+    .mc-14 { background: #EAF4F1; border: 2px solid var(--mid); }
+
+    /* Number badge colours */
+    .mn-1,.mn-7,.mn-13  { background: var(--orange); color: white; }
+    .mn-2,.mn-8          { background: var(--yellow); color: var(--dark); }
+    .mn-3,.mn-9          { background: var(--trust); color: white; }
+    .mn-4,.mn-10         { background: var(--grow); color: white; }
+    .mn-5,.mn-11         { background: var(--blush); color: var(--dark); }
+    .mn-6,.mn-12         { background: var(--sky); color: var(--dark); }
+    .mn-14               { background: var(--dark); color: white; }
+
+    .mission-num {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; flex-shrink: 0;
+    }
+    .mission-body {}
+    .mission-chapter {
+      font-size: 10px; font-weight: 500; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--mid);
+      margin-bottom: 3px; opacity: 0.7;
+    }
+    .mission-title {
+      font-size: 15px; font-weight: 700; color: var(--dark);
+      margin-bottom: 4px; line-height: 1.3;
+    }
+    .mission-tagline {
+      font-size: 12px; font-weight: 300; color: var(--mid);
+      line-height: 1.5; max-width: 480px;
+    }
+    .mission-status {
+      flex-shrink: 0; display: flex; flex-direction: column;
+      align-items: flex-end; gap: 6px;
+    }
+    .status-pill {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+    }
+    .sp-complete   { background: var(--grow); color: white; }
+    .sp-progress   { background: var(--yellow); color: var(--dark); }
+    .sp-start      { background: var(--orange); color: white; }
+    .sp-soon       { background: var(--beige-mid); color: var(--mid); }
+
+    .progress-bar-wrap {
+      width: 80px; height: 4px; background: rgba(10,50,40,0.1);
+      border-radius: 2px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--orange); transition: width 0.5s ease;
+    }
+    .progress-bar-fill.complete { background: var(--grow); }
+
+    /* ── LUMEN SIDEBAR ── */
+    .sidebar {
+      background: var(--dark);
+      min-height: calc(100vh - 52px);
+      position: sticky; top: 52px;
+      display: flex; flex-direction: column;
+      border-left: 1px solid rgba(255,255,255,0.05);
+    }
+    .sidebar-header {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: relative; overflow: hidden;
+    }
+    .sidebar-shape {
+      position: absolute; top: -30px; right: -30px;
+      width: 100px; height: 100px;
+      background: var(--yellow); border-radius: 50%; opacity: 0.1;
+    }
+    .sidebar-shape-2 {
+      position: absolute; bottom: -20px; left: -20px;
+      width: 70px; height: 70px;
+      background: var(--trust); border-radius: 50%; opacity: 0.15;
+    }
+    .lumen-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--yellow);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+      position: relative; z-index: 1;
+    }
+    .lumen-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); }
+    .sidebar-title {
+      font-size: 17px; font-weight: 700; color: white;
+      margin-bottom: 6px; position: relative; z-index: 1;
+    }
+    .sidebar-sub {
+      font-size: 12px; font-weight: 300; color: rgba(255,255,255,0.4);
+      line-height: 1.6; position: relative; z-index: 1;
+    }
+
+    .lumen-messages {
+      flex: 1; padding: 20px 20px 0;
+      display: flex; flex-direction: column; gap: 14px;
+      overflow-y: auto; max-height: calc(100vh - 320px);
+    }
+    .lumen-messages::-webkit-scrollbar { width: 4px; }
+    .lumen-messages::-webkit-scrollbar-track { background: transparent; }
+    .lumen-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .msg { display: flex; gap: 10px; align-items: flex-start; animation: fadeUp 0.25s ease; }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+    .msg-av {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+    .lumen-av { background: var(--yellow); color: var(--dark); }
+    .user-av  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); font-size: 8px; }
+    .msg-text { font-size: 13px; font-weight: 300; line-height: 1.7; }
+    .lumen-text { color: rgba(255,255,255,0.85); font-style: italic; }
+    .user-text  { color: rgba(255,255,255,0.5); }
+    .thinking-text { color: rgba(255,255,255,0.3); font-style: italic; }
+
+    .lumen-input {
+      padding: 16px 20px 20px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    textarea.lumen-ta {
+      width: 100%; background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 12px; padding: 12px 14px;
+      font-family: 'Rubik', sans-serif;
+      font-size: 13px; font-weight: 300;
+      color: white; resize: none; min-height: 72px;
+      outline: none; line-height: 1.6;
+      transition: border-color 0.2s;
+    }
+    textarea.lumen-ta:focus { border-color: rgba(255,190,25,0.5); }
+    textarea.lumen-ta::placeholder { color: rgba(255,255,255,0.2); }
+    .lumen-send-btn {
+      background: var(--yellow); border: none; border-radius: 20px;
+      padding: 10px 20px; font-size: 13px; font-weight: 500;
+      color: var(--dark); cursor: pointer; font-family: 'Rubik', sans-serif;
+      transition: opacity 0.2s; align-self: flex-end;
+    }
+    .lumen-send-btn:hover { opacity: 0.85; }
+    .lumen-context-note {
+      font-size: 11px; color: rgba(255,255,255,0.2);
+      text-align: center; padding: 0 20px 16px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH GATE -->
+  <div class="auth-gate" id="auth-gate">
+    <div class="auth-box">
+      <div class="auth-eyebrow">Purposeful Change · Reframe</div>
+      <h2 id="auth-title">Welcome back</h2>
+      <p id="auth-desc">Sign in to continue your journey. Your reflections are saved and waiting.</p>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="your@email.com" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') authSubmit()" />
+      </div>
+      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
+      <div class="auth-toggle">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="topbar" id="topbar" style="display:none">
+    <a href="/" class="topbar-brand">
+      <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
+      <span class="topbar-name">Rewrite Your Life</span>
+    </a>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbar-user"></span>
+      <button class="topbar-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="layout" id="main-layout" style="display:none">
+
+    <!-- MAIN COLUMN -->
+    <div class="main">
+
+      <!-- WELCOME -->
+      <div class="welcome">
+        <div class="welcome-shape-1"></div>
+        <div class="welcome-shape-2"></div>
+        <div class="welcome-shape-3"></div>
+        <div class="welcome-eyebrow">Your Journey</div>
+        <h1 id="welcome-heading">Good to have you here.</h1>
+        <p class="welcome-sub">Your work is saved. Pick up where you left off, or take your time with what came up last time before moving on.</p>
+      </div>
+
+      <!-- WHAT ARE MISSIONS -->
+      <div class="missions-explainer">
+        <div class="explainer-icon">◈</div>
+        <div>
+          <div class="explainer-title">How missions work</div>
+          <div class="explainer-body">Each mission is a small, self-organised personal development project. Read the chapter, then do the mission. They build on each other — your answers from earlier missions become the foundation for what comes next. Lumen holds the thread across all of them.</div>
+          <div class="explainer-rhythm">
+            <span class="rhythm-pill rp-1">Experiment</span>
+            <span class="rhythm-pill rp-2">Reflect</span>
+            <span class="rhythm-pill rp-3">Share</span>
+            <span class="rhythm-pill rp-4">Practice</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MISSIONS -->
+      <div class="missions-header">
+        <h2>Your fourteen missions</h2>
+        <span class="missions-count" id="missions-count">0 of 14 complete</span>
+      </div>
+
+      <div class="mission-list" id="mission-list">
+        <!-- Rendered by JS -->
+      </div>
+
+    </div>
+
+    <!-- LUMEN SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-shape"></div>
+        <div class="sidebar-shape-2"></div>
+        <div class="lumen-label"><div class="lumen-dot"></div>Lumen</div>
+        <div class="sidebar-title">Your companion</div>
+        <div class="sidebar-sub">Lumen has read everything you've written. Bring anything here — a question, a thought, something that's sitting with you.</div>
+      </div>
+      <div class="lumen-messages" id="lumen-msgs"></div>
+      <div class="lumen-context-note" id="lumen-context-note"></div>
+      <div class="lumen-input">
+        <textarea class="lumen-ta" id="lumen-input" placeholder="Talk to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToLumen();}"></textarea>
+        <button class="lumen-send-btn" onclick="sendToLumen()">Send →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const LUMEN_API_URL = '/api/lumen';
+
+    let currentUser = null;
+    let allAnswers = {};
+    let isSignUp = false;
+    let lumenConvo = [];
+
+    const MISSIONS = [
+      { id: 1,  ch: 'Chapter 3',          title: 'Your Case for Change',           tagline: 'You already know something needs to shift. This mission makes the cost of staying put undeniable — and names the version of you that is already waiting.', url: '/workbook.html' },
+      { id: 2,  ch: 'Chapter 4',          title: 'The Immunity Map',               tagline: 'You are not failing to change. You are succeeding at something else — something hidden. This mission maps what you are protecting and why.', url: null },
+      { id: 3,  ch: 'Chapter 5',          title: 'Your Story Lifeline',            tagline: 'Your life is not a random sequence of events. It is a pattern with a logic. This mission traces that pattern — and begins to show you what was driving it.', url: null },
+      { id: 4,  ch: 'Chapter 6¾',         title: 'The Stories Behind the Stories', tagline: 'The patterns in your life didn\'t start with you. This mission finds where they came from — and begins to lift the weight of carrying them.', url: null },
+      { id: 5,  ch: 'Chapter 7',          title: 'The Value of Your Values',       tagline: 'Your values are not a list of aspirations. They are the living record of what life has taught you matters. Some were forged in joy. Some in survival.', url: null },
+      { id: 6,  ch: 'Chapter 9',          title: 'Taming Your Triggers',           tagline: 'A trigger is not a weakness. It is the moment your body decides the past is happening again. This mission builds your map of those moments.', url: null },
+      { id: 7,  ch: 'Chapter 10',         title: 'Feedback is a Gift',             tagline: 'The patterns you\'ve been uncovering are patterns other people have already noticed. This mission gives you a structured way to hear them.', url: null },
+      { id: 8,  ch: 'Chapter 11 · L1',    title: 'Zoom Out: Check the Facts',      tagline: 'Some of what you\'ve believed to be true was formed by a younger version of you working with incomplete information. This mission begins to check it.', url: null },
+      { id: 9,  ch: 'Chapter 11 · L2',    title: 'Zoom Out: Place the Pattern',    tagline: 'Not just questioning whether the story was accurate — but understanding why it made perfect sense at the time. Your younger self wasn\'t wrong.', url: null },
+      { id: 10, ch: 'Chapter 11 · L3',    title: 'Zoom Out: Name the Shift',       tagline: 'You\'ve given the old story some grace. Now comes the question that follows: who do you get to be now that you\'re not carrying it in the same way?', url: null },
+      { id: 11, ch: 'Chapter 12',         title: 'Who Do You Get to Be Now?',      tagline: 'Purpose is not a destination or a title. It is the quality of presence you bring to every room, every conversation, every choice. This mission finds yours.', url: null },
+      { id: 12, ch: 'Chapter 13',         title: 'Be In Choice',                   tagline: 'Having a purpose changes something. It means you now have a reference point for every decision, every challenge, every moment the old patterns try to reassert.', url: null },
+      { id: 13, ch: 'Chapter 14',         title: 'Courageous Conversations',       tagline: 'Purpose without the courage to speak honestly is just a nice idea. This mission gives you a structure for the conversations you have been avoiding.', url: null },
+      { id: 14, ch: 'Chapter 15',         title: 'Committing to the Practice',     tagline: 'This is not the end. There is no end. This is the moment you decide that the person you have been becoming is worth showing up for — again and again.', url: null },
+    ];
+
+    // Mission 1 question IDs — used to calculate progress
+    const M1_QUESTIONS = ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p2q3','p2q4','p3q1','p3q2','p3q3','p4q1','p4q2','p4q3','ta-commit'];
+
+    // ── Auth ──
+    window.addEventListener('load', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        await init();
+      }
+    });
+
+    function toggleAuth() {
+      isSignUp = !isSignUp;
+      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
+      document.getElementById('auth-desc').textContent = isSignUp ? 'Your reflections will be saved so you can return anytime.' : 'Sign in to continue your journey. Your reflections are saved and waiting.';
+      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
+      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
+      document.getElementById('auth-error').classList.remove('show');
+    }
+
+    async function authSubmit() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-btn');
+      const errEl = document.getElementById('auth-error');
+      errEl.classList.remove('show');
+      btn.textContent = 'Please wait...';
+      btn.disabled = true;
+      try {
+        const result = isSignUp
+          ? await sb.auth.signUp({ email, password })
+          : await sb.auth.signInWithPassword({ email, password });
+        if (result.error) {
+          errEl.textContent = result.error.message;
+          errEl.classList.add('show');
+          btn.textContent = isSignUp ? 'Create account' : 'Sign in';
+          btn.disabled = false;
+        } else {
+          currentUser = result.data.user;
+          await init();
+        }
+      } catch(e) {
+        errEl.textContent = 'Something went wrong. Please try again.';
+        errEl.classList.add('show');
+        btn.textContent = isSignUp ? 'Create account' : 'Sign in';
+        btn.disabled = false;
+      }
+    }
+
+    async function signOut() {
+      await sb.auth.signOut();
+      currentUser = null;
+      document.getElementById('main-layout').style.display = 'none';
+      document.getElementById('topbar').style.display = 'none';
+      document.getElementById('auth-gate').classList.remove('hidden');
+    }
+
+    async function init() {
+      document.getElementById('auth-gate').classList.add('hidden');
+      document.getElementById('topbar').style.display = 'flex';
+      document.getElementById('main-layout').style.display = 'grid';
+      document.getElementById('topbar-user').textContent = currentUser.email;
+
+      // Personalise welcome
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : 'Good evening.';
+      document.getElementById('welcome-heading').textContent = greeting;
+
+      await loadAnswers();
+      renderMissions();
+      initLumen();
+    }
+
+    async function loadAnswers() {
+      const { data } = await sb.from('answers').select('mission, question, answer')
+        .eq('user_id', currentUser.id);
+      if (data) {
+        data.forEach(row => {
+          if (!allAnswers[row.mission]) allAnswers[row.mission] = {};
+          allAnswers[row.mission][row.question] = row.answer;
+        });
+      }
+    }
+
+    function getMissionProgress(missionId) {
+      if (missionId !== 1) return { pct: 0, status: 'soon' };
+      const m1 = allAnswers['mission-1'] || {};
+      const answered = M1_QUESTIONS.filter(q => m1[q] && m1[q].trim().length > 0).length;
+      const pct = Math.round((answered / M1_QUESTIONS.length) * 100);
+      if (pct === 0) return { pct: 0, status: 'start' };
+      if (pct === 100) return { pct: 100, status: 'complete' };
+      return { pct, status: 'progress' };
+    }
+
+    function renderMissions() {
+      const list = document.getElementById('mission-list');
+      let completeCount = 0;
+
+      list.innerHTML = MISSIONS.map(m => {
+        const { pct, status } = getMissionProgress(m.id);
+        if (status === 'complete') completeCount++;
+
+        const statusLabel = {
+          complete: '<span class="status-pill sp-complete">Complete</span>',
+          progress: '<span class="status-pill sp-progress">In progress</span>',
+          start:    '<span class="status-pill sp-start">Begin</span>',
+          soon:     '<span class="status-pill sp-soon">Coming soon</span>',
+        }[status];
+
+        const progressBar = (status === 'progress' || status === 'complete') ? `
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill ${status === 'complete' ? 'complete' : ''}" style="width:${pct}%"></div>
+          </div>` : '';
+
+        const isClickable = m.url && status !== 'soon';
+        const tag = isClickable ? `a href="${m.url}"` : 'div';
+        const closeTag = isClickable ? 'a' : 'div';
+
+        return `<${tag} class="mission-item mc-${m.id} ${status === 'soon' ? 'locked' : ''}">
+          <div class="mission-num mn-${m.id}">${m.id}</div>
+          <div class="mission-body">
+            <div class="mission-chapter">${m.ch}</div>
+            <div class="mission-title">${m.title}</div>
+            <div class="mission-tagline">${m.tagline}</div>
+          </div>
+          <div class="mission-status">
+            ${statusLabel}
+            ${progressBar}
+          </div>
+        </${closeTag}>`;
+      }).join('');
+
+      document.getElementById('missions-count').textContent =
+        `${completeCount} of 14 complete`;
+    }
+
+    // ── Lumen ──
+    function buildLumenContext() {
+      const m1 = allAnswers['mission-1'];
+      if (!m1 || Object.keys(m1).length === 0) return null;
+
+      const qLabels = {
+        'p1q1': 'Moments feeling most alive',
+        'p1q2': 'Moments feeling drained',
+        'p1q3': 'What they think/feel when thriving',
+        'p1q4': 'What they think/feel when not at best',
+        'p1q5': 'Identity their habits are reinforcing',
+        'p2q1': 'What they love about life and work',
+        'p2q2': 'What frustrates or drains them',
+        'p2q3': 'Who they want to be / what they want to have',
+        'p2q4': 'Hard truth they need to face',
+        'p3q1': 'Who they will share with',
+        'p3q2': 'What they most need to say out loud',
+        'p3q3': 'What they heard from the conversation',
+        'p4q1': 'Version 1 — the tension / BUT statement',
+        'p4q2': 'Version 2 — the identity shift',
+        'p4q3': 'How they will honour the work',
+        'ta-commit': 'Their commitment'
+      };
+
+      const entries = Object.entries(m1)
+        .filter(([k, v]) => v && v.trim().length > 0)
+        .map(([k, v]) => `${qLabels[k] || k}: "${v.trim()}"`)
+        .join('\n');
+
+      return `MISSION 1 — Your Case for Change:\n${entries}`;
+    }
+
+    function initLumen() {
+      const context = buildLumenContext();
+      const note = document.getElementById('lumen-context-note');
+
+      if (context) {
+        const answered = Object.values(allAnswers['mission-1'] || {}).filter(v => v && v.trim().length > 0).length;
+        note.textContent = `Lumen has read your ${answered} answers from Mission 1.`;
+        addMsg('lumen', 'I\'ve been reading what you wrote in Mission 1. What\'s been sitting with you since?');
+      } else {
+        note.textContent = 'Complete Mission 1 and Lumen will have context for your whole journey.';
+        addMsg('lumen', 'When you\'ve done some work in the missions, I\'ll be able to reflect it back to you here. For now — what brings you to this work?');
+      }
+    }
+
+    function addMsg(role, text) {
+      const container = document.getElementById('lumen-msgs');
+      const div = document.createElement('div');
+      div.className = 'msg';
+      const isLumen = role === 'lumen';
+      div.innerHTML = `
+        <div class="msg-av ${isLumen ? 'lumen-av' : 'user-av'}">${isLumen ? 'L' : 'you'}</div>
+        <div class="msg-text ${isLumen ? 'lumen-text' : 'user-text'}">${text.replace(/\n/g,'<br>')}</div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function addThinking() {
+      const container = document.getElementById('lumen-msgs');
+      const div = document.createElement('div');
+      div.className = 'msg'; div.id = 'thinking';
+      div.innerHTML = `<div class="msg-av lumen-av">L</div><div class="msg-text thinking-text">Reading what you wrote...</div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeThinking() {
+      const el = document.getElementById('thinking');
+      if (el) el.remove();
+    }
+
+    async function sendToLumen() {
+      const input = document.getElementById('lumen-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      addMsg('user', text);
+      lumenConvo.push({ role: 'user', content: text });
+      addThinking();
+
+      const context = buildLumenContext();
+      const sys = context
+        ? `You are Lumen — the AI mirror companion for the Reframe workbook by Simon Lamb. The person is on the dashboard between missions. You have read everything they wrote across their missions. Here is what you know about them:\n\n${context}\n\nYou are a mirror, not a coach. You do not give advice. You notice patterns, reflect observations, and ask one question at a time. You are warm, unhurried, and precise. The conversation is theirs to direct — follow their lead. 2–3 sentences maximum per response.`
+        : `You are Lumen — the AI mirror companion for the Reframe workbook by Simon Lamb. This person hasn't completed any missions yet. Be warm and inviting. Ask one question that helps them name what brings them to this work. 2–3 sentences maximum.`;
+
+      try {
+        const res = await fetch(LUMEN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemExtra: sys, messages: lumenConvo })
+        });
+        const data = await res.json();
+        const reply = data.reply || 'Lumen is quiet. Keep going.';
+        removeThinking();
+        lumenConvo.push({ role: 'assistant', content: reply });
+        addMsg('lumen', reply);
+      } catch(e) {
+        removeThinking();
+        addMsg('lumen', 'Lumen is quiet right now. Try again in a moment.');
+      }
+    }
+  </script>
+</body>
+</html>
