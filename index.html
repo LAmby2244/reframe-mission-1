@@ -952,19 +952,50 @@ Your role as Lumen is to be a mirror, not a coach. You:
     }
 
     // ── Part reflection ──
+    // ── Extract sub-conversation summary for a question ──
+    function getConvoSummary(qId) {
+      const convo = convos[qId];
+      if (!convo || convo.length <= 1) return null;
+      const exchanges = [];
+      for (let i = 0; i < convo.length; i++) {
+        const role = convo[i].role === 'assistant' ? 'Lumen' : 'They';
+        exchanges.push(`${role}: "${convo[i].content}"`);
+      }
+      return exchanges.join('\n');
+    }
+
+    // ── Build full context: written answer + any Lumen conversation ──
+    function buildContext(qId, label) {
+      const answer = getVal(qId);
+      if (!answer) return null;
+      let ctx = `${label}: "${answer}"`;
+      const convo = getConvoSummary(qId);
+      if (convo) ctx += `\n  [They went deeper with Lumen:\n  ${convo}]`;
+      return ctx;
+    }
+
     function partReflect(part) {
       const pr = document.getElementById('pr-' + part);
       pr.classList.add('show');
       const textEl = document.getElementById('pr-' + part + '-text');
-      textEl.textContent = 'Reading the pattern across what you\'ve written...';
+      textEl.textContent = 'Reading everything — your answers and what came up with Lumen...';
 
       let answers, sys;
       if (part === 1) {
-        answers = `Q1 — Alive moments: "${getVal('p1q1')}"\nQ2 — Drained moments: "${getVal('p1q2')}"\nQ3 — Who their actions suggest: "${getVal('p1q3')}"`;
-        sys = `The person has answered all three questions in Part 1. Find ONE pattern, tension, or thread running across all three answers that they may not have named themselves. State it plainly in 2–3 sentences. Then one quiet question if something is worth sitting with. No advice. No praise.`;
+        answers = [
+          buildContext('p1q1', 'Q1 — Alive moments'),
+          buildContext('p1q2', 'Q2 — Drained moments'),
+          buildContext('p1q3', 'Q3 — Who their actions suggest')
+        ].filter(Boolean).join('\n\n');
+        sys = `The person has answered all three questions in Part 1. Where available, you also have the deeper conversations they had with Lumen on individual questions — this is where the real depth often emerged. Read across everything: the written answers AND the Lumen exchanges. Find ONE pattern, tension, or thread running through it all that they may not have named themselves. State it plainly in 2–3 sentences. Then one quiet question if something is worth sitting with. No advice. No praise.`;
       } else {
-        answers = `Q1 — What they love: "${getVal('p2q1')}"\nQ2 — What drains them: "${getVal('p2q2')}"\nQ3 — Hard truth avoided: "${getVal('p2q3')}"\nQ4 — Life in 3 years unchanged: "${getVal('p2q4')}"`;
-        sys = `The person has answered all four questions in Part 2. Find the through-line or what they are circling but not fully landing on. Name it in 2–3 sentences. No advice. No praise. You are a mirror seeing the whole picture at once.`;
+        answers = [
+          buildContext('p2q1', 'Q1 — What they love'),
+          buildContext('p2q2', 'Q2 — What drains them'),
+          buildContext('p2q3', 'Q3 — Hard truth avoided'),
+          buildContext('p2q4', 'Q4 — Life in 3 years unchanged')
+        ].filter(Boolean).join('\n\n');
+        sys = `The person has answered all four questions in Part 2. Where available, you also have the deeper conversations they had with Lumen on individual questions. Read across everything — the written answers AND the Lumen exchanges. Find the through-line or what they are circling but not fully landing on. Name it in 2–3 sentences. No advice. No praise. You are a mirror seeing the whole picture at once.`;
       }
 
       callLumen(sys, [{ role: 'user', content: answers }], (reply) => {
@@ -979,12 +1010,28 @@ Your role as Lumen is to be a mirror, not a coach. You:
       const arcBlock = document.getElementById('arc-block');
       arcBlock.classList.add('show');
       const textEl = document.getElementById('arc-text');
-      textEl.textContent = 'Reading everything you wrote across this mission...';
+      textEl.textContent = 'Reading everything — your answers and every conversation with Lumen...';
 
-      const all = `PART 1:\nAlive moments: "${getVal('p1q1')}"\nDrained moments: "${getVal('p1q2')}"\nWho actions suggest: "${getVal('p1q3')}"\n\nPART 2:\nWhat they love: "${getVal('p2q1')}"\nWhat drains them: "${getVal('p2q2')}"\nHard truth avoided: "${getVal('p2q3')}"\nLife unchanged in 3 years: "${getVal('p2q4')}"\n\nPART 3:\nThe tension: "${getVal('p3q1')}"\nThe identity shift: "${getVal('p3q2')}"`;
-      const sys = `The person has completed all three parts of Mission 1. Hold the whole journey back to them. Reflect the thread — what emerged, what shifted, what they named that they perhaps hadn't before. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
+      const sections = [
+        'PART 1 — Look Back:',
+        buildContext('p1q1', 'Alive moments'),
+        buildContext('p1q2', 'Drained moments'),
+        buildContext('p1q3', 'Who actions suggest'),
+        '',
+        'PART 2 — Name Your Reality:',
+        buildContext('p2q1', 'What they love'),
+        buildContext('p2q2', 'What drains them'),
+        buildContext('p2q3', 'Hard truth avoided'),
+        buildContext('p2q4', 'Life unchanged in 3 years'),
+        '',
+        'PART 3 — Both Versions:',
+        buildContext('p3q1', 'The tension'),
+        buildContext('p3q2', 'The identity shift')
+      ].filter(s => s !== null).join('\n');
 
-      callLumen(sys, [{ role: 'user', content: all }], (reply) => {
+      const sys = `The person has completed all three parts of Mission 1. You have everything — their written answers AND the deeper conversations they had with Lumen on individual questions. The Lumen exchanges are where the real depth often surfaced. Read it all as one journey. Hold the whole arc back to them: what emerged, what shifted, what they named that perhaps they hadn't named before. The thing they said in a Lumen exchange that they didn't put in their written answer is often the most important thing. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
+
+      callLumen(sys, [{ role: 'user', content: sections }], (reply) => {
         textEl.textContent = reply;
       });
     }
