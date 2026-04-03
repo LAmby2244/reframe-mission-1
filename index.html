@@ -493,6 +493,8 @@
     <div class="step-dot" id="dot-2" onclick="goTo(2)">2</div>
     <div class="step-connector"></div>
     <div class="step-dot" id="dot-3" onclick="goTo(3)">3</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-4" onclick="goTo(4)">4</div>
     <span class="step-label" id="step-label">Look Back</span>
   </div>
 
@@ -502,14 +504,14 @@
     <div class="step-panel active" id="panel-1">
       <div class="part-badge">Part 1</div>
       <div class="part-title">Experiment — Look Back</div>
-      <p class="part-body">Your recent history is honest data. Before you decide what to change, you need to see clearly where your energy has actually been going. Look back at the last six months.</p>
+      <p class="part-body">Your recent history shows where your votes have been going. Look back at the last six months — not at who you intend to be, but at who you have actually been.</p>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments made you feel most alive, proud, or fully yourself?</span></div>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments made you feel most alive, proud, or fully yourself? What were you doing when you felt at your best?</span></div>
         <textarea id="p1q1" placeholder="Write what's actually true..." oninput="onType('p1q1','wc-p1q1','trow-p1q1')"></textarea>
         <div class="wc" id="wc-p1q1">0 words</div>
         <div class="lumen-trigger-row" id="trow-p1q1">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q1','p1q1','What moments made you feel most alive, proud, or fully yourself?')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q1','p1q1','What moments made you feel most alive, proud, or fully yourself? What were you doing when you felt at your best?')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -521,22 +523,18 @@
           <div class="lumen-messages" id="msgs-p1q1"></div>
           <div class="lumen-input-row">
             <textarea class="lumen-reply" id="rep-p1q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q1','What moments made you feel most alive, proud, or fully yourself?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q1','What moments made you feel most alive, proud, or fully yourself?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <button class="lumen-send" onclick="sendReply('p1q1','What moments made you feel most alive, proud, or fully yourself?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p1q1')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q1')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments left you drained, frustrated, or quietly compromised?</span></div>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments left you drained, frustrated, or quietly stuck? Where did you feel resistance or exhaustion?</span></div>
         <textarea id="p1q2" placeholder="Be honest about the cost..." oninput="onType('p1q2','wc-p1q2','trow-p1q2')"></textarea>
         <div class="wc" id="wc-p1q2">0 words</div>
         <div class="lumen-trigger-row" id="trow-p1q2">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q2','p1q2','What moments left you drained, frustrated, or quietly compromised?')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q2','p1q2','What moments left you drained, frustrated, or quietly stuck? Where did you feel resistance or exhaustion?')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -547,23 +545,27 @@
           </div>
           <div class="lumen-messages" id="msgs-p1q2"></div>
           <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p1q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q2','What moments left you drained, frustrated, or quietly compromised?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q2','What moments left you drained, frustrated, or quietly compromised?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <textarea class="lumen-reply" id="rep-p1q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q2','What moments left you drained, frustrated, or quietly stuck?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q2','What moments left you drained, frustrated, or quietly stuck?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p1q2')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q2')">I'm done here — close Lumen</button></div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-icon">◈</div>
+        <div>
+          <div class="insight-title">Now zoom out</div>
+          <div class="insight-body">Your identity is shaped by your habits and actions, not by who you say you are. There is often a gap between how we see ourselves and how we are actually experienced. The way you act can sometimes tell a different story to the one you hold about yourself.</div>
         </div>
       </div>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">What kind of person do the actions of the last six months suggest you are — not who you say you are, who you have been?</span></div>
-        <textarea id="p1q3" placeholder="Not who you say you are — who you've been..." oninput="onType('p1q3','wc-p1q3','trow-p1q3')"></textarea>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Me at my best looks like… What do I think, feel, and do when I'm thriving? What habits, people, or environments bring out this version of me?</span></div>
+        <textarea id="p1q3" placeholder="What does your best self look like in practice..." oninput="onType('p1q3','wc-p1q3','trow-p1q3')"></textarea>
         <div class="wc" id="wc-p1q3">0 words</div>
         <div class="lumen-trigger-row" id="trow-p1q3">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q3','p1q3','What kind of person do the actions of the last six months suggest you are — not who you say you are, who you have been?')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q3','p1q3','Me at my best looks like — what do I think, feel, and do when I am thriving?')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -574,22 +576,56 @@
           </div>
           <div class="lumen-messages" id="msgs-p1q3"></div>
           <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p1q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q3','What kind of person do the actions of the last six months suggest you are?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q3','What kind of person do the actions of the last six months suggest you are?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <textarea class="lumen-reply" id="rep-p1q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q3','Me at my best looks like...')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q3','Me at my best looks like...')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p1q3')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q3')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
-      <div class="insight-box">
-        <div class="insight-icon">◈</div>
-        <div>
-          <div class="insight-title">The provocation</div>
-          <div class="insight-body">Your identity is not shaped by your intentions. It is shaped by the pattern of what you actually do. There is always a gap between who we say we are and who we are being. This mission is about closing it — or at least seeing it clearly.</div>
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Me when I'm NOT at my best looks like… What do I think, feel, and do when I'm off? What habits, people, or situations trigger my worst tendencies?</span></div>
+        <textarea id="p1q4" placeholder="What does your not-best self look like in practice..." oninput="onType('p1q4','wc-p1q4','trow-p1q4')"></textarea>
+        <div class="wc" id="wc-p1q4">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q4">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q4','p1q4','Me when I am not at my best looks like — what do I think, feel, and do when I am off?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q4">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q4')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p1q4"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p1q4" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q4','Me when I am not at my best looks like...')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q4','Me when I am not at my best looks like...')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q4')">I'm done here — close Lumen</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What identity are your current habits and behaviours reinforcing?</span></div>
+        <textarea id="p1q5" placeholder="Be honest about what your actions are actually voting for..." oninput="onType('p1q5','wc-p1q5','trow-p1q5')"></textarea>
+        <div class="wc" id="wc-p1q5">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q5">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q5','p1q5','What identity are your current habits and behaviours reinforcing?')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q5">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q5')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p1q5"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p1q5" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q5','What identity are your current habits and behaviours reinforcing?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p1q5','What identity are your current habits and behaviours reinforcing?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q5')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
@@ -611,7 +647,7 @@
     <div class="step-panel" id="panel-2">
       <div class="part-badge">Part 2</div>
       <div class="part-title">Reflect — Name Your Reality</div>
-      <p class="part-body">No softening. No framing. Just the truth of where you are.</p>
+      <p class="part-body">No softening. No framing. Just the truth of where you are — the good and the hard.</p>
 
       <div class="q-block">
         <div class="q-row"><div class="q-dot"></div><span class="q-text">What do I genuinely love about my life and work right now?</span></div>
@@ -630,13 +666,9 @@
           <div class="lumen-messages" id="msgs-p2q1"></div>
           <div class="lumen-input-row">
             <textarea class="lumen-reply" id="rep-p2q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q1','What do I genuinely love about my life and work right now?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p2q1','What do I genuinely love about my life and work right now?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <button class="lumen-send" onclick="sendReply('p2q1','What do I genuinely love about my life and work right now?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q1')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p2q1')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
@@ -657,22 +689,18 @@
           <div class="lumen-messages" id="msgs-p2q2"></div>
           <div class="lumen-input-row">
             <textarea class="lumen-reply" id="rep-p2q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q2','What frustrates, drains, or quietly diminishes me?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p2q2','What frustrates, drains, or quietly diminishes me?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <button class="lumen-send" onclick="sendReply('p2q2','What frustrates, drains, or quietly diminishes me?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q2')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p2q2')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">What hard truth have I been avoiding? What do I already know but haven't named?</span></div>
-        <textarea id="p2q3" placeholder="Say the thing you haven't said yet..." oninput="onType('p2q3','wc-p2q3','trow-p2q3')"></textarea>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Who do I want to be? What do I want to have?</span></div>
+        <textarea id="p2q3" placeholder="Name the version of you that's already waiting..." oninput="onType('p2q3','wc-p2q3','trow-p2q3')"></textarea>
         <div class="wc" id="wc-p2q3">0 words</div>
         <div class="lumen-trigger-row" id="trow-p2q3">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q3','p2q3','What hard truth have I been avoiding?')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q3','p2q3','Who do I want to be? What do I want to have?')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -683,23 +711,19 @@
           </div>
           <div class="lumen-messages" id="msgs-p2q3"></div>
           <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p2q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q3','What hard truth have I been avoiding?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p2q3','What hard truth have I been avoiding?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <textarea class="lumen-reply" id="rep-p2q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q3','Who do I want to be? What do I want to have?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p2q3','Who do I want to be? What do I want to have?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q3')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p2q3')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">If nothing changes — what does my life look like in three years?</span></div>
-        <textarea id="p2q4" placeholder="Be specific. Make it real..." oninput="onType('p2q4','wc-p2q4','trow-p2q4')"></textarea>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What hard truths do I need to face? What needs to be different?</span></div>
+        <textarea id="p2q4" placeholder="Say the thing you haven't said yet..." oninput="onType('p2q4','wc-p2q4','trow-p2q4')"></textarea>
         <div class="wc" id="wc-p2q4">0 words</div>
         <div class="lumen-trigger-row" id="trow-p2q4">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q4','p2q4','If nothing changes — what does my life look like in three years?')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p2q4','p2q4','What hard truths do I need to face? What needs to be different?')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -710,14 +734,10 @@
           </div>
           <div class="lumen-messages" id="msgs-p2q4"></div>
           <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p2q4" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q4','If nothing changes — what does my life look like in three years?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p2q4','If nothing changes — what does my life look like in three years?')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <textarea class="lumen-reply" id="rep-p2q4" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p2q4','What hard truths do I need to face? What needs to be different?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p2q4','What hard truths do I need to face? What needs to be different?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p2q4')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p2q4')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
@@ -739,15 +759,23 @@
     <!-- ══ PART 3 ══ -->
     <div class="step-panel" id="panel-3">
       <div class="part-badge">Part 3</div>
-      <div class="part-title">Practice — Write Both Versions</div>
-      <p class="part-body">First, write the tension. Then rewrite it as identity. The difference between these two sentences is the shift you are making.</p>
+      <div class="part-title">Share — Bring It Into the Room</div>
+      <p class="part-body">Once you've named your reality, take it somewhere. Talk through your reflections with someone you trust — a friend, a colleague, a coach. Hearing yourself say it out loud to another person anchors it in a way that writing alone cannot.</p>
+
+      <div class="insight-box">
+        <div class="insight-icon">◈</div>
+        <div>
+          <div class="insight-title">Why this matters</div>
+          <div class="insight-body">Sharing creates accountability. It also creates new insight — the person who hears you will often reflect something back that shifts how you see it. You don't have to share everything. Share what feels most alive, or most stuck.</div>
+        </div>
+      </div>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">Version 1 — The BUT statement: what I love, and what's in the way.</span></div>
-        <textarea id="p3q1" placeholder="I love... but..." oninput="onType('p3q1','wc-p3q1','trow-p3q1')"></textarea>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Who will you share this with? Name them.</span></div>
+        <textarea id="p3q1" placeholder="A specific person, not 'someone'..." oninput="onType('p3q1','wc-p3q1','trow-p3q1')" style="min-height:64px;"></textarea>
         <div class="wc" id="wc-p3q1">0 words</div>
         <div class="lumen-trigger-row" id="trow-p3q1">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p3q1','p3q1','Version 1 — the BUT statement: what I love and what is in the way.')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p3q1','p3q1','Who will you share this with? Name them.')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -758,23 +786,19 @@
           </div>
           <div class="lumen-messages" id="msgs-p3q1"></div>
           <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p3q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p3q1','The BUT statement')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p3q1','The BUT statement')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <textarea class="lumen-reply" id="rep-p3q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p3q1','Who will you share this with?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p3q1','Who will you share this with?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p3q1')">I'm done here — close Lumen</button>
-          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p3q1')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
       <div class="q-block">
-        <div class="q-row"><div class="q-dot"></div><span class="q-text">Version 2 — The identity shift: who I already am when I'm at my best.</span></div>
-        <textarea id="p3q2" placeholder="I am someone who..." oninput="onType('p3q2','wc-p3q2','trow-p3q2')"></textarea>
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What is the one thing from your reflection you most need to say out loud?</span></div>
+        <textarea id="p3q2" placeholder="The thing that needs a witness..." oninput="onType('p3q2','wc-p3q2','trow-p3q2')"></textarea>
         <div class="wc" id="wc-p3q2">0 words</div>
         <div class="lumen-trigger-row" id="trow-p3q2">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p3q2','p3q2','Version 2 — the identity shift: who I already am when I am at my best.')">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p3q2','p3q2','What is the one thing from your reflection you most need to say out loud?')">
             <div class="lumen-l">L</div>Lumen noticed something
           </button>
         </div>
@@ -785,14 +809,78 @@
           </div>
           <div class="lumen-messages" id="msgs-p3q2"></div>
           <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p3q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p3q2','The identity shift')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p3q2','The identity shift')">
-              <svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg>
-            </button>
+            <textarea class="lumen-reply" id="rep-p3q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p3q2','What is the one thing you most need to say out loud?')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p3q2','What is the one thing you most need to say out loud?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
           </div>
-          <div class="lumen-done-row">
-            <button class="lumen-done-btn" onclick="closeLumen('lp-p3q2')">I'm done here — close Lumen</button>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p3q2')">I'm done here — close Lumen</button></div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(2)">← Back</button>
+        <button class="btn-next" onclick="goTo(4)">Continue to Part 4 →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 4 ══ -->
+    <div class="step-panel" id="panel-4">
+      <div class="part-badge">Part 4</div>
+      <div class="part-title">Practice — Write Both Versions</div>
+      <p class="part-body">Now name the shift. Write two versions of your truth — one that holds the tension, one that declares the identity. The difference between them is the work you are doing.</p>
+
+      <div class="insight-box">
+        <div class="insight-icon">◈</div>
+        <div>
+          <div class="insight-title">How this works</div>
+          <div class="insight-body">Version 1 acknowledges both what you love and what is in the way — it makes your case for change honest and specific. Version 2 shifts from fixing a problem to stepping into an identity. When you see yourself this way, your habits and choices naturally start to align.</div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Version 1 — The BUT statement: what I love, and what's in the way.</span></div>
+        <p style="font-size:13px;color:var(--mid);font-weight:300;margin:-4px 0 10px 18px;font-style:italic;">e.g. "I love the impact I make in my role, but I'm constantly overwhelmed because I take on too much."</p>
+        <textarea id="p4q1" placeholder="I love... but..." oninput="onType('p4q1','wc-p4q1','trow-p4q1')"></textarea>
+        <div class="wc" id="wc-p4q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p4q1">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p4q1','p4q1','Version 1 — the BUT statement: what I love and what is in the way.')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p4q1">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p4q1')">×</button>
           </div>
+          <div class="lumen-messages" id="msgs-p4q1"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p4q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p4q1','The BUT statement')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p4q1','The BUT statement')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p4q1')">I'm done here — close Lumen</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Version 2 — The identity shift: who I already am when I'm at my best.</span></div>
+        <p style="font-size:13px;color:var(--mid);font-weight:300;margin:-4px 0 10px 18px;font-style:italic;">e.g. "I am a leader who empowers others. I trust my team, delegate effectively, and create space for what truly matters."</p>
+        <textarea id="p4q2" placeholder="I am someone who..." oninput="onType('p4q2','wc-p4q2','trow-p4q2')"></textarea>
+        <div class="wc" id="wc-p4q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p4q2">
+          <button class="lumen-trigger-btn" onclick="openLumen('lp-p4q2','p4q2','Version 2 — the identity shift: who I already am when I am at my best.')">
+            <div class="lumen-l">L</div>Lumen noticed something
+          </button>
+        </div>
+        <div class="lumen-panel" id="lp-p4q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('lp-p4q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="msgs-p4q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="rep-p4q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p4q2','The identity shift')"></textarea>
+            <button class="lumen-send" onclick="sendReply('p4q2','The identity shift')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p4q2')">I'm done here — close Lumen</button></div>
         </div>
       </div>
 
@@ -812,7 +900,7 @@
       </div>
 
       <div class="nav-buttons">
-        <button class="btn-back" onclick="goTo(2)">← Back</button>
+        <button class="btn-back" onclick="goTo(3)">← Back</button>
         <button class="btn-next" id="arc-btn" onclick="arcReflect()">Lumen holds the arc →</button>
       </div>
     </div>
@@ -847,7 +935,7 @@ Your role as Lumen is to be a mirror, not a coach. You:
       currentStep = n;
       document.getElementById('panel-' + n).classList.add('active');
       document.getElementById('dot-' + n).classList.add('active');
-      const labels = ['','Look Back','Name Your Reality','Write Both Versions'];
+      const labels = ['','Look Back','Name Your Reality','Share','Write Both Versions'];
       document.getElementById('step-label').textContent = labels[n];
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -983,19 +1071,21 @@ Your role as Lumen is to be a mirror, not a coach. You:
       let answers, sys;
       if (part === 1) {
         answers = [
-          buildContext('p1q1', 'Q1 — Alive moments'),
-          buildContext('p1q2', 'Q2 — Drained moments'),
-          buildContext('p1q3', 'Q3 — Who their actions suggest')
+          buildContext('p1q1', 'Q1 — Alive moments / at their best'),
+          buildContext('p1q2', 'Q2 — Drained moments / resistance'),
+          buildContext('p1q3', 'Q3 — Me at my best looks like'),
+          buildContext('p1q4', 'Q4 — Me when not at my best looks like'),
+          buildContext('p1q5', 'Q5 — The identity gap')
         ].filter(Boolean).join('\n\n');
-        sys = `The person has answered all three questions in Part 1. Where available, you also have the deeper conversations they had with Lumen on individual questions — this is where the real depth often emerged. Read across everything: the written answers AND the Lumen exchanges. Find ONE pattern, tension, or thread running through it all that they may not have named themselves. State it plainly in 2–3 sentences. Then one quiet question if something is worth sitting with. No advice. No praise.`;
+        sys = `The person has answered all five questions in Part 1 (Look Back). Where available, you also have deeper Lumen conversations. Read across everything. Find ONE pattern, tension, or thread — particularly the gap between their best and not-best self, and what that reveals about the identity they are currently reinforcing. State it plainly in 2–3 sentences. One quiet question if something is worth sitting with. No advice. No praise.`;
       } else {
         answers = [
           buildContext('p2q1', 'Q1 — What they love'),
-          buildContext('p2q2', 'Q2 — What drains them'),
-          buildContext('p2q3', 'Q3 — Hard truth avoided'),
-          buildContext('p2q4', 'Q4 — Life in 3 years unchanged')
+          buildContext('p2q2', 'Q2 — What drains or frustrates them'),
+          buildContext('p2q3', 'Q3 — Who they want to be / what they want to have'),
+          buildContext('p2q4', 'Q4 — Hard truths / what needs to be different')
         ].filter(Boolean).join('\n\n');
-        sys = `The person has answered all four questions in Part 2. Where available, you also have the deeper conversations they had with Lumen on individual questions. Read across everything — the written answers AND the Lumen exchanges. Find the through-line or what they are circling but not fully landing on. Name it in 2–3 sentences. No advice. No praise. You are a mirror seeing the whole picture at once.`;
+        sys = `The person has answered all four questions in Part 2 (Name Your Reality). Where available, you also have deeper Lumen conversations. Read across everything. Find the through-line — what they are circling but not fully landing on, the gap between what they love and what they're tolerating, what they want and what they've named as hard truth. Name it in 2–3 sentences. No advice. No praise.`;
       }
 
       callLumen(sys, [{ role: 'user', content: answers }], (reply) => {
@@ -1014,22 +1104,28 @@ Your role as Lumen is to be a mirror, not a coach. You:
 
       const sections = [
         'PART 1 — Look Back:',
-        buildContext('p1q1', 'Alive moments'),
-        buildContext('p1q2', 'Drained moments'),
-        buildContext('p1q3', 'Who actions suggest'),
+        buildContext('p1q1', 'Alive / best moments'),
+        buildContext('p1q2', 'Drained / stuck moments'),
+        buildContext('p1q3', 'Me at my best looks like'),
+        buildContext('p1q4', 'Me when not at my best looks like'),
+        buildContext('p1q5', 'The identity gap'),
         '',
         'PART 2 — Name Your Reality:',
         buildContext('p2q1', 'What they love'),
         buildContext('p2q2', 'What drains them'),
-        buildContext('p2q3', 'Hard truth avoided'),
-        buildContext('p2q4', 'Life unchanged in 3 years'),
+        buildContext('p2q3', 'Who they want to be / what they want to have'),
+        buildContext('p2q4', 'Hard truths / what needs to be different'),
         '',
-        'PART 3 — Both Versions:',
-        buildContext('p3q1', 'The tension'),
-        buildContext('p3q2', 'The identity shift')
+        'PART 3 — Share:',
+        buildContext('p3q1', 'Who they will share with'),
+        buildContext('p3q2', 'What they most need to say out loud'),
+        '',
+        'PART 4 — Both Versions:',
+        buildContext('p4q1', 'The tension — BUT statement'),
+        buildContext('p4q2', 'The identity shift')
       ].filter(s => s !== null).join('\n');
 
-      const sys = `The person has completed all three parts of Mission 1. You have everything — their written answers AND the deeper conversations they had with Lumen on individual questions. The Lumen exchanges are where the real depth often surfaced. Read it all as one journey. Hold the whole arc back to them: what emerged, what shifted, what they named that perhaps they hadn't named before. The thing they said in a Lumen exchange that they didn't put in their written answer is often the most important thing. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
+      const sys = `The person has completed all four parts of Mission 1. You have everything — their written answers AND the deeper conversations they had with Lumen on individual questions. The Lumen exchanges are where the real depth often surfaced. Read it all as one journey. Hold the whole arc back to them: what emerged, what shifted, what they named that perhaps they hadn't named before. The thing they said in a Lumen exchange that they didn't put in their written answer is often the most important thing. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
 
       callLumen(sys, [{ role: 'user', content: sections }], (reply) => {
         textEl.textContent = reply;
