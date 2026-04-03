@@ -195,10 +195,10 @@
 
     /* ── HOW IT WORKS TOGGLE ── */
     .how-toggle {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center;
       padding: 14px 0; cursor: pointer; user-select: none;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
+      margin-bottom: 24px; gap: 8px;
     }
     .how-toggle-left {
       display: flex; align-items: center; gap: 10px;
@@ -497,9 +497,7 @@
 
         <!-- HOW IT WORKS TOGGLE -->
         <div class="how-toggle" onclick="toggleHow()">
-          <div class="how-toggle-left">
-            <span class="how-toggle-label">How missions work</span>
-          </div>
+          <span class="how-toggle-label">How missions work</span>
           <span class="how-toggle-arrow" id="how-arrow">▼</span>
         </div>
 
