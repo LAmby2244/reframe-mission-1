@@ -723,7 +723,7 @@
 
     async function generateLumenBridge(prevAnswers) {
       const ctx = prevAnswers.slice(0, 6).map(r => `${r.question}: "${r.answer.trim().substring(0, 200)}"`).join('\n');
-      const sys = `You are Lumen. Read what this person wrote in Mission 1 (Your Case for Change) and offer one sentence that surfaces the commitment or pattern they named most honestly. Then ask one precise question that bridges directly into Mission 2 — about what might be running underneath that commitment that has kept it in place. Two sentences maximum. No praise. No advice.`;
+      const sys = `You are Lumen. Read what this person wrote in Mission 1 and offer 2-3 sentences that reflect back what they most honestly named — their commitment, the pattern they identified, the gap they saw. This is not a question. This is recognition. You are showing them that what they wrote was heard and held. Speak directly to what they said, using their own words and themes where possible. No question. No advice. No praise. End on what they concluded, not on what comes next.`;
       try {
         const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: `Mission 1 reflections:\n${ctx}` }] }) });
