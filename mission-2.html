@@ -690,7 +690,7 @@
       try {
         const result = isSignUp ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
         if (result.error) { errEl.textContent = result.error.message; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
-        else { currentUser = result.data.user; window.location.href = '/dashboard.html'; }
+        else { currentUser = result.data.user; showWorkbook(); await loadAnswers(); await loadPrevMissionContext(); }
       } catch(e) { errEl.textContent = 'Something went wrong.'; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
     }
 
