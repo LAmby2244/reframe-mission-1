@@ -94,9 +94,10 @@
     .step-label { font-size: 12px; color: var(--mid); margin-left: 12px; white-space: nowrap; font-weight: 500; }
 
     /* ── BODY ── */
-    .body { padding: 36px 40px 64px; max-width: 760px; }
+    .body { padding: 36px 40px 64px; }
     .step-panel { display: none; }
     .step-panel.active { display: block; }
+    .step-panel > * { max-width: var(--max); }
 
     /* ── PART HEADER ── */
     .part-badge { display: inline-block; background: var(--accent-dark); color: var(--white); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 12px; }
