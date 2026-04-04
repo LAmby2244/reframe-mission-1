@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission 06 — Taming Your Triggers | Reframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #F56914;
+      --yellow: #FFBE19;
+      --yellow-light: #FFF8E0;
+      --dark: #0A3228;
+      --mid: #377364;
+      --light: #F5E6CD;
+      --beige-mid: #EDD9B5;
+      --white: #ffffff;
+      --blush: #FFB9AA;
+      --sky: #9BD7E6;
+      --sky-light: #EAF7FB;
+      --trust: #2D5A91;
+      --border: rgba(10,50,40,0.12);
+      --max: 680px;
+      --accent: #9BD7E6;
+      --accent-dark: #2D8FAA;
+      --accent-light: #EAF7FB;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Rubik', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* ── AUTH ── */
+    .auth-screen { position: fixed; inset: 0; z-index: 1000; background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .auth-screen.hidden { display: none; }
+    .auth-box { background: var(--light); border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; position: relative; overflow: hidden; }
+    .auth-box::before { content: ''; position: absolute; top: -60px; right: -60px; width: 160px; height: 160px; background: var(--accent); border-radius: 50%; opacity: 0.25; }
+    .auth-logo { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--dark); text-transform: uppercase; margin-bottom: 24px; position: relative; z-index: 1; }
+    .auth-box h2 { font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 8px; position: relative; z-index: 1; }
+    .auth-box p { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.7; margin-bottom: 28px; position: relative; z-index: 1; }
+    .auth-field { margin-bottom: 16px; position: relative; z-index: 1; }
+    .auth-field label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 6px; }
+    .auth-field input { width: 100%; border: 2px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: 'Rubik', sans-serif; font-size: 15px; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s; }
+    .auth-field input:focus { border-color: var(--accent-dark); }
+    .auth-submit { width: 100%; background: var(--dark); color: white; border: none; border-radius: 20px; padding: 14px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; margin-top: 8px; transition: opacity 0.2s; position: relative; z-index: 1; }
+    .auth-submit:hover { opacity: 0.87; }
+    .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--mid); position: relative; z-index: 1; }
+    .auth-toggle button { background: none; border: none; color: var(--dark); cursor: pointer; font-size: 13px; font-weight: 500; font-family: 'Rubik', sans-serif; }
+    .auth-error { background: #fee; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #C0392B; margin-bottom: 16px; display: none; position: relative; z-index: 1; }
+    .auth-error.show { display: block; }
+    .auth-saving { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: rgba(255,255,255,0.7); font-size: 12px; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+    .auth-saving.show { opacity: 1; }
+
+    /* ── USER BAR ── */
+    .auth-user-bar { background: var(--dark); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; }
+    .auth-user-left { display: flex; align-items: center; gap: 20px; }
+    .auth-dashboard-link { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+    .auth-dashboard-link:hover { color: rgba(255,255,255,0.8); }
+    .auth-user-email { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .auth-signout { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .auth-signout:hover { color: rgba(255,255,255,0.7); }
+
+    /* ── HERO ── */
+    .hero { background: var(--dark); padding: 64px 40px 52px; position: relative; overflow: hidden; }
+    .hero-shape-1 { position: absolute; top: -80px; right: -80px; width: 280px; height: 280px; background: var(--accent); border-radius: 50%; opacity: 0.12; }
+    .hero-shape-2 { position: absolute; bottom: -50px; right: 100px; width: 160px; height: 160px; background: var(--blush); border-radius: 50%; opacity: 0.1; }
+    .hero-inner { max-width: var(--max); position: relative; z-index: 1; }
+    .mission-label { font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(36px, 6vw, 58px); font-weight: 700; color: var(--white); line-height: 1.02; margin-bottom: 18px; }
+    .hero-sub { font-size: 16px; font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.75; max-width: 480px; }
+
+    /* ── BRIDGE ── */
+    .bridge { background: var(--white); border-bottom: 1px solid var(--border); padding: 28px 40px; }
+    .bridge-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+    .bridge p { font-size: 15px; line-height: 1.8; color: var(--dark); max-width: var(--max); margin-bottom: 10px; }
+    .bridge p:last-child { font-weight: 300; color: var(--mid); margin-bottom: 0; }
+
+    /* ── LUMEN BRIDGE ── */
+    .lumen-bridge { background: var(--trust); padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .lumen-bridge-inner { max-width: var(--max); display: flex; gap: 16px; align-items: flex-start; }
+    .lumen-bridge-av { width: 28px; height: 28px; border-radius: 50%; background: var(--sky); color: var(--trust); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .lumen-bridge-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sky); margin-bottom: 6px; }
+    .lumen-bridge-text { font-size: 14px; font-weight: 300; font-style: italic; color: rgba(255,255,255,0.85); line-height: 1.7; }
+    .lumen-bridge-placeholder { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+    /* ── PROGRESS ── */
+    .progress-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 14px 40px; display: flex; gap: 8px; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.25s; border: 2px solid var(--border); background: var(--white); color: var(--mid); flex-shrink: 0; }
+    .step-dot.active { background: var(--accent-dark); color: var(--white); border-color: var(--accent-dark); }
+    .step-dot.done { background: var(--dark); color: var(--white); border-color: var(--dark); }
+    .step-connector { flex: 1; height: 1px; background: var(--border); }
+    .step-label { font-size: 12px; color: var(--mid); margin-left: 12px; white-space: nowrap; font-weight: 500; }
+
+    /* ── BODY ── */
+    .body { padding: 36px 40px 64px; max-width: calc(var(--max) + 80px); }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ── PART HEADER ── */
+    .part-badge { display: inline-block; background: var(--accent-dark); color: var(--white); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 12px; }
+    .part-title { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 10px; line-height: 1.2; }
+    .part-body { font-size: 15px; font-weight: 300; line-height: 1.8; color: var(--mid); margin-bottom: 28px; max-width: 560px; }
+
+    /* ── STANDARD QUESTION BLOCKS ── */
+    .q-block { margin-bottom: 28px; }
+    .q-row { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 10px; }
+    .q-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-dark); flex-shrink: 0; margin-top: 7px; }
+    .q-text { font-size: 15px; font-weight: 500; line-height: 1.65; color: var(--dark); }
+    .q-hint { font-size: 13px; font-weight: 300; font-style: italic; color: var(--mid); line-height: 1.6; margin: 4px 0 10px 19px; }
+
+    textarea { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 14px 18px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.75; color: var(--dark); background: var(--white); resize: vertical; min-height: 96px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; display: block; }
+    textarea:focus { border-color: var(--accent-dark); box-shadow: 0 0 0 3px rgba(45,143,170,0.1); }
+    textarea::placeholder { color: rgba(10,50,40,0.25); }
+    .wc { font-size: 11px; color: rgba(10,50,40,0.3); text-align: right; margin-top: 5px; }
+
+    /* ── LUMEN TRIGGER ── */
+    .lumen-trigger-row { margin-top: 10px; display: none; align-items: center; gap: 10px; }
+    .lumen-trigger-row.visible { display: flex; }
+    .lumen-trigger-btn { background: var(--yellow-light); border: 1.5px solid var(--yellow); color: var(--dark); border-radius: 20px; padding: 7px 16px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .lumen-trigger-btn:hover { background: var(--yellow); }
+    .lumen-l { width: 18px; height: 18px; border-radius: 50%; background: var(--yellow); color: var(--dark); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+
+    /* ── LUMEN PANEL ── */
+    .lumen-panel { margin-top: 12px; border-left: 3px solid var(--yellow); border-radius: 0 14px 14px 0; background: var(--dark); display: none; animation: fadeUp 0.3s ease; }
+    .lumen-panel.open { display: block; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+    .lumen-panel-header { padding: 12px 18px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .lumen-panel-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); display: flex; align-items: center; gap: 8px; }
+    .lumen-panel-close { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 20px; cursor: pointer; line-height: 1; padding: 0 2px; transition: color 0.2s; font-family: 'Rubik', sans-serif; }
+    .lumen-panel-close:hover { color: rgba(255,255,255,0.7); }
+    .lumen-messages { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; max-height: 400px; overflow-y: auto; }
+    .msg { display: flex; gap: 10px; align-items: flex-start; animation: fadeUp 0.25s ease; }
+    .msg-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; margin-top: 2px; }
+    .lumen-av { background: var(--yellow); color: var(--dark); }
+    .user-av { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); font-size: 8px; }
+    .msg-bubble { font-size: 14px; font-weight: 300; line-height: 1.75; }
+    .lumen-bubble { color: rgba(255,255,255,0.85); font-style: italic; }
+    .user-bubble { color: rgba(255,255,255,0.55); }
+    .thinking-bubble { color: rgba(255,255,255,0.3); font-style: italic; }
+    .lumen-input-row { padding: 10px 18px 12px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; gap: 8px; align-items: flex-end; }
+    textarea.lumen-reply { flex: 1; min-height: 40px; max-height: 120px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 13px; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 300; color: var(--white); resize: none; line-height: 1.5; }
+    textarea.lumen-reply:focus { border-color: rgba(255,190,25,0.5); box-shadow: none; }
+    textarea.lumen-reply::placeholder { color: rgba(255,255,255,0.2); }
+    .lumen-send { background: var(--yellow); border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
+    .lumen-send:hover { opacity: 0.85; }
+    .lumen-send svg { width: 13px; height: 13px; fill: var(--dark); }
+    .lumen-done-row { padding: 0 18px 12px; display: flex; justify-content: flex-end; }
+    .lumen-done-btn { background: none; border: none; color: rgba(255,255,255,0.28); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; padding: 4px 0; }
+    .lumen-done-btn:hover { color: rgba(255,255,255,0.55); }
+
+    /* ── DIARY SECTION ── */
+    .diary-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .diary-header-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-dark); }
+    .diary-header-line { flex: 1; height: 1px; background: var(--border); }
+    .diary-count { font-size: 12px; color: var(--mid); }
+
+    .diary-entries { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+
+    /* ── DIARY CARD ── */
+    .diary-card { background: var(--white); border-radius: 16px; border: 2px solid var(--border); overflow: hidden; transition: border-color 0.2s; }
+    .diary-card:hover { border-color: var(--accent); }
+    .diary-card-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; background: var(--accent-light); cursor: pointer; }
+    .diary-card-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-dark); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .diary-card-date { font-size: 12px; font-weight: 500; color: var(--mid); white-space: nowrap; }
+    .diary-card-preview { font-size: 13px; color: var(--mid); font-weight: 300; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .diary-card-toggle { font-size: 11px; color: var(--accent-dark); font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+
+    .diary-card-body { padding: 24px; display: none; border-top: 1px solid var(--border); }
+    .diary-card-body.open { display: block; }
+
+    .diary-field { margin-bottom: 20px; }
+    .diary-field:last-of-type { margin-bottom: 0; }
+    .diary-field-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 8px; display: block; }
+    .diary-field textarea { min-height: 72px; font-size: 14px; }
+
+    .diary-card-footer { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .diary-lumen-btn { background: var(--yellow-light); border: 1.5px solid var(--yellow); color: var(--dark); border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .diary-lumen-btn:hover { background: var(--yellow); }
+    .diary-card-delete { background: none; border: none; color: rgba(10,50,40,0.25); font-size: 11px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .diary-card-delete:hover { color: #C0392B; }
+
+    /* ── FEELINGS WHEEL ── */
+    .feelings-wheel { background: var(--white); border: 2px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; margin-top: 4px; }
+    .feelings-wheel.has-selection { border-color: var(--accent-dark); }
+    .fw-selected { padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 5px; min-height: 44px; align-items: center; cursor: pointer; }
+    .fw-selected-empty { font-size: 13px; font-weight: 300; color: rgba(10,50,40,0.25); }
+    .fw-pill { display: flex; align-items: center; gap: 4px; padding: 3px 9px 3px 7px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; }
+    .fw-pill-remove { width: 13px; height: 13px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; opacity: 0.6; background: rgba(0,0,0,0.1); flex-shrink: 0; }
+    .fw-pill:hover .fw-pill-remove { opacity: 1; }
+    .fw-toggle { padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-top: 1px solid var(--border); background: var(--accent-light); transition: background 0.15s; }
+    .fw-toggle:hover { background: #D5EEF5; }
+    .fw-toggle-left { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-dark); }
+    .fw-toggle-arrow { font-size: 9px; color: var(--accent-dark); transition: transform 0.2s; }
+    .fw-toggle-arrow.open { transform: rotate(180deg); }
+    .fw-panel { display: none; border-top: 1px solid var(--border); animation: fadeUp 0.2s ease; }
+    .fw-panel.open { display: block; }
+    .fw-primaries { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); }
+    .fw-primary { padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; background: var(--white); transition: background 0.15s; text-align: center; }
+    .fw-primary:hover { background: var(--light); }
+    .fw-primary.active { background: var(--accent-light); }
+    .fw-primary-dot { width: 9px; height: 9px; border-radius: 50%; transition: transform 0.15s; }
+    .fw-primary.active .fw-primary-dot { transform: scale(1.5); }
+    .fw-primary-name { font-size: 10px; font-weight: 500; color: var(--dark); line-height: 1.2; }
+    .fw-secondaries { padding: 12px 14px 14px; display: none; }
+    .fw-secondaries.show { display: block; }
+    .fw-secondaries-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .fw-secondaries-label::before { content: ''; flex: 0 0 7px; height: 7px; border-radius: 50%; background: var(--active-color, #ccc); }
+    .fw-secondaries-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+    .fw-secondary { padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 400; color: var(--dark); cursor: pointer; transition: all 0.15s; border: 1.5px solid transparent; }
+    .fw-secondary:hover { border-color: var(--active-color, #ccc); transform: translateY(-1px); }
+    .fw-secondary.selected { font-weight: 500; }
+    .fw-actions { padding: 8px 14px 10px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); }
+    .fw-clear { background: none; border: none; font-size: 11px; color: rgba(10,50,40,0.3); cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.15s; padding: 3px 0; }
+    .fw-clear:hover { color: #C0392B; }
+    .fw-done { background: var(--dark); color: white; border: none; border-radius: 20px; padding: 6px 16px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: opacity 0.15s; }
+    .fw-done:hover { opacity: 0.85; }
+
+    /* ── NEEDS PILLS ── */
+    .needs-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+    .need-pill { display: flex; align-items: center; gap: 6px; background: var(--light); border: 1.5px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 400; color: var(--dark); cursor: pointer; transition: all 0.2s; user-select: none; }
+    .need-pill input { display: none; }
+    .need-pill.checked { background: var(--accent-light); border-color: var(--accent-dark); color: var(--accent-dark); font-weight: 500; }
+
+    /* ── ADD ENTRY BUTTON ── */
+    .add-entry-btn { background: var(--white); border: 2px dashed var(--border); border-radius: 16px; padding: 16px; width: 100%; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 500; color: var(--mid); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .add-entry-btn:hover { border-color: var(--accent-dark); color: var(--accent-dark); background: var(--accent-light); }
+    .add-entry-btn-icon { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-dark); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 300; flex-shrink: 0; }
+
+    /* ── INSIGHT BOX ── */
+    .insight-box { background: var(--accent-light); border-radius: 14px; padding: 20px 24px; margin: 24px 0; display: flex; gap: 16px; align-items: flex-start; border: 1.5px solid var(--accent); }
+    .insight-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dark); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .insight-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-dark); margin-bottom: 6px; }
+    .insight-body { font-size: 14px; font-weight: 300; line-height: 1.75; color: var(--dark); }
+
+    /* ── PRESS PAUSE STEPS ── */
+    .pp-step { background: var(--white); border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; border: 2px solid var(--border); border-left: 4px solid var(--accent-dark); }
+    .pp-step-num { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-dark); margin-bottom: 6px; }
+    .pp-step-title { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+    .pp-step-body { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.7; margin-bottom: 8px; }
+    .pp-step-ask { font-size: 13px; font-weight: 500; color: var(--dark); font-style: italic; }
+
+    /* ── SHARE PROMPTS ── */
+    .share-prompt { background: var(--white); border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; border: 1.5px solid var(--border); }
+    .share-prompt-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+    .share-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 14px; font-weight: 300; color: var(--dark); line-height: 1.6; }
+    .share-item:last-child { margin-bottom: 0; }
+    .share-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-dark); flex-shrink: 0; margin-top: 8px; }
+
+    /* ── PART REFLECTION ── */
+    .part-reflection { background: var(--dark); border-radius: 16px; padding: 24px 28px; margin: 24px 0; border-left: 4px solid var(--yellow); display: none; animation: fadeUp 0.4s ease; }
+    .part-reflection.show { display: block; }
+    .pr-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .pr-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
+    .pr-text { font-size: 15px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.85); font-style: italic; }
+    .pr-actions { margin-top: 18px; display: none; gap: 12px; align-items: center; }
+    .pr-actions.show { display: flex; }
+    .pr-continue { background: var(--accent-dark); color: var(--white); border: none; border-radius: 20px; padding: 11px 24px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: opacity 0.2s; }
+    .pr-continue:hover { opacity: 0.87; }
+    .pr-skip { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 14px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .pr-skip:hover { color: rgba(255,255,255,0.6); }
+
+    /* ── ARC / COMMITMENT ── */
+    .arc-block { background: var(--dark); border-radius: 20px; padding: 28px 32px; margin-bottom: 20px; position: relative; overflow: hidden; display: none; animation: fadeUp 0.4s ease; }
+    .arc-block.show { display: block; }
+    .arc-shape { position: absolute; bottom: -24px; right: -24px; width: 120px; height: 120px; background: var(--accent); border-radius: 50%; opacity: 0.12; }
+    .arc-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .arc-text { font-size: 15px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.85); font-style: italic; margin-bottom: 24px; }
+    .arc-divider { height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px; }
+    .commit-title { font-size: 22px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .commit-desc { font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.55); line-height: 1.75; margin-bottom: 18px; }
+    textarea.commit-input { background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: var(--white); min-height: 80px; }
+    textarea.commit-input:focus { border-color: rgba(155,215,230,0.5); box-shadow: none; }
+    textarea.commit-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    /* ── COMPLETE ── */
+    .complete-banner { background: var(--accent-light); border-radius: 14px; padding: 24px 28px; text-align: center; margin-top: 20px; border: 2px solid var(--accent); display: none; }
+    .complete-banner.show { display: block; animation: fadeUp 0.3s ease; }
+    .complete-banner h4 { font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .complete-banner p { font-size: 14px; color: var(--mid); font-weight: 400; margin-bottom: 16px; }
+
+    /* ── NAV ── */
+    .nav-buttons { display: flex; gap: 10px; margin-top: 32px; }
+    .btn-back { background: var(--white); color: var(--mid); border: 2px solid var(--border); border-radius: 20px; padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: background 0.2s; }
+    .btn-back:hover { background: var(--beige-mid); }
+    .btn-next { background: var(--accent-dark); color: var(--white); border: none; border-radius: 20px; padding: 12px 28px; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1; font-family: 'Rubik', sans-serif; transition: opacity 0.2s; }
+    .btn-next:hover { opacity: 0.87; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 48px 24px 40px; }
+      .bridge, .lumen-bridge { padding: 20px 24px; }
+      .progress-bar { padding: 12px 24px; }
+      .body { padding: 28px 24px 48px; }
+      .step-label { display: none; }
+      .auth-user-bar { padding: 10px 24px; }
+      .fw-primaries { grid-template-columns: repeat(7, 1fr); }
+      .fw-primary-name { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH -->
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-box">
+      <div class="auth-logo">Purposeful Change · Reframe</div>
+      <h2 id="auth-title">Welcome back</h2>
+      <p id="auth-desc">Sign in to continue your journey. Your reflections are saved and waiting.</p>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="your@email.com" /></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') authSubmit()" /></div>
+      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
+      <div class="auth-toggle">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
+      </div>
+    </div>
+  </div>
+  <div class="auth-saving" id="auth-saving">Saving...</div>
+
+  <!-- USER BAR -->
+  <div class="auth-user-bar" id="user-bar" style="display:none">
+    <div class="auth-user-left">
+      <a href="/dashboard.html" class="auth-dashboard-link">← Dashboard</a>
+      <span class="auth-user-email" id="user-email"></span>
+    </div>
+    <button class="auth-signout" onclick="signOut()">Sign out</button>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-shape-1"></div>
+    <div class="hero-shape-2"></div>
+    <div class="hero-inner">
+      <div class="mission-label">Mission 06 · Chapter 9</div>
+      <h1>Taming Your Triggers</h1>
+      <p class="hero-sub">A trigger is not a weakness. It is the moment your body decides the past is happening again. This mission builds your map of those moments — so you can meet them differently.</p>
+    </div>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="bridge">
+    <div style="max-width:var(--max)">
+      <div class="bridge-label">Where you're coming from</div>
+      <p>In Mission 5 you named your values — traced where they came from, mapped the spectrum of how you hold them, and began to see the limiting beliefs running underneath them. You now have a clearer picture of what matters most to you.</p>
+      <p>This mission takes that map into the live territory of your daily experience. A trigger is not a weakness — it is a signpost for learning. It is the moment your body decides the past is happening again, usually because one of your values or beliefs is being challenged. Understanding your triggers is how you start to meet them differently, rather than being run by them.</p>
+    </div>
+  </div>
+
+  <!-- LUMEN BRIDGE -->
+  <div class="lumen-bridge">
+    <div class="lumen-bridge-inner">
+      <div class="lumen-bridge-av">L</div>
+      <div>
+        <div class="lumen-bridge-label">Lumen · What you brought forward from Mission 5</div>
+        <div class="lumen-bridge-text" id="lumen-bridge-text">The value you overplay or underplay — and the reframed version you are practising.</div>
+        <div class="lumen-bridge-placeholder" id="lumen-bridge-placeholder">Your reflection will appear here when Lumen has read your Mission 5 answers.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="step-dot active" id="dot-1" onclick="goTo(1)">1</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-2" onclick="goTo(2)">2</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-3" onclick="goTo(3)">3</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-4" onclick="goTo(4)">4</div>
+    <span class="step-label" id="step-label">Experiment</span>
+  </div>
+
+  <div class="body">
+
+    <!-- ══ PART 1 — EXPERIMENT ══ -->
+    <div class="step-panel active" id="panel-1">
+      <div class="part-badge">Part 1</div>
+      <div class="part-title">Experiment — Track Your Triggers</div>
+      <p class="part-body">Keep a trigger diary for at least one week. Make 5–10 minutes at the end of each day to record what happened. Each time you notice yourself being activated, add a new entry below.</p>
+
+      <div class="diary-header">
+        <div class="diary-header-label">Trigger diary</div>
+        <div class="diary-header-line"></div>
+        <div class="diary-count" id="diary-count">0 entries</div>
+      </div>
+
+      <div class="diary-entries" id="diary-entries-container"></div>
+
+      <button class="add-entry-btn" onclick="createDiaryEntry()">
+        <div class="add-entry-btn-icon">+</div>
+        Add a trigger entry
+      </button>
+
+      <div class="part-reflection" id="pr-1">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen — across your entries</div>
+        <div class="pr-text" id="pr-text-1"></div>
+        <div class="pr-actions" id="pr-actions-1">
+          <button class="pr-continue" onclick="goTo(2)">Continue to Reflect →</button>
+          <button class="pr-skip" onclick="goTo(2)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-next" onclick="diaryReflect()">See what Lumen notices across your entries →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 2 — REFLECT ══ -->
+    <div class="step-panel" id="panel-2">
+      <div class="part-badge">Part 2</div>
+      <div class="part-title">Reflect — Look Back at Your Triggering Events</div>
+      <p class="part-body">After a week of tracking, step back and look at your entries as a whole. What is the data telling you?</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What patterns or common themes do you notice across your triggers?</span></div>
+        <textarea id="p2q1" placeholder="Look across all your entries — what keeps showing up?" oninput="handleInput('p2q1')"></textarea>
+        <div class="wc" id="wc-p2q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q1">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q1')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q1">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q1')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q1"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q1" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q1');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q1')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q1')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Are there certain people or situations that repeatedly pull the same thread?</span></div>
+        <textarea id="p2q2" placeholder="Name them specifically..." oninput="handleInput('p2q2')"></textarea>
+        <div class="wc" id="wc-p2q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q2')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q2">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q2')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q2"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q2');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What do these triggers tell you about a value that is being challenged?</span></div>
+        <textarea id="p2q3" placeholder="Look back at your values from Mission 5 — which ones keep appearing?" oninput="handleInput('p2q3')"></textarea>
+        <div class="wc" id="wc-p2q3">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q3">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q3')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q3">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q3')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q3"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q3" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q3');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q3')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q3')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What is the cost to you and others of letting the trigger run unchecked?</span></div>
+        <textarea id="p2q4" placeholder="Be honest about what it costs — in relationships, in results, in how you feel about yourself..." oninput="handleInput('p2q4')"></textarea>
+        <div class="wc" id="wc-p2q4">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q4">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q4')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q4">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q4')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q4"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q4" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q4');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q4')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q4')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-icon">◎</div>
+        <div>
+          <div class="insight-title">Dig one layer deeper</div>
+          <div class="insight-body">When we are triggered by others, it's easy to assume it's about them. But the trigger is always in us. What does this say about me?</div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">How might this person or situation reflect a part of me I find difficult to acknowledge?</span></div>
+        <textarea id="p2q5" placeholder="This is the hardest question. What does their behaviour mirror in me?" oninput="handleInput('p2q5')"></textarea>
+        <div class="wc" id="wc-p2q5">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q5">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q5')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q5">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q5')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q5"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q5" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q5');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q5')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q5')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">How might they represent something from my history that once felt threatening?</span></div>
+        <textarea id="p2q6" placeholder="Where have you felt this before? Earlier in your life?" oninput="handleInput('p2q6')"></textarea>
+        <div class="wc" id="wc-p2q6">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q6">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q6')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q6">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q6')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q6"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q6" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q6');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q6')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q6')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What value of mine are they challenging — even if unintentionally?</span></div>
+        <textarea id="p2q7" placeholder="Name the specific value..." oninput="handleInput('p2q7')"></textarea>
+        <div class="wc" id="wc-p2q7">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q7">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q7')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q7">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p2q7')">×</button></div>
+          <div class="lumen-messages" id="lm-p2q7"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p2q7" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q7');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p2q7')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q7')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-2">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-2"></div>
+        <div class="pr-actions" id="pr-actions-2">
+          <button class="pr-continue" onclick="goTo(3)">Continue to Share →</button>
+          <button class="pr-skip" onclick="goTo(3)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(1)">← Back</button>
+        <button class="btn-next" onclick="partReflect(2)">Reflect with Lumen →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 3 — SHARE ══ -->
+    <div class="step-panel" id="panel-3">
+      <div class="part-badge">Part 3</div>
+      <div class="part-title">Share — Get Another Perspective</div>
+      <p class="part-body">Find a trusted partner for this part. Ideally someone who would also like to understand their own triggers. Share what you have learned, and offer them the same in return.</p>
+
+      <div class="share-prompt">
+        <div class="share-prompt-label">Ask your partner:</div>
+        <div class="share-item"><div class="share-dot"></div>What can you see in my patterns that I'm not seeing?</div>
+        <div class="share-item"><div class="share-dot"></div>What triggers of mine are you already familiar with?</div>
+        <div class="share-item"><div class="share-dot"></div>If I managed my triggers better, what more do you think would become possible for me?</div>
+      </div>
+
+      <div class="q-block" style="margin-top:24px">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Who will you share this with — and when?</span></div>
+        <textarea id="p3q1" placeholder="Name them. Name the moment. Make it real." oninput="handleInput('p3q1')" style="min-height:72px"></textarea>
+        <div class="wc" id="wc-p3q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Notes from your conversation:</div></div>
+        <p class="q-hint">Return here after you've had the conversation. What did they see? What landed?</p>
+        <textarea id="p3q2" placeholder="Come back here after the conversation..." oninput="handleInput('p3q2')"></textarea>
+        <div class="wc" id="wc-p3q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p3q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p3q2')">Process it with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p3q2">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p3q2')">×</button></div>
+          <div class="lumen-messages" id="lm-p3q2"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p3q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p3q2');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p3q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p3q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-3">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-3"></div>
+        <div class="pr-actions" id="pr-actions-3">
+          <button class="pr-continue" onclick="goTo(4)">Continue to Practice →</button>
+          <button class="pr-skip" onclick="goTo(4)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(2)">← Back</button>
+        <button class="btn-next" onclick="partReflect(3)">Reflect with Lumen →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 4 — PRACTICE ══ -->
+    <div class="step-panel" id="panel-4">
+      <div class="part-badge">Part 4</div>
+      <div class="part-title">Practice — Press Pause</div>
+      <p class="part-body">Press Pause is a three-step practice for the moment you notice a trigger starting. You can't always change the situation. But you can notice the trigger and own your response.</p>
+
+      <div class="pp-step">
+        <div class="pp-step-num">Step 1</div>
+        <div class="pp-step-title">Notice the trigger</div>
+        <div class="pp-step-body">You cannot always change the situation — but you can notice the trigger and own your response.</div>
+        <div class="pp-step-ask">Ask: What is my trigger right now?</div>
+      </div>
+
+      <div class="pp-step">
+        <div class="pp-step-num">Step 2</div>
+        <div class="pp-step-title">Acknowledge the emotion</div>
+        <div class="pp-step-body">Emotions are data, not threats. Name what you are feeling without letting it run you.</div>
+        <div class="pp-step-ask">Ask: What am I feeling? What am I believing to be true?</div>
+      </div>
+
+      <div class="pp-step">
+        <div class="pp-step-num">Step 3</div>
+        <div class="pp-step-title">Create space</div>
+        <div class="pp-step-body">The space between trigger and response is where your choice lives. Pause before you act.</div>
+        <div class="pp-step-ask">Ask: What will help me right now?</div>
+      </div>
+
+      <div class="q-block" style="margin-top:28px">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Which specific trigger will I work on first?</span></div>
+        <textarea id="p4q1" placeholder="Name the specific trigger — the person, situation, or moment..." oninput="handleInput('p4q1')" style="min-height:72px"></textarea>
+        <div class="wc" id="wc-p4q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What Press Pause strategy will I deploy when it arrives?</span></div>
+        <p class="q-hint">Be specific — what will you actually do in the moment? Name it concretely enough that you can remember it when you need it.</p>
+        <textarea id="p4q2" placeholder="e.g. 'When I feel my chest tighten in a meeting, I'll take one slow breath and ask a question before I respond...'" oninput="handleInput('p4q2')"></textarea>
+        <div class="wc" id="wc-p4q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p4q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p4q2')">Sharpen it with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p4q2">
+          <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeLumen('p4q2')">×</button></div>
+          <div class="lumen-messages" id="lm-p4q2"></div>
+          <div class="lumen-input-row"><textarea class="lumen-reply" id="lr-p4q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p4q2');}"></textarea><button class="lumen-send" onclick="sendLumenReply('p4q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p4q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <!-- Arc + Commitment -->
+      <div class="arc-block" id="arc-block">
+        <div class="arc-shape"></div>
+        <div class="arc-label"><div class="pr-dot"></div>Close the arc with Lumen</div>
+        <div class="arc-text" id="arc-text"></div>
+        <div class="arc-divider"></div>
+        <div class="commit-title">My commitment</div>
+        <div class="commit-desc">When I'm triggered by... what is really being threatened is... the one Press Pause strategy I am going to use is...</div>
+        <textarea class="commit-input" id="ta-commit"
+          placeholder="When I'm triggered by _____________, what is really being threatened is my value of _____________. The one Press Pause strategy I am going to use is _____________."
+          oninput="saveAnswer('ta-commit'); checkComplete()"></textarea>
+      </div>
+
+      <div class="complete-banner" id="complete-banner">
+        <h4>Mission 6 complete.</h4>
+        <p>You have built your trigger map. Now you can meet the moments differently.</p>
+        <a href="/dashboard.html" style="display:inline-block;background:var(--accent-dark);color:white;text-decoration:none;padding:12px 28px;border-radius:20px;font-size:14px;font-weight:500;font-family:'Rubik',sans-serif;">Return to your journey →</a>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(3)">← Back</button>
+        <button class="btn-next" id="arc-btn" onclick="arcReflect()">Close the arc with Lumen →</button>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ── CONFIG ──────────────────────────────────────────────
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const LUMEN_API_URL = '/api/lumen';
+    const MISSION_ID = 'mission-6';
+    const PREV_MISSION_ID = 'mission-5';
+    const ALL_QUESTIONS = ['p2q1','p2q2','p2q3','p2q4','p2q5','p2q6','p2q7','p3q1','p3q2','p4q1','p4q2','ta-commit'];
+    const PART_QUESTIONS = { 2: ['p2q1','p2q2','p2q3','p2q4','p2q5','p2q6','p2q7'], 3: ['p3q1','p3q2'], 4: ['p4q1','p4q2'] };
+    const STEP_LABELS = ['Experiment','Reflect','Share','Practice'];
+
+    // ── FEELINGS DATA ────────────────────────────────────────
+    const FEELINGS = {
+      Happy: { color: '#E8864A', bg: '#FDF0E8', text: '#0A3228', secondaries: ['Playful','Content','Interested','Proud','Accepted','Powerful','Peaceful','Trusting','Optimistic','Hopeful','Inspired','Intimate','Sensitive','Thankful','Loving','Creative','Courageous','Valued','Respected','Confident','Successful','Inquisitive','Curious','Joyful','Free','Cheeky','Energetic','Eager','Awe'] },
+      Surprised: { color: '#C4A44A', bg: '#FAF4E0', text: '#0A3228', secondaries: ['Startled','Confused','Amazed','Excited','Astonished','Perplexed','Disillusioned','Dismayed','Shocked','Unfocused','Sleepy','Out of control','Overwhelmed','Rushed','Pressured','Apathetic','Indifferent','Bored','Busy','Stressed','Tired'] },
+      Bad: { color: '#6AABA0', bg: '#E5F4F2', text: '#0A3228', secondaries: ['Bored','Busy','Stressed','Tired','Pressured','Rushed','Overwhelmed','Out of control','Sleepy','Unfocused','Apathetic','Indifferent'] },
+      Fearful: { color: '#5AAAB5', bg: '#E5F5F7', text: '#0A3228', secondaries: ['Scared','Anxious','Insecure','Weak','Rejected','Threatened','Helpless','Frightened','Overwhelmed','Worried','Inadequate','Inferior','Worthless','Insignificant','Excluded','Persecuted','Nervous','Exposed','Let down','Humiliated'] },
+      Angry: { color: '#7B6BAE', bg: '#EEEAF8', text: '#ffffff', secondaries: ['Mad','Aggressive','Frustrated','Distant','Critical','Betrayed','Resentful','Disrespected','Ridiculed','Indignant','Violated','Furious','Jealous','Provoked','Hostile','Infuriated','Annoyed','Withdrawn','Numb','Bitter'] },
+      Disgusted: { color: '#8B6BAE', bg: '#F0EAFC', text: '#ffffff', secondaries: ['Disapproving','Disappointing','Awful','Repelled','Horrified','Hesitant','Detestable','Nauseated','Revolted','Appalled','Embarrassed','Judgmental','Dismissive','Sceptical','Withdrawn','Critical'] },
+      Sad: { color: '#C06080', bg: '#FAEAEF', text: '#ffffff', secondaries: ['Lonely','Vulnerable','Despair','Guilty','Depressed','Hurt','Empty','Remorseful','Ashamed','Powerless','Grief','Fragile','Victimised','Abandoned','Isolated','Inferior','Disappointed','Embarrassed','Hopeless','Helpless'] }
+    };
+
+    // ── STATE ────────────────────────────────────────────────
+    let currentUser = null, currentStep = 1, saveTimer = null;
+    let lumenConvos = {};
+    let diaryEntries = [];
+    let wheelStates = {}; // keyed by entryId
+
+    // ── AUTH ─────────────────────────────────────────────────
+    window.addEventListener('load', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { currentUser = session.user; showWorkbook(); await loadAnswers(); await loadDiaryEntries(); await loadPrevMissionContext(); }
+    });
+
+    let isSignUp = false;
+    function toggleAuth() {
+      isSignUp = !isSignUp;
+      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
+      document.getElementById('auth-desc').textContent = isSignUp ? 'Your reflections will be saved so you can return anytime.' : 'Sign in to continue your journey.';
+      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
+      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
+      document.getElementById('auth-error').classList.remove('show');
+    }
+
+    async function authSubmit() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-btn');
+      const errEl = document.getElementById('auth-error');
+      errEl.classList.remove('show'); btn.textContent = 'Please wait...'; btn.disabled = true;
+      try {
+        const result = isSignUp ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
+        if (result.error) { errEl.textContent = result.error.message; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
+        else { currentUser = result.data.user; showWorkbook(); await loadAnswers(); await loadDiaryEntries(); await loadPrevMissionContext(); }
+      } catch(e) { errEl.textContent = 'Something went wrong.'; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
+    }
+
+    function showWorkbook() {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('user-bar').style.display = 'flex';
+      document.getElementById('user-email').textContent = currentUser.email;
+    }
+
+    async function signOut() { await sb.auth.signOut(); window.location.href = '/dashboard.html'; }
+
+    // ── LOAD FIXED ANSWERS ───────────────────────────────────
+    async function loadAnswers() {
+      const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', MISSION_ID);
+      if (data) data.forEach(row => {
+        const el = document.getElementById(row.question);
+        if (el) { el.value = row.answer; updateWordCount(row.question); checkLumenTrigger(row.question); }
+      });
+    }
+
+    // ── LOAD DIARY ENTRIES ───────────────────────────────────
+    async function loadDiaryEntries() {
+      const { data } = await sb.from('entries').select('*').eq('user_id', currentUser.id).eq('mission', MISSION_ID).eq('tool', 'trigger-diary').order('created_at', { ascending: false });
+      if (data && data.length > 0) { diaryEntries = data; renderDiaryEntries(); }
+      updateDiaryCount();
+    }
+
+    // ── PREV MISSION BRIDGE ──────────────────────────────────
+    async function loadPrevMissionContext() {
+      try {
+        const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', PREV_MISSION_ID);
+        if (data && data.length > 0) {
+          const answered = data.filter(r => r.answer && r.answer.trim().length > 0);
+          if (answered.length > 0) generateLumenBridge(answered);
+        }
+      } catch(e) {}
+    }
+
+    async function generateLumenBridge(prevAnswers) {
+      const ctx = prevAnswers.slice(0, 6).map(r => `${r.question}: "${r.answer.trim().substring(0, 200)}"`).join('\n');
+      const sys = `You are Lumen. Read what this person wrote in Mission 5 (The Value of Your Values) and offer 2-3 sentences that reflect back what they most honestly named — the values they identified, how they overplay or underplay them, the beliefs running underneath. This is recognition, not a question. Speak directly to what they wrote. No question. No advice. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: `Mission 5 reflections:\n${ctx}` }] }) });
+        const d = await res.json();
+        if (d.reply) { document.getElementById('lumen-bridge-text').textContent = d.reply; document.getElementById('lumen-bridge-placeholder').style.display = 'none'; }
+      } catch(e) {}
+    }
+
+    // ── SAVE FIXED ANSWER ────────────────────────────────────
+    function saveAnswer(questionId) {
+      if (!currentUser) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        const el = document.getElementById(questionId); if (!el) return;
+        const saving = document.getElementById('auth-saving'); saving.classList.add('show');
+        await sb.from('answers').upsert({ user_id: currentUser.id, mission: MISSION_ID, question: questionId, answer: el.value }, { onConflict: 'user_id,mission,question' });
+        setTimeout(() => saving.classList.remove('show'), 1200);
+      }, 800);
+    }
+
+    function updateWordCount(id) {
+      const el = document.getElementById(id); const wc = document.getElementById('wc-' + id);
+      if (!el || !wc) return;
+      const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+      wc.textContent = w + ' word' + (w !== 1 ? 's' : '');
+    }
+
+    function checkLumenTrigger(id) {
+      const el = document.getElementById(id); const tr = document.getElementById('trow-' + id);
+      if (!el || !tr) return;
+      if (el.value.trim().split(/\s+/).length >= 12) tr.classList.add('visible');
+    }
+
+    function handleInput(id) { updateWordCount(id); checkLumenTrigger(id); saveAnswer(id); }
+
+    // ── DIARY ENTRIES ────────────────────────────────────────
+    function createDiaryEntry() {
+      const tempId = 'entry-' + Date.now();
+      const entry = { id: tempId, created_at: new Date().toISOString(), entry_data: {} };
+      diaryEntries.unshift(entry);
+      wheelStates[tempId] = { selected: [], activePrimary: null, panelOpen: false };
+      renderDiaryEntries();
+      updateDiaryCount();
+      setTimeout(() => {
+        const el = document.getElementById(tempId);
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); toggleDiaryCard(tempId); }
+      }, 100);
+    }
+
+    function updateDiaryCount() {
+      const n = diaryEntries.length;
+      document.getElementById('diary-count').textContent = n + ' ' + (n === 1 ? 'entry' : 'entries');
+    }
+
+    function renderDiaryEntries() {
+      const container = document.getElementById('diary-entries-container');
+      container.innerHTML = diaryEntries.map((entry, i) => renderDiaryCard(entry, diaryEntries.length - i)).join('');
+      diaryEntries.forEach(entry => {
+        attachDiaryListeners(entry.id);
+        if (entry.entry_data) restoreEntryData(entry.id, entry.entry_data);
+      });
+    }
+
+    function renderDiaryCard(entry, num) {
+      const date = new Date(entry.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const preview = entry.entry_data?.trigger || 'New entry — tap to open';
+      const ws = wheelStates[entry.id] || { selected: [], activePrimary: null, panelOpen: false };
+
+      return `<div class="diary-card" id="${entry.id}">
+        <div class="diary-card-header" onclick="toggleDiaryCard('${entry.id}')">
+          <div class="diary-card-num">${num || '·'}</div>
+          <div class="diary-card-date">${date}</div>
+          <div class="diary-card-preview">${(preview).substring(0,55)}${preview.length > 55 ? '...' : ''}</div>
+          <div class="diary-card-toggle" id="toggle-${entry.id}">Open</div>
+        </div>
+        <div class="diary-card-body" id="body-${entry.id}">
+
+          <div class="diary-field">
+            <label class="diary-field-label">What was the trigger?</label>
+            <p style="font-size:12px;font-weight:300;color:var(--mid);font-style:italic;margin-bottom:8px">The specific moment — an email that arrived, something someone said, a look, a thought, a feeling that came out of nowhere.</p>
+            <textarea data-field="trigger" placeholder="Name the exact moment..." rows="3"></textarea>
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">Feelings in your body</label>
+            <textarea data-field="body_feelings" placeholder="Where did you feel it? Tight chest, heat in the face, stomach dropping, throat closing..." rows="2"></textarea>
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">What was I feeling?</label>
+            <div class="feelings-wheel" id="fw-${entry.id}">
+              <div class="fw-selected" id="fw-sel-${entry.id}" onclick="toggleWheel('${entry.id}')">
+                <span class="fw-selected-empty" id="fw-empty-${entry.id}">Tap to open the feelings wheel...</span>
+              </div>
+              <div class="fw-toggle" onclick="toggleWheel('${entry.id}')">
+                <div class="fw-toggle-left">◉ &nbsp;Feelings wheel</div>
+                <div class="fw-toggle-arrow" id="fw-arrow-${entry.id}">▼</div>
+              </div>
+              <div class="fw-panel" id="fw-panel-${entry.id}">
+                <div class="fw-primaries">
+                  ${Object.entries(FEELINGS).map(([name, data]) => `
+                    <div class="fw-primary" data-primary="${name}" onclick="selectPrimary('${entry.id}', '${name}')">
+                      <div class="fw-primary-dot" style="background:${data.color}"></div>
+                      <div class="fw-primary-name">${name}</div>
+                    </div>`).join('')}
+                </div>
+                <div class="fw-secondaries" id="fw-sec-${entry.id}"></div>
+                <div class="fw-actions">
+                  <button class="fw-clear" onclick="clearWheel('${entry.id}')">Clear all</button>
+                  <button class="fw-done" onclick="toggleWheel('${entry.id}')">Done</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" data-field="feelings" id="fw-val-${entry.id}" />
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">What was I believing to be true?</label>
+            <p style="font-size:12px;font-weight:300;color:var(--mid);font-style:italic;margin-bottom:8px">About myself, others, or the situation.</p>
+            <textarea data-field="beliefs" placeholder="e.g. 'They don't respect me' / 'I'm not good enough' / 'This always happens to me'" rows="3"></textarea>
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">Behaviours — what would a CCTV camera have seen?</label>
+            <textarea data-field="behaviours" placeholder="Not what you felt inside — what would someone watching have actually observed?" rows="2"></textarea>
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">Impact</label>
+            <textarea data-field="impact" placeholder="On you, on others, on the situation..." rows="2"></textarea>
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">Value/s being compromised</label>
+            <textarea data-field="values" placeholder="Look back at your values from Mission 5 — which one was being challenged here?" rows="2"></textarea>
+          </div>
+
+          <div class="diary-field">
+            <label class="diary-field-label">Need/s being triggered</label>
+            <div class="needs-grid" id="needs-${entry.id}">
+              <label class="need-pill"><input type="checkbox" data-need="self-esteem" /> Self Esteem / Worth / Status</label>
+              <label class="need-pill"><input type="checkbox" data-need="love-belonging" /> Love / Belonging</label>
+              <label class="need-pill"><input type="checkbox" data-need="safety-security" /> Safety / Security</label>
+              <label class="need-pill"><input type="checkbox" data-need="fairness" /> Fairness</label>
+              <label class="need-pill"><input type="checkbox" data-need="certainty-control" /> Certainty / Control / Autonomy</label>
+            </div>
+          </div>
+
+          <div class="diary-card-footer">
+            <button class="diary-lumen-btn" onclick="openDiaryLumen('${entry.id}')">
+              <div class="lumen-l">L</div> Reflect on this entry with Lumen
+            </button>
+            <button class="diary-card-delete" onclick="deleteDiaryEntry('${entry.id}')">Delete</button>
+          </div>
+
+          <div class="lumen-panel" id="dlp-${entry.id}" style="margin-top:12px">
+            <div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div><button class="lumen-panel-close" onclick="closeDiaryLumen('${entry.id}')">×</button></div>
+            <div class="lumen-messages" id="dlm-${entry.id}"></div>
+            <div class="lumen-input-row"><textarea class="lumen-reply" id="dlr-${entry.id}" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDiaryLumenReply('${entry.id}');}"></textarea><button class="lumen-send" onclick="sendDiaryLumenReply('${entry.id}')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+            <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeDiaryLumen('${entry.id}')">Close conversation</button></div>
+          </div>
+
+        </div>
+      </div>`;
+    }
+
+    function toggleDiaryCard(id) {
+      const body = document.getElementById('body-' + id);
+      const toggle = document.getElementById('toggle-' + id);
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open');
+      if (toggle) toggle.textContent = isOpen ? 'Open' : 'Close';
+    }
+
+    function attachDiaryListeners(entryId) {
+      const card = document.getElementById(entryId); if (!card) return;
+      card.querySelectorAll('textarea[data-field]').forEach(el => {
+        el.addEventListener('input', () => saveDiaryEntry(entryId));
+      });
+      card.querySelectorAll('.need-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          const cb = pill.querySelector('input[type="checkbox"]');
+          if (cb) { cb.checked = !cb.checked; pill.classList.toggle('checked', cb.checked); saveDiaryEntry(entryId); }
+        });
+      });
+    }
+
+    function restoreEntryData(entryId, data) {
+      const card = document.getElementById(entryId); if (!card || !data) return;
+      card.querySelectorAll('textarea[data-field]').forEach(el => {
+        if (data[el.dataset.field] !== undefined) el.value = data[el.dataset.field];
+      });
+      if (data.needs) {
+        card.querySelectorAll('.need-pill input[type="checkbox"]').forEach(cb => {
+          if (data.needs.includes(cb.dataset.need)) { cb.checked = true; cb.closest('.need-pill').classList.add('checked'); }
+        });
+      }
+      if (data.feelings && Array.isArray(data.feelings) && data.feelings.length > 0) {
+        if (!wheelStates[entryId]) wheelStates[entryId] = { selected: [], activePrimary: null, panelOpen: false };
+        wheelStates[entryId].selected = data.feelings.map(label => {
+          for (const [, fdata] of Object.entries(FEELINGS)) {
+            if (fdata.secondaries.includes(label)) return { label, color: fdata.color, bg: fdata.bg, text: fdata.text };
+          }
+          return { label, color: '#377364', bg: '#E8F5F0', text: '#0A3228' };
+        });
+        renderWheelSelected(entryId);
+      }
+    }
+
+    function getDiaryEntryData(entryId) {
+      const card = document.getElementById(entryId); if (!card) return {};
+      const data = {};
+      card.querySelectorAll('textarea[data-field]').forEach(el => { data[el.dataset.field] = el.value.trim(); });
+      const needs = [];
+      card.querySelectorAll('.need-pill input[type="checkbox"]').forEach(cb => { if (cb.checked) needs.push(cb.dataset.need); });
+      data.needs = needs;
+      data.feelings = wheelStates[entryId] ? wheelStates[entryId].selected.map(s => s.label) : [];
+      data._preview = data.trigger || '';
+      return data;
+    }
+
+    let diaryTimer = {};
+    async function saveDiaryEntry(entryId) {
+      if (!currentUser) return;
+      clearTimeout(diaryTimer[entryId]);
+      diaryTimer[entryId] = setTimeout(async () => {
+        const entryData = getDiaryEntryData(entryId);
+        const saving = document.getElementById('auth-saving'); saving.classList.add('show');
+        const isTemp = entryId.startsWith('entry-');
+        if (isTemp) {
+          const { data } = await sb.from('entries').insert({ user_id: currentUser.id, mission: MISSION_ID, tool: 'trigger-diary', entry_data: entryData }).select().single();
+          if (data) {
+            const entry = diaryEntries.find(e => e.id === entryId);
+            if (entry) { const oldId = entry.id; entry.id = data.id; entry.created_at = data.created_at; wheelStates[data.id] = wheelStates[oldId]; delete wheelStates[oldId]; const cardEl = document.getElementById(oldId); if (cardEl) cardEl.id = data.id; const bodyEl = document.getElementById('body-' + oldId); if (bodyEl) bodyEl.id = 'body-' + data.id; }
+          }
+        } else {
+          await sb.from('entries').update({ entry_data: entryData }).eq('id', entryId).eq('user_id', currentUser.id);
+        }
+        setTimeout(() => saving.classList.remove('show'), 1200);
+      }, 800);
+    }
+
+    async function deleteDiaryEntry(entryId) {
+      if (!confirm('Delete this entry?')) return;
+      if (!entryId.startsWith('entry-')) await sb.from('entries').delete().eq('id', entryId).eq('user_id', currentUser.id);
+      delete wheelStates[entryId];
+      diaryEntries = diaryEntries.filter(e => e.id !== entryId);
+      renderDiaryEntries(); updateDiaryCount();
+    }
+
+    // ── FEELINGS WHEEL ────────────────────────────────────────
+    function toggleWheel(entryId) {
+      if (!wheelStates[entryId]) wheelStates[entryId] = { selected: [], activePrimary: null, panelOpen: false };
+      const ws = wheelStates[entryId];
+      ws.panelOpen = !ws.panelOpen;
+      document.getElementById('fw-panel-' + entryId).classList.toggle('open', ws.panelOpen);
+      document.getElementById('fw-arrow-' + entryId).classList.toggle('open', ws.panelOpen);
+    }
+
+    function selectPrimary(entryId, primaryName) {
+      if (!wheelStates[entryId]) wheelStates[entryId] = { selected: [], activePrimary: null, panelOpen: false };
+      const ws = wheelStates[entryId];
+      ws.activePrimary = primaryName;
+      const card = document.getElementById(entryId);
+      card.querySelectorAll('.fw-primary').forEach(p => { p.classList.toggle('active', p.dataset.primary === primaryName); });
+      const data = FEELINGS[primaryName];
+      const container = document.getElementById('fw-sec-' + entryId);
+      container.style.setProperty('--active-color', data.color);
+      container.innerHTML = `
+        <div class="fw-secondaries-label">${primaryName}</div>
+        <div class="fw-secondaries-grid">
+          ${data.secondaries.map(s => `
+            <div class="fw-secondary ${ws.selected.some(x => x.label === s) ? 'selected' : ''}"
+                 style="background:${data.bg};${ws.selected.some(x => x.label === s) ? `background:${data.color};color:${data.text};font-weight:500;` : ''}"
+                 onclick="toggleSecondary('${entryId}','${s}','${data.color}','${data.bg}','${data.text}')">
+              ${s}
+            </div>`).join('')}
+        </div>`;
+      container.classList.add('show');
+    }
+
+    function toggleSecondary(entryId, label, color, bg, text) {
+      if (!wheelStates[entryId]) wheelStates[entryId] = { selected: [], activePrimary: null, panelOpen: false };
+      const ws = wheelStates[entryId];
+      const idx = ws.selected.findIndex(s => s.label === label);
+      if (idx > -1) ws.selected.splice(idx, 1);
+      else ws.selected.push({ label, color, bg, text });
+      // Re-render secondaries
+      if (ws.activePrimary) selectPrimary(entryId, ws.activePrimary);
+      renderWheelSelected(entryId);
+      saveDiaryEntry(entryId);
+    }
+
+    function clearWheel(entryId) {
+      if (!wheelStates[entryId]) return;
+      wheelStates[entryId].selected = [];
+      if (wheelStates[entryId].activePrimary) selectPrimary(entryId, wheelStates[entryId].activePrimary);
+      renderWheelSelected(entryId);
+      saveDiaryEntry(entryId);
+    }
+
+    function renderWheelSelected(entryId) {
+      const ws = wheelStates[entryId];
+      const container = document.getElementById('fw-sel-' + entryId);
+      const wheel = document.getElementById('fw-' + entryId);
+      if (!container || !ws) return;
+      if (ws.selected.length === 0) {
+        container.innerHTML = `<span class="fw-selected-empty" id="fw-empty-${entryId}">Tap to open the feelings wheel...</span>`;
+        wheel.classList.remove('has-selection');
+      } else {
+        wheel.classList.add('has-selection');
+        container.innerHTML = ws.selected.map(s => `
+          <div class="fw-pill" style="background:${s.bg};color:${s.text === '#ffffff' ? s.color : s.text};border-color:${s.color}30"
+               onclick="event.stopPropagation();removeFeeling('${entryId}','${s.label}')">
+            ${s.label}<div class="fw-pill-remove">×</div>
+          </div>`).join('');
+      }
+      // Update hidden field for data collection
+      const hidden = document.getElementById('fw-val-' + entryId);
+      if (hidden) hidden.value = ws.selected.map(s => s.label).join(',');
+    }
+
+    function removeFeeling(entryId, label) {
+      if (!wheelStates[entryId]) return;
+      wheelStates[entryId].selected = wheelStates[entryId].selected.filter(s => s.label !== label);
+      if (wheelStates[entryId].activePrimary) selectPrimary(entryId, wheelStates[entryId].activePrimary);
+      renderWheelSelected(entryId);
+      saveDiaryEntry(entryId);
+    }
+
+    // ── DIARY LUMEN ──────────────────────────────────────────
+    let diaryLumenConvos = {};
+
+    function openDiaryLumen(entryId) {
+      const panel = document.getElementById('dlp-' + entryId);
+      if (!panel) return;
+      panel.classList.add('open');
+      if (!diaryLumenConvos[entryId]) {
+        diaryLumenConvos[entryId] = [];
+        const data = getDiaryEntryData(entryId);
+        const ctx = Object.entries(data).filter(([k,v]) => v && k !== '_preview' && k !== 'feelings').map(([k,v]) => `${k}: "${v}"`).join('\n');
+        const feelings = data.feelings && data.feelings.length > 0 ? `Feelings: ${data.feelings.join(', ')}` : '';
+        sendDiaryLumenMessage(entryId, null, `${ctx}\n${feelings}`);
+      }
+    }
+
+    function closeDiaryLumen(entryId) {
+      const p = document.getElementById('dlp-' + entryId); if (p) p.classList.remove('open');
+    }
+
+    async function sendDiaryLumenMessage(entryId, userText, entryCtx) {
+      if (!diaryLumenConvos[entryId]) diaryLumenConvos[entryId] = [];
+      const msgs = diaryLumenConvos[entryId];
+      if (userText) { msgs.push({ role: 'user', content: userText }); appendDiaryMsg(entryId, 'user', userText); }
+      appendDiaryThinking(entryId);
+      const sys = `You are Lumen — an AI mirror trained in the Reframe methodology. The person has logged a trigger diary entry. Here is what they wrote:\n\n${entryCtx || ''}\n\nReflect one precise observation about what you notice — the pattern between the trigger, the feeling, the belief, and the value being challenged. Ask one question that takes them deeper. 2 sentences maximum. No advice. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
+        const d = await res.json();
+        removeDiaryThinking(entryId);
+        const reply = d.reply || 'Lumen is quiet. Keep going.';
+        msgs.push({ role: 'assistant', content: reply });
+        appendDiaryMsg(entryId, 'lumen', reply);
+      } catch(e) { removeDiaryThinking(entryId); appendDiaryMsg(entryId, 'lumen', 'Lumen is quiet right now.'); }
+    }
+
+    function sendDiaryLumenReply(entryId) {
+      const input = document.getElementById('dlr-' + entryId); if (!input) return;
+      const text = input.value.trim(); if (!text) return;
+      input.value = '';
+      const data = getDiaryEntryData(entryId);
+      sendDiaryLumenMessage(entryId, text, JSON.stringify(data));
+    }
+
+    function appendDiaryMsg(entryId, role, text) {
+      const c = document.getElementById('dlm-' + entryId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg';
+      const isL = role === 'lumen';
+      div.innerHTML = `<div class="msg-avatar ${isL ? 'lumen-av' : 'user-av'}">${isL ? 'L' : 'you'}</div><div class="msg-bubble ${isL ? 'lumen-bubble' : 'user-bubble'}">${text}</div>`;
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+    function appendDiaryThinking(entryId) {
+      const c = document.getElementById('dlm-' + entryId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg'; div.id = 'dthink-' + entryId;
+      div.innerHTML = `<div class="msg-avatar lumen-av">L</div><div class="msg-bubble thinking-bubble">Reading what you wrote...</div>`;
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+    function removeDiaryThinking(entryId) { const el = document.getElementById('dthink-' + entryId); if (el) el.remove(); }
+
+    // ── DIARY LUMEN PATTERN REFLECTION ──────────────────────
+    async function diaryReflect() {
+      const pr = document.getElementById('pr-1');
+      const prText = document.getElementById('pr-text-1');
+      const prActions = document.getElementById('pr-actions-1');
+      pr.classList.add('show'); prText.textContent = 'Reading across all your entries...';
+      const allEntries = diaryEntries.map(e => {
+        const d = e.entry_data || {};
+        return `Entry: trigger="${d.trigger||''}" feelings="${(d.feelings||[]).join(',')}" beliefs="${d.beliefs||''}" values="${d.values||''}" needs="${(d.needs||[]).join(',')}"`;
+      }).join('\n');
+      const sys = `You are Lumen. The person has logged ${diaryEntries.length} trigger diary entries over the past week. Here are all their entries:\n\n${allEntries}\n\nLook across everything. Name one precise pattern you notice — the same trigger type repeating, the same feeling surfacing, the same value being challenged, the same belief running underneath. Ask one question that names the pattern without solving it. 2-3 sentences. No advice. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'What do you notice across my entries?' }] }) });
+        const d = await res.json();
+        prText.textContent = d.reply || 'Lumen is quiet. Move to the Reflect section when ready.';
+        if (prActions) prActions.classList.add('show');
+      } catch(e) { prText.textContent = 'Lumen is quiet right now. Continue when ready.'; if (prActions) prActions.classList.add('show'); }
+    }
+
+    // ── NAVIGATION ────────────────────────────────────────────
+    function goTo(step) {
+      document.getElementById('panel-' + currentStep).classList.remove('active');
+      document.getElementById('dot-' + currentStep).classList.remove('active');
+      if (currentStep < step) document.getElementById('dot-' + currentStep).classList.add('done');
+      currentStep = step;
+      document.getElementById('panel-' + step).classList.add('active');
+      document.getElementById('dot-' + step).classList.add('active');
+      document.getElementById('step-label').textContent = STEP_LABELS[step - 1];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── LUMEN PANELS (reflect questions) ─────────────────────
+    function openLumen(qId) {
+      const panel = document.getElementById('lp-' + qId); if (!panel) return;
+      panel.classList.add('open');
+      if (!lumenConvos[qId]) {
+        lumenConvos[qId] = [];
+        const answerEl = document.getElementById(qId);
+        if (answerEl && answerEl.value.trim()) sendLumenMessage(qId, null, answerEl.value);
+      }
+    }
+
+    function closeLumen(qId) { const p = document.getElementById('lp-' + qId); if (p) p.classList.remove('open'); }
+
+    async function sendLumenMessage(qId, userText, answerCtx) {
+      if (!lumenConvos[qId]) lumenConvos[qId] = [];
+      const msgs = lumenConvos[qId];
+      if (userText) { msgs.push({ role: 'user', content: userText }); appendMsg(qId, 'user', userText); }
+      appendThinking(qId);
+      const sys = `You are Lumen — an AI mirror trained in the Reframe methodology. The person is reflecting on Mission 6: Taming Your Triggers. They wrote: "${(answerCtx || '').substring(0, 300)}". Reflect one observation. Ask one precise question. 2 sentences maximum. No advice. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
+        const d = await res.json();
+        removeThinking(qId);
+        const reply = d.reply || 'Lumen is quiet. Keep going.';
+        msgs.push({ role: 'assistant', content: reply });
+        appendMsg(qId, 'lumen', reply);
+      } catch(e) { removeThinking(qId); appendMsg(qId, 'lumen', 'Lumen is quiet right now.'); }
+    }
+
+    function sendLumenReply(qId) {
+      const input = document.getElementById('lr-' + qId); if (!input) return;
+      const text = input.value.trim(); if (!text) return; input.value = '';
+      const answerEl = document.getElementById(qId);
+      sendLumenMessage(qId, text, answerEl ? answerEl.value : '');
+    }
+
+    function appendMsg(qId, role, text) {
+      const c = document.getElementById('lm-' + qId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg';
+      const isL = role === 'lumen';
+      div.innerHTML = `<div class="msg-avatar ${isL ? 'lumen-av' : 'user-av'}">${isL ? 'L' : 'you'}</div><div class="msg-bubble ${isL ? 'lumen-bubble' : 'user-bubble'}">${text}</div>`;
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+    function appendThinking(qId) {
+      const c = document.getElementById('lm-' + qId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg'; div.id = 'thinking-' + qId;
+      div.innerHTML = `<div class="msg-avatar lumen-av">L</div><div class="msg-bubble thinking-bubble">Reading what you wrote...</div>`;
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+    function removeThinking(qId) { const el = document.getElementById('thinking-' + qId); if (el) el.remove(); }
+
+    // ── PART REFLECTIONS ─────────────────────────────────────
+    function buildContext(partNum) {
+      return (PART_QUESTIONS[partNum] || []).map(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() ? `${id}: "${el.value.trim().substring(0, 300)}"` : null;
+      }).filter(Boolean).join('\n');
+    }
+
+    async function partReflect(partNum) {
+      const pr = document.getElementById('pr-' + partNum);
+      const prText = document.getElementById('pr-text-' + partNum);
+      const prActions = document.getElementById('pr-actions-' + partNum);
+      if (!pr || !prText) return;
+      pr.classList.add('show'); prText.textContent = 'Reading what you wrote...';
+      const ctx = buildContext(partNum);
+      const partNames = { 2: 'Reflect', 3: 'Share', 4: 'Practice' };
+      const sys = `You are Lumen. The person has completed Part ${partNum} (${partNames[partNum]}) of Mission 6: Taming Your Triggers. Here is what they wrote:\n\n${ctx}\n\nOffer one precise observation. Ask one question. 2-3 sentences. No praise. No advice.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Reflect on my answers.' }] }) });
+        const d = await res.json();
+        prText.textContent = d.reply || 'Lumen is quiet. Continue when ready.';
+        if (prActions) prActions.classList.add('show');
+      } catch(e) { prText.textContent = 'Lumen is quiet right now. Continue when ready.'; if (prActions) prActions.classList.add('show'); }
+    }
+
+    // ── ARC REFLECTION ───────────────────────────────────────
+    async function arcReflect() {
+      const arcBlock = document.getElementById('arc-block');
+      const arcText = document.getElementById('arc-text');
+      arcBlock.classList.add('show'); arcText.textContent = 'Reading everything you wrote...';
+      const allCtx = ALL_QUESTIONS.map(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() ? `${id}: "${el.value.trim().substring(0, 200)}"` : null;
+      }).filter(Boolean).join('\n');
+      const entryCount = diaryEntries.length;
+      const sys = `You are Lumen. The person has completed Mission 6: Taming Your Triggers. They logged ${entryCount} trigger diary entries and completed all four parts. Here is their reflection work:\n\n${allCtx}\n\nOffer one precise observation that names the core pattern — the trigger, the value it challenges, and the cost of letting it run. Ask the one question that names what changes if they hold this awareness. 2-3 sentences. No summary. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
+        const d = await res.json();
+        arcText.textContent = d.reply || 'The map is drawn. Name your commitment.';
+      } catch(e) { arcText.textContent = 'Name your commitment below.'; }
+      document.getElementById('arc-btn').style.display = 'none';
+    }
+
+    function checkComplete() {
+      const commit = document.getElementById('ta-commit');
+      if (commit && commit.value.trim().length > 20) document.getElementById('complete-banner').classList.add('show');
+    }
+  </script>
+</body>
+</html>
