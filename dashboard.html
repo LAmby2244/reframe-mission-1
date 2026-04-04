@@ -701,41 +701,49 @@
 
     function renderMissions() {
       const list = document.getElementById('mission-list');
+      if (!list) { console.error('mission-list not found'); return; }
       let completeCount = 0;
 
-      list.innerHTML = MISSIONS.map(m => {
-        const { pct, status } = getMissionProgress(m.id);
-        if (status === 'complete') completeCount++;
+      const html = MISSIONS.map(m => {
+        try {
+          const { pct, status } = getMissionProgress(m.id);
+          if (status === 'complete') completeCount++;
 
-        const statusLabel = {
-          complete: '<span class="status-pill sp-complete">Complete</span>',
-          progress: '<span class="status-pill sp-progress">In progress</span>',
-          start:    '<span class="status-pill sp-start">Begin</span>',
-          soon:     '<span class="status-pill sp-soon">Coming soon</span>',
-        }[status];
+          const statusLabel = {
+            complete: '<span class="status-pill sp-complete">Complete</span>',
+            progress: '<span class="status-pill sp-progress">In progress</span>',
+            start:    '<span class="status-pill sp-start">Begin</span>',
+            soon:     '<span class="status-pill sp-soon">Coming soon</span>',
+          }[status] || '<span class="status-pill sp-soon">Coming soon</span>';
 
-        const progressBar = (status === 'progress' || status === 'complete') ? `
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill ${status === 'complete' ? 'complete' : ''}" style="width:${pct}%"></div>
-          </div>` : '';
+          const progressBar = (status === 'progress' || status === 'complete') ? `
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill ${status === 'complete' ? 'complete' : ''}" style="width:${pct}%"></div>
+            </div>` : '';
 
-        const isClickable = m.url && status !== 'soon';
-        const tag = isClickable ? `a href="${m.url}"` : 'div';
-        const closeTag = isClickable ? 'a' : 'div';
+          const isClickable = m.url && status !== 'soon';
+          const tag = isClickable ? `a href="${m.url}"` : 'div';
+          const closeTag = isClickable ? 'a' : 'div';
 
-        return `<${tag} class="mission-item mc-${m.id} ${status === 'soon' ? 'locked' : ''}">
-          <div class="mission-num mn-${m.id}">${m.id}</div>
-          <div class="mission-body">
-            <div class="mission-chapter">${m.ch}</div>
-            <div class="mission-title">${m.title}</div>
-            <div class="mission-tagline">${m.tagline}</div>
-          </div>
-          <div class="mission-status">
-            ${statusLabel}
-            ${progressBar}
-          </div>
-        </${closeTag}>`;
+          return `<${tag} class="mission-item mc-${m.id} ${status === 'soon' ? 'locked' : ''}">
+            <div class="mission-num mn-${m.id}">${m.id}</div>
+            <div class="mission-body">
+              <div class="mission-chapter">${m.ch}</div>
+              <div class="mission-title">${m.title}</div>
+              <div class="mission-tagline">${m.tagline}</div>
+            </div>
+            <div class="mission-status">
+              ${statusLabel}
+              ${progressBar}
+            </div>
+          </${closeTag}>`;
+        } catch(e) {
+          console.error('Error rendering mission', m.id, e);
+          return '';
+        }
       }).join('');
+
+      list.innerHTML = html;
 
       document.getElementById('missions-count').textContent =
         `${completeCount} of 14 complete`;
