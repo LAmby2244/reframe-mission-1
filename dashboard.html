@@ -699,16 +699,6 @@
       }
     }
 
-    function getMissionProgress(missionId) {
-      if (missionId !== 1) return { pct: 0, status: 'soon' };
-      const m1 = allAnswers['mission-1'] || {};
-      const answered = M1_QUESTIONS.filter(q => m1[q] && m1[q].trim().length > 0).length;
-      const pct = Math.round((answered / M1_QUESTIONS.length) * 100);
-      if (pct === 0) return { pct: 0, status: 'start' };
-      if (pct === 100) return { pct: 100, status: 'complete' };
-      return { pct, status: 'progress' };
-    }
-
     function renderMissions() {
       const list = document.getElementById('mission-list');
       let completeCount = 0;
