@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission 02 — The Immunity Map | Reframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #F56914;
+      --orange-light: #FEF0E6;
+      --yellow: #FFBE19;
+      --yellow-light: #FFF8E0;
+      --dark: #0A3228;
+      --mid: #377364;
+      --light: #F5E6CD;
+      --beige-mid: #EDD9B5;
+      --white: #ffffff;
+      --blush: #FFB9AA;
+      --sky: #9BD7E6;
+      --trust: #2D5A91;
+      --border: rgba(10,50,40,0.12);
+      --max: 680px;
+      --accent: #FFBE19;
+      --accent-light: #FFF8E0;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Rubik', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* ── AUTH ── */
+    .auth-screen { position: fixed; inset: 0; z-index: 1000; background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .auth-screen.hidden { display: none; }
+    .auth-box { background: var(--light); border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; position: relative; overflow: hidden; }
+    .auth-box::before { content: ''; position: absolute; top: -60px; right: -60px; width: 160px; height: 160px; background: var(--accent); border-radius: 50%; opacity: 0.2; }
+    .auth-logo { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--dark); text-transform: uppercase; margin-bottom: 24px; position: relative; z-index: 1; }
+    .auth-box h2 { font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 8px; position: relative; z-index: 1; }
+    .auth-box p { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.7; margin-bottom: 28px; position: relative; z-index: 1; }
+    .auth-field { margin-bottom: 16px; position: relative; z-index: 1; }
+    .auth-field label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 6px; }
+    .auth-field input { width: 100%; border: 2px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: 'Rubik', sans-serif; font-size: 15px; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s; }
+    .auth-field input:focus { border-color: var(--dark); }
+    .auth-submit { width: 100%; background: var(--dark); color: white; border: none; border-radius: 20px; padding: 14px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; margin-top: 8px; transition: opacity 0.2s; position: relative; z-index: 1; }
+    .auth-submit:hover { opacity: 0.87; }
+    .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--mid); position: relative; z-index: 1; }
+    .auth-toggle button { background: none; border: none; color: var(--dark); cursor: pointer; font-size: 13px; font-weight: 500; font-family: 'Rubik', sans-serif; }
+    .auth-error { background: #fee; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #C0392B; margin-bottom: 16px; display: none; position: relative; z-index: 1; }
+    .auth-error.show { display: block; }
+    .auth-saving { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: rgba(255,255,255,0.7); font-size: 12px; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .auth-saving.show { opacity: 1; }
+
+    /* ── USER BAR ── */
+    .auth-user-bar { background: var(--dark); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; }
+    .auth-user-left { display: flex; align-items: center; gap: 20px; }
+    .auth-dashboard-link { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+    .auth-dashboard-link:hover { color: rgba(255,255,255,0.8); }
+    .auth-user-email { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .auth-signout { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .auth-signout:hover { color: rgba(255,255,255,0.7); }
+
+    /* ── HERO ── */
+    .hero { background: var(--dark); padding: 64px 40px 52px; position: relative; overflow: hidden; }
+    .hero-shape-1 { position: absolute; top: -80px; right: -80px; width: 280px; height: 280px; background: var(--accent); border-radius: 50%; opacity: 0.15; }
+    .hero-shape-2 { position: absolute; bottom: -50px; right: 100px; width: 160px; height: 160px; background: var(--blush); border-radius: 50%; opacity: 0.12; }
+    .hero-inner { max-width: var(--max); position: relative; z-index: 1; }
+    .mission-label { font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(36px, 6vw, 58px); font-weight: 700; color: var(--white); line-height: 1.02; margin-bottom: 18px; }
+    .hero-sub { font-size: 16px; font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.75; max-width: 480px; }
+
+    /* ── BRIDGE ── */
+    .bridge { background: var(--white); border-bottom: 1px solid var(--border); padding: 28px 40px; }
+    .bridge-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+    .bridge p { font-size: 15px; line-height: 1.8; color: var(--dark); max-width: var(--max); margin-bottom: 10px; }
+    .bridge p:last-child { font-weight: 300; color: var(--mid); }
+
+    /* ── LUMEN BRIDGE ── */
+    .lumen-bridge { background: var(--trust); padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .lumen-bridge-inner { max-width: var(--max); display: flex; gap: 16px; align-items: flex-start; }
+    .lumen-bridge-av { width: 28px; height: 28px; border-radius: 50%; background: var(--sky); color: var(--trust); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .lumen-bridge-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sky); margin-bottom: 6px; }
+    .lumen-bridge-text { font-size: 14px; font-weight: 300; font-style: italic; color: rgba(255,255,255,0.85); line-height: 1.7; }
+    .lumen-bridge-placeholder { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+    /* ── PROGRESS ── */
+    .progress-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 14px 40px; display: flex; gap: 8px; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.25s; border: 2px solid var(--border); background: var(--white); color: var(--mid); flex-shrink: 0; }
+    .step-dot.active { background: var(--accent); color: var(--dark); border-color: var(--accent); }
+    .step-dot.done { background: var(--dark); color: var(--white); border-color: var(--dark); }
+    .step-connector { flex: 1; height: 1px; background: var(--border); }
+    .step-label { font-size: 12px; color: var(--mid); margin-left: 12px; white-space: nowrap; font-weight: 500; }
+
+    /* ── BODY ── */
+    .body { padding: 36px 40px 64px; max-width: calc(var(--max) + 80px); }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ── PART HEADER ── */
+    .part-badge { display: inline-block; background: var(--accent); color: var(--dark); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 12px; }
+    .part-title { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 10px; line-height: 1.2; }
+    .part-body { font-size: 15px; font-weight: 300; line-height: 1.8; color: var(--mid); margin-bottom: 32px; max-width: 560px; }
+
+    /* ── STEP HEADERS within Part 1 ── */
+    .step-header { margin: 32px 0 16px; display: flex; align-items: center; gap: 12px; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--dark); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .step-title { font-size: 16px; font-weight: 700; color: var(--dark); }
+    .step-body { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.75; margin-bottom: 16px; max-width: 560px; }
+
+    /* ── CHECKLIST ── */
+    .checklist { background: var(--accent-light); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; border: 1.5px solid var(--accent); }
+    .checklist-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 300; color: var(--dark); line-height: 1.6; }
+    .checklist-item:last-child { margin-bottom: 0; }
+    .check-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 8px; }
+
+    /* ── SENTENCE COMPLETIONS ── */
+    .sentence-complete { margin-bottom: 16px; }
+    .sentence-prefix { font-size: 15px; font-weight: 500; color: var(--dark); margin-bottom: 8px; }
+    .sentence-prefix em { color: var(--mid); font-style: normal; font-weight: 300; }
+
+    /* ── Q BLOCKS ── */
+    .q-block { margin-bottom: 32px; }
+    .q-row { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 10px; }
+    .q-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 7px; }
+    .q-text { font-size: 15px; font-weight: 500; line-height: 1.65; color: var(--dark); }
+    .q-hint { font-size: 13px; font-weight: 300; color: var(--mid); line-height: 1.6; margin-bottom: 10px; margin-left: 19px; }
+
+    textarea { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 14px 18px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.75; color: var(--dark); background: var(--white); resize: vertical; min-height: 96px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; display: block; -webkit-appearance: none; }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,190,25,0.12); }
+    textarea::placeholder { color: rgba(10,50,40,0.25); }
+    .wc { font-size: 11px; color: rgba(10,50,40,0.3); text-align: right; margin-top: 5px; }
+
+    /* ── LUMEN TRIGGER ── */
+    .lumen-trigger-row { margin-top: 10px; display: none; align-items: center; gap: 10px; }
+    .lumen-trigger-row.visible { display: flex; }
+    .lumen-trigger-btn { background: var(--yellow-light); border: 1.5px solid var(--yellow); color: var(--dark); border-radius: 20px; padding: 7px 16px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .lumen-trigger-btn:hover { background: var(--yellow); }
+    .lumen-l { width: 18px; height: 18px; border-radius: 50%; background: var(--yellow); color: var(--dark); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+
+    /* ── LUMEN PANEL ── */
+    .lumen-panel { margin-top: 12px; border-left: 3px solid var(--yellow); border-radius: 0 14px 14px 0; background: var(--dark); display: none; animation: fadeUp 0.3s ease; }
+    .lumen-panel.open { display: block; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+    .lumen-panel-header { padding: 12px 18px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .lumen-panel-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); display: flex; align-items: center; gap: 8px; }
+    .lumen-panel-close { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 20px; cursor: pointer; line-height: 1; padding: 0 2px; transition: color 0.2s; font-family: 'Rubik', sans-serif; }
+    .lumen-panel-close:hover { color: rgba(255,255,255,0.7); }
+    .lumen-messages { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; max-height: 400px; overflow-y: auto; }
+    .msg { display: flex; gap: 10px; align-items: flex-start; animation: fadeUp 0.25s ease; }
+    .msg-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; margin-top: 2px; }
+    .lumen-av { background: var(--yellow); color: var(--dark); }
+    .user-av { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); font-size: 8px; }
+    .msg-bubble { font-size: 14px; font-weight: 300; line-height: 1.75; }
+    .lumen-bubble { color: rgba(255,255,255,0.85); font-style: italic; }
+    .user-bubble { color: rgba(255,255,255,0.55); }
+    .thinking-bubble { color: rgba(255,255,255,0.3); font-style: italic; }
+    .lumen-input-row { padding: 10px 18px 12px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; gap: 8px; align-items: flex-end; }
+    textarea.lumen-reply { flex: 1; min-height: 40px; max-height: 120px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 13px; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 300; color: var(--white); resize: none; line-height: 1.5; }
+    textarea.lumen-reply:focus { border-color: rgba(255,190,25,0.5); box-shadow: none; }
+    textarea.lumen-reply::placeholder { color: rgba(255,255,255,0.2); }
+    .lumen-send { background: var(--yellow); border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
+    .lumen-send:hover { opacity: 0.85; }
+    .lumen-send svg { width: 13px; height: 13px; fill: var(--dark); }
+    .lumen-done-row { padding: 0 18px 12px; display: flex; justify-content: flex-end; }
+    .lumen-done-btn { background: none; border: none; color: rgba(255,255,255,0.28); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; padding: 4px 0; }
+    .lumen-done-btn:hover { color: rgba(255,255,255,0.55); }
+
+    /* ── INSIGHT BOX ── */
+    .insight-box { background: var(--accent-light); border-radius: 14px; padding: 20px 24px; margin: 28px 0; display: flex; gap: 16px; align-items: flex-start; border: 1.5px solid var(--accent); }
+    .insight-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--dark); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .insight-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--dark); margin-bottom: 6px; }
+    .insight-body { font-size: 14px; font-weight: 300; line-height: 1.75; color: var(--dark); }
+
+    /* ── SHARE PROMPT ── */
+    .share-prompt { background: var(--white); border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; border: 1.5px solid var(--border); }
+    .share-prompt-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+    .share-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 14px; font-weight: 300; color: var(--dark); line-height: 1.6; }
+    .share-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 8px; }
+
+    /* ── PART REFLECTION ── */
+    .part-reflection { background: var(--dark); border-radius: 16px; padding: 24px 28px; margin: 24px 0; border-left: 4px solid var(--yellow); display: none; animation: fadeUp 0.4s ease; }
+    .part-reflection.show { display: block; }
+    .pr-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .pr-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
+    .pr-text { font-size: 15px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.85); font-style: italic; }
+    .pr-actions { margin-top: 18px; display: none; gap: 12px; align-items: center; }
+    .pr-actions.show { display: flex; }
+    .pr-continue { background: var(--accent); color: var(--dark); border: none; border-radius: 20px; padding: 11px 24px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Rubik', sans-serif; transition: opacity 0.2s; }
+    .pr-continue:hover { opacity: 0.87; }
+    .pr-skip { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 14px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .pr-skip:hover { color: rgba(255,255,255,0.6); }
+
+    /* ── ARC / COMMITMENT ── */
+    .arc-block { background: var(--dark); border-radius: 20px; padding: 28px 32px; margin-bottom: 20px; position: relative; overflow: hidden; display: none; animation: fadeUp 0.4s ease; }
+    .arc-block.show { display: block; }
+    .arc-shape { position: absolute; bottom: -24px; right: -24px; width: 120px; height: 120px; background: var(--accent); border-radius: 50%; opacity: 0.12; }
+    .arc-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .arc-text { font-size: 15px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.85); font-style: italic; margin-bottom: 24px; }
+    .arc-divider { height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px; }
+    .commit-title { font-size: 22px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .commit-desc { font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.55); line-height: 1.75; margin-bottom: 18px; }
+    textarea.commit-input { background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: var(--white); min-height: 80px; }
+    textarea.commit-input:focus { border-color: rgba(255,190,25,0.5); box-shadow: none; }
+    textarea.commit-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    /* ── COMPLETE ── */
+    .complete-banner { background: var(--yellow-light); border-radius: 14px; padding: 24px 28px; text-align: center; margin-top: 20px; border: 2px solid var(--yellow); display: none; }
+    .complete-banner.show { display: block; animation: fadeUp 0.3s ease; }
+    .complete-banner h4 { font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .complete-banner p { font-size: 14px; color: var(--mid); font-weight: 400; margin-bottom: 16px; }
+
+    /* ── NAV ── */
+    .nav-buttons { display: flex; gap: 10px; margin-top: 32px; }
+    .btn-back { background: var(--white); color: var(--mid); border: 2px solid var(--border); border-radius: 20px; padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: background 0.2s; }
+    .btn-back:hover { background: var(--beige-mid); }
+    .btn-next { background: var(--accent); color: var(--dark); border: none; border-radius: 20px; padding: 12px 28px; font-size: 14px; font-weight: 700; cursor: pointer; flex: 1; font-family: 'Rubik', sans-serif; transition: opacity 0.2s; }
+    .btn-next:hover { opacity: 0.87; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 48px 24px 40px; }
+      .bridge, .lumen-bridge { padding: 20px 24px; }
+      .progress-bar { padding: 12px 24px; }
+      .body { padding: 28px 24px 48px; }
+      .step-label { display: none; }
+      .auth-user-bar { padding: 10px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH -->
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-box">
+      <div class="auth-logo">Purposeful Change · Reframe</div>
+      <h2 id="auth-title">Welcome back</h2>
+      <p id="auth-desc">Sign in to continue your journey. Your reflections are saved and waiting.</p>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="your@email.com" /></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') authSubmit()" /></div>
+      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
+      <div class="auth-toggle">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
+      </div>
+    </div>
+  </div>
+  <div class="auth-saving" id="auth-saving">Saving...</div>
+
+  <!-- USER BAR -->
+  <div class="auth-user-bar" id="user-bar" style="display:none">
+    <div class="auth-user-left">
+      <a href="/dashboard.html" class="auth-dashboard-link">← Dashboard</a>
+      <span class="auth-user-email" id="user-email"></span>
+    </div>
+    <button class="auth-signout" onclick="signOut()">Sign out</button>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-shape-1"></div>
+    <div class="hero-shape-2"></div>
+    <div class="hero-inner">
+      <div class="mission-label">Mission 02 · Chapter 4</div>
+      <h1>The Immunity Map</h1>
+      <p class="hero-sub">You are not failing to change. You are succeeding at something else — something hidden. This mission maps what you are protecting and why.</p>
+    </div>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="bridge">
+    <div style="max-width:var(--max)">
+      <div class="bridge-label">Where you're coming from</div>
+      <p>In Mission 1 you built the honest case for change. You named what the last six months have really looked like, identified something meaningful to work on, and wrote a commitment. You arrived at something real.</p>
+      <p>This mission takes that commitment and asks a harder question: if you know what needs to change, and you want to change it, why hasn't it happened yet? The answer is not weakness or lack of willpower. There is something else running — an intelligent protection system doing exactly what it was built to do. This mission finds it.</p>
+    </div>
+  </div>
+
+  <!-- LUMEN BRIDGE -->
+  <div class="lumen-bridge">
+    <div class="lumen-bridge-inner">
+      <div class="lumen-bridge-av">L</div>
+      <div>
+        <div class="lumen-bridge-label">Lumen · What you brought forward from Mission 1</div>
+        <div class="lumen-bridge-text" id="lumen-bridge-text">The commitment you named — and the pattern you said you were ready to stop repeating.</div>
+        <div class="lumen-bridge-placeholder" id="lumen-bridge-placeholder">Your reflection will appear here when Lumen has read your Mission 1 answers.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="step-dot active" id="dot-1" onclick="goTo(1)">1</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-2" onclick="goTo(2)">2</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-3" onclick="goTo(3)">3</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-4" onclick="goTo(4)">4</div>
+    <span class="step-label" id="step-label">Experiment</span>
+  </div>
+
+  <div class="body">
+
+    <!-- ══ PART 1 — EXPERIMENT ══ -->
+    <div class="step-panel active" id="panel-1">
+      <div class="part-badge">Part 1</div>
+      <div class="part-title">Experiment — Uncover Your Internal Resistance</div>
+      <p class="part-body">We resist change not because we don't want to grow, but because we are unconsciously protecting ourselves from something we fear. Robert Kegan's Immunity to Change model shows that we each carry hidden commitments that run directly against the change we say we want. Work through the four steps below with the shift you identified in Mission 1.</p>
+
+      <!-- STEP 1 -->
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Validate your commitment</div>
+      </div>
+      <p class="step-body">Before you go deeper, check that the shift you've named meets these criteria:</p>
+      <div class="checklist">
+        <div class="checklist-item"><div class="check-dot"></div>It is genuinely important to you — a meaningful shift if you could improve dramatically</div>
+        <div class="checklist-item"><div class="check-dot"></div>Others in your life would recognise it — they'd agree it matters</div>
+        <div class="checklist-item"><div class="check-dot"></div>It is yours — something within your control, not about changing others</div>
+        <div class="checklist-item"><div class="check-dot"></div>It is a repeated challenge — something you've heard before or noticed over time</div>
+      </div>
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p1q1">My commitment is:</div></div>
+        <textarea id="p1q1" placeholder="Write your commitment clearly and specifically. Use 'I am' or 'I will'..." oninput="handleInput('p1q1')"></textarea>
+        <div class="wc" id="wc-p1q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q1">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p1q1')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q1">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p1q1')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p1q1"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p1q1" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p1q1');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p1q1')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p1q1')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">What are you doing instead?</div>
+      </div>
+      <p class="step-body">Despite wanting to change, we engage in behaviours that contradict our goal. List them here — without explaining or justifying. Just what you actually do.</p>
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p1q2">What am I doing (or not doing) that goes against my commitment?</div></div>
+        <textarea id="p1q2" placeholder="Be honest. Don't justify or explain — just list what you actually do..." oninput="handleInput('p1q2')"></textarea>
+        <div class="wc" id="wc-p1q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p1q2')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p1q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p1q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p1q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p1q2');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p1q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p1q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Uncover hidden competing commitments</div>
+      </div>
+      <p class="step-body">These behaviours exist because they protect you from something. Imagine actually doing the opposite of them — being fully present, naming a need, letting something go. What feels uncomfortable, worrying, or scary about that?</p>
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p1q3">If I actually changed this, I might...</div></div>
+        <textarea id="p1q3" placeholder="Don't censor this. What is the fear underneath? What are you protecting?" oninput="handleInput('p1q3')"></textarea>
+        <div class="wc" id="wc-p1q3">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p1q3">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p1q3')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q3">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p1q3')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p1q3"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p1q3" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p1q3');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p1q3')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p1q3')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-icon">💡</div>
+        <div>
+          <div class="insight-title">Hidden commitments</div>
+          <div class="insight-body">These hidden commitments are your internal resistance. They are not weakness — they are an intelligent protection system doing exactly what it was built to do. The goal is not to eliminate them. It is to see them.</div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Identify your big assumptions</div>
+      </div>
+      <p class="step-body">Now name the deep beliefs that make your hidden commitments feel necessary and true. Complete these sentences:</p>
+
+      <div class="q-block">
+        <div class="sentence-complete">
+          <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p1q4">If I don't... then...</div></div>
+          <textarea id="p1q4" placeholder="If I don't _____________ then _____________" oninput="handleInput('p1q4')" style="min-height:72px"></textarea>
+          <div class="wc" id="wc-p1q4">0 words</div>
+        </div>
+        <div class="sentence-complete" style="margin-top:16px">
+          <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p1q5">I must be... or else...</div></div>
+          <textarea id="p1q5" placeholder="I must be _____________ or else _____________" oninput="handleInput('p1q5')" style="min-height:72px"></textarea>
+          <div class="wc" id="wc-p1q5">0 words</div>
+        </div>
+        <p style="font-size:14px;font-weight:500;color:var(--mid);margin-top:20px;font-style:italic;">Now pause. Are these assumptions actually true?</p>
+        <div class="lumen-trigger-row visible" id="trow-p1q5" style="margin-top:12px">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p1q5')">Examine your assumptions with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p1q5">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p1q5')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p1q5"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p1q5" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p1q5');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p1q5')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p1q5')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-1">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-1"></div>
+        <div class="pr-actions" id="pr-actions-1">
+          <button class="pr-continue" onclick="goTo(2)">Continue to Reflect →</button>
+          <button class="pr-skip" onclick="goTo(2)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-next" onclick="partReflect(1)">Reflect with Lumen →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 2 — REFLECT ══ -->
+    <div class="step-panel" id="panel-2">
+      <div class="part-badge">Part 2</div>
+      <div class="part-title">Reflect — The Cost and the Possibility</div>
+      <p class="part-body">Now that you can see the hidden system — the competing commitment, the big assumption — look at what it has been costing you. And look at what becomes possible if you start to loosen its grip.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p2q1">If I don't change — what is the real cost to my life and relationships in 1, 5, 10 years?</div></div>
+        <p class="q-hint">Be specific. Name the person, the relationship, the opportunity that slowly disappears.</p>
+        <textarea id="p2q1" placeholder="In 1 year... In 5 years... In 10 years..." oninput="handleInput('p2q1')"></textarea>
+        <div class="wc" id="wc-p2q1">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q1">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q1')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q1">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p2q1')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p2q1"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p2q1" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q1');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p2q1')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q1')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p2q2">If I break free from this pattern — what becomes genuinely possible?</div></div>
+        <p class="q-hint">Not what you think you should say. What actually becomes available — in your work, your relationships, your sense of yourself?</p>
+        <textarea id="p2q2" placeholder="What opens up when this pattern no longer runs the show?" oninput="handleInput('p2q2')"></textarea>
+        <div class="wc" id="wc-p2q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p2q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p2q2')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p2q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p2q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p2q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p2q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p2q2');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p2q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p2q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-2">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-2"></div>
+        <div class="pr-actions" id="pr-actions-2">
+          <button class="pr-continue" onclick="goTo(3)">Continue to Share →</button>
+          <button class="pr-skip" onclick="goTo(3)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(1)">← Back</button>
+        <button class="btn-next" onclick="partReflect(2)">Reflect with Lumen →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 3 — SHARE ══ -->
+    <div class="step-panel" id="panel-3">
+      <div class="part-badge">Part 3</div>
+      <div class="part-title">Share — Test It With Someone You Trust</div>
+      <p class="part-body">Share what you've uncovered with someone you trust. The hidden competing commitments and big assumptions are often easier to see from the outside. Choose someone who will be honest with you, not just comfortable.</p>
+
+      <div class="share-prompt">
+        <div class="share-prompt-label">Tell them:</div>
+        <div class="share-item"><div class="share-dot"></div>The commitment you are making and the pattern getting in the way</div>
+        <div class="share-item"><div class="share-dot"></div>The hidden commitment — what you're protecting</div>
+        <div class="share-item"><div class="share-dot"></div>The assumption beneath it — and whether you actually believe it's true</div>
+      </div>
+
+      <div class="share-prompt" style="margin-top:12px">
+        <div class="share-prompt-label">Ask them:</div>
+        <div class="share-item"><div class="share-dot"></div>Does this ring true from where you stand?</div>
+        <div class="share-item"><div class="share-dot"></div>What do you see that I might be missing?</div>
+        <div class="share-item"><div class="share-dot"></div>What do you think would actually happen if my assumption turned out to be wrong?</div>
+      </div>
+
+      <div class="q-block" style="margin-top:28px">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p3q1">Who will you share this with — and when?</div></div>
+        <textarea id="p3q1" placeholder="Name the person. Name the moment. Make it real." oninput="handleInput('p3q1')" style="min-height:72px"></textarea>
+        <div class="wc" id="wc-p3q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p3q2">Notes from your conversation:</div></div>
+        <p class="q-hint">Return here after the conversation. What did they see? What landed? What surprised you?</p>
+        <textarea id="p3q2" placeholder="Come back here after you've had the conversation..." oninput="handleInput('p3q2')"></textarea>
+        <div class="wc" id="wc-p3q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p3q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p3q2')">Process it with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p3q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p3q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p3q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p3q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p3q2');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p3q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p3q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <div class="part-reflection" id="pr-3">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-3"></div>
+        <div class="pr-actions" id="pr-actions-3">
+          <button class="pr-continue" onclick="goTo(4)">Continue to What Next →</button>
+          <button class="pr-skip" onclick="goTo(4)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(2)">← Back</button>
+        <button class="btn-next" onclick="partReflect(3)">Reflect with Lumen →</button>
+      </div>
+    </div>
+
+    <!-- ══ PART 4 — WHAT NEXT ══ -->
+    <div class="step-panel" id="panel-4">
+      <div class="part-badge">Part 4</div>
+      <div class="part-title">What Next — Test the Assumption</div>
+      <p class="part-body">The big assumption is the thing keeping the immunity in place. You can't think your way out of it. You have to test it — take a small action that proves it wrong, or at least uncertain. Choose one assumption to test this week.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p4q1">The assumption I am going to test this week is:</div></div>
+        <textarea id="p4q1" placeholder="Name the specific assumption — one of the sentences you completed in Step 4..." oninput="handleInput('p4q1')" style="min-height:72px"></textarea>
+        <div class="wc" id="wc-p4q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><div class="q-text" id="q-text-p4q2">I will know something has shifted if:</div></div>
+        <textarea id="p4q2" placeholder="What would you notice — in yourself, in others, in the situation — that would tell you the assumption is loosening?" oninput="handleInput('p4q2')" style="min-height:72px"></textarea>
+        <div class="wc" id="wc-p4q2">0 words</div>
+        <div class="lumen-trigger-row" id="trow-p4q2">
+          <div class="lumen-l">L</div>
+          <button class="lumen-trigger-btn" onclick="openLumen('p4q2')">Go deeper with Lumen</button>
+        </div>
+        <div class="lumen-panel" id="lp-p4q2">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>
+            <button class="lumen-panel-close" onclick="closeLumen('p4q2')">×</button>
+          </div>
+          <div class="lumen-messages" id="lm-p4q2"></div>
+          <div class="lumen-input-row">
+            <textarea class="lumen-reply" id="lr-p4q2" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendLumenReply('p4q2');}"></textarea>
+            <button class="lumen-send" onclick="sendLumenReply('p4q2')"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('p4q2')">Close conversation</button></div>
+        </div>
+      </div>
+
+      <!-- Arc + Commitment -->
+      <div class="arc-block" id="arc-block">
+        <div class="arc-shape"></div>
+        <div class="arc-label"><div class="pr-dot"></div>Close the arc with Lumen</div>
+        <div class="arc-text" id="arc-text"></div>
+        <div class="arc-divider"></div>
+        <div class="commit-title">My commitment</div>
+        <div class="commit-desc">Write the one assumption you are committing to test. Be specific about what you will do and when. This is a declaration, not a hope.</div>
+        <textarea class="commit-input" id="ta-commit"
+          placeholder="The assumption I am testing is... I will test it by... I will know it is loosening when..."
+          oninput="saveAnswer('ta-commit'); checkComplete()"></textarea>
+      </div>
+
+      <div class="complete-banner" id="complete-banner">
+        <h4>Mission 2 complete.</h4>
+        <p>You can't dismantle something you cannot see. Now you can see it.</p>
+        <a href="/dashboard.html" style="display:inline-block;background:var(--accent);color:var(--dark);text-decoration:none;padding:12px 28px;border-radius:20px;font-size:14px;font-weight:700;font-family:'Rubik',sans-serif;">Return to your journey →</a>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(3)">← Back</button>
+        <button class="btn-next" id="arc-btn" onclick="arcReflect()">Close the arc with Lumen →</button>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const LUMEN_API_URL = '/api/lumen';
+    const MISSION_ID = 'mission-2';
+    const PREV_MISSION_ID = 'mission-1';
+
+    const ALL_QUESTIONS = ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p3q1','p3q2','p4q1','p4q2','ta-commit'];
+    const PART_QUESTIONS = { 1: ['p1q1','p1q2','p1q3','p1q4','p1q5'], 2: ['p2q1','p2q2'], 3: ['p3q1','p3q2'], 4: ['p4q1','p4q2'] };
+    const STEP_LABELS = ['Experiment','Reflect','Share','What Next'];
+
+    let currentUser = null, currentStep = 1, saveTimer = null;
+    let lumenConvos = {};
+
+    // ── AUTH ──
+    window.addEventListener('load', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { currentUser = session.user; showWorkbook(); await loadAnswers(); await loadPrevMissionContext(); }
+    });
+
+    let isSignUp = false;
+    function toggleAuth() {
+      isSignUp = !isSignUp;
+      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
+      document.getElementById('auth-desc').textContent = isSignUp ? 'Your reflections will be saved so you can return anytime.' : 'Sign in to continue your journey.';
+      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
+      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
+      document.getElementById('auth-error').classList.remove('show');
+    }
+
+    async function authSubmit() {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-btn');
+      const errEl = document.getElementById('auth-error');
+      errEl.classList.remove('show'); btn.textContent = 'Please wait...'; btn.disabled = true;
+      try {
+        const result = isSignUp ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
+        if (result.error) { errEl.textContent = result.error.message; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
+        else { currentUser = result.data.user; window.location.href = '/dashboard.html'; }
+      } catch(e) { errEl.textContent = 'Something went wrong.'; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
+    }
+
+    function showWorkbook() {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('user-bar').style.display = 'flex';
+      document.getElementById('user-email').textContent = currentUser.email;
+    }
+
+    async function signOut() { await sb.auth.signOut(); window.location.href = '/dashboard.html'; }
+
+    // ── LOAD ──
+    async function loadAnswers() {
+      const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', MISSION_ID);
+      if (data) data.forEach(row => {
+        const el = document.getElementById(row.question);
+        if (el) { el.value = row.answer; updateWordCount(row.question); checkLumenTrigger(row.question); }
+      });
+    }
+
+    async function loadPrevMissionContext() {
+      try {
+        const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', PREV_MISSION_ID);
+        if (data && data.length > 0) {
+          const answered = data.filter(r => r.answer && r.answer.trim().length > 0);
+          if (answered.length > 0) generateLumenBridge(answered);
+        }
+      } catch(e) {}
+    }
+
+    async function generateLumenBridge(prevAnswers) {
+      const ctx = prevAnswers.slice(0, 6).map(r => `${r.question}: "${r.answer.trim().substring(0, 200)}"`).join('\n');
+      const sys = `You are Lumen. Read what this person wrote in Mission 1 (Your Case for Change) and offer one sentence that surfaces the commitment or pattern they named most honestly. Then ask one precise question that bridges directly into Mission 2 — about what might be running underneath that commitment that has kept it in place. Two sentences maximum. No praise. No advice.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: `Mission 1 reflections:\n${ctx}` }] }) });
+        const d = await res.json();
+        if (d.reply) {
+          document.getElementById('lumen-bridge-text').textContent = d.reply;
+          document.getElementById('lumen-bridge-placeholder').style.display = 'none';
+        }
+      } catch(e) {}
+    }
+
+    // ── SAVE ──
+    function saveAnswer(questionId) {
+      if (!currentUser) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        const el = document.getElementById(questionId);
+        if (!el) return;
+        const saving = document.getElementById('auth-saving');
+        saving.classList.add('show');
+        await sb.from('answers').upsert({ user_id: currentUser.id, mission: MISSION_ID, question: questionId, answer: el.value }, { onConflict: 'user_id,mission,question' });
+        setTimeout(() => saving.classList.remove('show'), 1200);
+      }, 800);
+    }
+
+    function updateWordCount(id) {
+      const el = document.getElementById(id); const wc = document.getElementById('wc-' + id);
+      if (!el || !wc) return;
+      const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+      wc.textContent = w + ' word' + (w !== 1 ? 's' : '');
+    }
+
+    function checkLumenTrigger(id) {
+      const el = document.getElementById(id); const tr = document.getElementById('trow-' + id);
+      if (!el || !tr) return;
+      const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+      if (w >= 12) tr.classList.add('visible');
+    }
+
+    function handleInput(id) { updateWordCount(id); checkLumenTrigger(id); saveAnswer(id); }
+
+    // ── NAVIGATION ──
+    function goTo(step) {
+      document.getElementById('panel-' + currentStep).classList.remove('active');
+      document.getElementById('dot-' + currentStep).classList.remove('active');
+      if (currentStep < step) document.getElementById('dot-' + currentStep).classList.add('done');
+      currentStep = step;
+      document.getElementById('panel-' + step).classList.add('active');
+      document.getElementById('dot-' + step).classList.add('active');
+      document.getElementById('step-label').textContent = STEP_LABELS[step - 1];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── LUMEN PANELS ──
+    function openLumen(qId) {
+      const panel = document.getElementById('lp-' + qId);
+      if (!panel) return;
+      panel.classList.add('open');
+      if (!lumenConvos[qId]) {
+        lumenConvos[qId] = [];
+        const answerEl = document.getElementById(qId);
+        const questionEl = document.getElementById('q-text-' + qId);
+        if (answerEl && answerEl.value.trim()) sendLumenMessage(qId, null, questionEl ? questionEl.textContent : '', answerEl.value);
+      }
+    }
+
+    function closeLumen(qId) { const p = document.getElementById('lp-' + qId); if (p) p.classList.remove('open'); }
+
+    async function sendLumenMessage(qId, userText, questionCtx, answerCtx) {
+      if (!lumenConvos[qId]) lumenConvos[qId] = [];
+      const msgs = lumenConvos[qId];
+      if (userText) { msgs.push({ role: 'user', content: userText }); appendMsg(qId, 'user', userText); }
+      appendThinking(qId);
+      const sys = `You are Lumen — an AI mirror trained in the Reframe methodology by Simon Lamb and specifically Robert Kegan's Immunity to Change model. The person is working on Mission 2: The Immunity Map. They answered: "${(answerCtx || '').substring(0, 300)}" to the question: "${questionCtx || ''}". You are a mirror, not a coach. Reflect one observation. Ask one precise question that takes them deeper into what they are protecting. 2 sentences maximum. No advice. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
+        const d = await res.json();
+        removeThinking(qId);
+        const reply = d.reply || 'Lumen is quiet. Keep going.';
+        msgs.push({ role: 'assistant', content: reply });
+        appendMsg(qId, 'lumen', reply);
+      } catch(e) { removeThinking(qId); appendMsg(qId, 'lumen', 'Lumen is quiet right now.'); }
+    }
+
+    function sendLumenReply(qId) {
+      const input = document.getElementById('lr-' + qId);
+      if (!input) return;
+      const text = input.value.trim(); if (!text) return;
+      input.value = '';
+      const answerEl = document.getElementById(qId);
+      sendLumenMessage(qId, text, null, answerEl ? answerEl.value : '');
+    }
+
+    function appendMsg(qId, role, text) {
+      const c = document.getElementById('lm-' + qId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg';
+      const isL = role === 'lumen';
+      div.innerHTML = `<div class="msg-avatar ${isL ? 'lumen-av' : 'user-av'}">${isL ? 'L' : 'you'}</div><div class="msg-bubble ${isL ? 'lumen-bubble' : 'user-bubble'}">${text}</div>`;
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+
+    function appendThinking(qId) {
+      const c = document.getElementById('lm-' + qId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg'; div.id = 'thinking-' + qId;
+      div.innerHTML = `<div class="msg-avatar lumen-av">L</div><div class="msg-bubble thinking-bubble">Reading what you wrote...</div>`;
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+
+    function removeThinking(qId) { const el = document.getElementById('thinking-' + qId); if (el) el.remove(); }
+
+    // ── PART REFLECTIONS ──
+    function buildContext(partNum) {
+      return (PART_QUESTIONS[partNum] || []).map(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() ? `${id}: "${el.value.trim().substring(0, 300)}"` : null;
+      }).filter(Boolean).join('\n');
+    }
+
+    async function partReflect(partNum) {
+      const pr = document.getElementById('pr-' + partNum);
+      const prText = document.getElementById('pr-text-' + partNum);
+      const prActions = document.getElementById('pr-actions-' + partNum);
+      if (!pr || !prText) return;
+      pr.classList.add('show'); prText.textContent = 'Reading what you wrote...';
+      const ctx = buildContext(partNum);
+      const partNames = ['Experiment — Uncover Internal Resistance', 'Reflect — Cost and Possibility', 'Share', 'What Next'];
+      const sys = `You are Lumen. The person has completed Part ${partNum} (${partNames[partNum-1]}) of Mission 2: The Immunity Map. Here is what they wrote:\n\n${ctx}\n\nOffer one precise observation about the pattern you see across their answers — particularly about what they are protecting and whether the assumption feels true or not. Ask one question that takes them deeper. 2-3 sentences. No praise. No summary. No advice.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Reflect on my Part ' + partNum + ' answers.' }] }) });
+        const d = await res.json();
+        prText.textContent = d.reply || 'Lumen is quiet. Move to the next part when ready.';
+        if (prActions) prActions.classList.add('show');
+      } catch(e) { prText.textContent = 'Lumen is quiet right now. Continue when ready.'; if (prActions) prActions.classList.add('show'); }
+    }
+
+    // ── ARC REFLECTION ──
+    async function arcReflect() {
+      const arcBlock = document.getElementById('arc-block');
+      const arcText = document.getElementById('arc-text');
+      arcBlock.classList.add('show'); arcText.textContent = 'Reading everything you wrote...';
+      const allCtx = ALL_QUESTIONS.map(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() ? `${id}: "${el.value.trim().substring(0, 200)}"` : null;
+      }).filter(Boolean).join('\n');
+      const sys = `You are Lumen. The person has completed all four parts of Mission 2: The Immunity Map. Here is everything they wrote:\n\n${allCtx}\n\nOffer one precise observation that names what you see at the heart of their immunity — the thing they are most protecting, and the assumption that makes it feel necessary. Ask the one question that names what it would take to loosen it. 2-3 sentences. No summary. No praise.`;
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
+        const d = await res.json();
+        arcText.textContent = d.reply || 'The map is drawn. Name your commitment.';
+      } catch(e) { arcText.textContent = 'Name your commitment below.'; }
+      document.getElementById('arc-btn').style.display = 'none';
+    }
+
+    function checkComplete() {
+      const commit = document.getElementById('ta-commit');
+      if (commit && commit.value.trim().length > 20) document.getElementById('complete-banner').classList.add('show');
+    }
+  </script>
+</body>
+</html>

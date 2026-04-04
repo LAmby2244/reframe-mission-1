@@ -573,7 +573,7 @@
 
     const MISSIONS = [
       { id: 1,  ch: 'Chapter 3',          title: 'Your Case for Change',           tagline: 'You already know something needs to shift. This mission makes the cost of staying put undeniable — and names the version of you that is already waiting.', url: '/workbook.html' },
-      { id: 2,  ch: 'Chapter 4',          title: 'The Immunity Map',               tagline: 'You are not failing to change. You are succeeding at something else — something hidden. This mission maps what you are protecting and why.', url: null },
+      { id: 2,  ch: 'Chapter 4',          title: 'The Immunity Map',               tagline: 'You are not failing to change. You are succeeding at something else — something hidden. This mission maps what you are protecting and why.', url: '/mission-2.html' },
       { id: 3,  ch: 'Chapter 5',          title: 'Your Story Lifeline',            tagline: 'Your life is not a random sequence of events. It is a pattern with a logic. This mission traces that pattern — and begins to show you what was driving it.', url: null },
       { id: 4,  ch: 'Chapter 6¾',         title: 'The Stories Behind the Stories', tagline: 'The patterns in your life didn\'t start with you. This mission finds where they came from — and begins to lift the weight of carrying them.', url: null },
       { id: 5,  ch: 'Chapter 7',          title: 'The Value of Your Values',       tagline: 'Your values are not a list of aspirations. They are the living record of what life has taught you matters. Some were forged in joy. Some in survival.', url: null },
@@ -588,10 +588,33 @@
       { id: 14, ch: 'Chapter 15',         title: 'Committing to the Practice',     tagline: 'This is not the end. There is no end. This is the moment you decide that the person you have been becoming is worth showing up for — again and again.', url: null },
     ];
 
-    // Mission 1 question IDs — used to calculate progress
-    const M1_QUESTIONS = ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p2q3','p2q4','p3q1','p3q2','p3q3','p4q1','p4q2','p4q3','ta-commit'];
+    // Question IDs per mission — add each mission as it's built
+    const MISSION_QUESTIONS = {
+      'mission-1': ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p2q3','p2q4','p3q1','p3q2','p3q3','p4q1','p4q2','p4q3','ta-commit'],
+      'mission-2': ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p3q1','p3q2','p4q1','p4q2','ta-commit'],
+    };
+
+    function getMissionProgress(missionId) {
+      const key = 'mission-' + missionId;
+      const questions = MISSION_QUESTIONS[key];
+
+      // No questions defined = not yet built
+      if (!questions) return { pct: 0, status: 'soon' };
+
+      const mAnswers = allAnswers[key] || {};
+      const answered = questions.filter(q => mAnswers[q] && mAnswers[q].trim().length > 0).length;
+      const pct = Math.round((answered / questions.length) * 100);
+      if (pct === 0) return { pct: 0, status: 'start' };
+      if (pct === 100) return { pct: 100, status: 'complete' };
+      return { pct, status: 'progress' };
+    }
 
     function toggleHow() {
+      const panel = document.getElementById('how-panel');
+      const arrow = document.getElementById('how-arrow');
+      panel.classList.toggle('open');
+      arrow.classList.toggle('open');
+    }
       const panel = document.getElementById('how-panel');
       const arrow = document.getElementById('how-arrow');
       panel.classList.toggle('open');
