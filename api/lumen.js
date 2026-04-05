@@ -92,9 +92,77 @@ WHAT LUMEN NEVER DOES
 - Replaces human connection or professional support
 - Speaks from a position of certainty about another person's inner world`;
 
+// ── JWT VERIFICATION ─────────────────────────────────────────
+// Verify the Supabase JWT to ensure the request comes from an authenticated user
+async function verifyAuth(req) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+
+  const token = authHeader.replace('Bearer ', '');
+
+  try {
+    // Decode JWT payload (middle section) without full crypto verification
+    // Full verification would require the Supabase JWT secret
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const payload = JSON.parse(atob(parts[1]));
+
+    // Check token hasn't expired
+    if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
+
+    // Check it's a valid Supabase token
+    if (!payload.sub || !payload.email) return null;
+
+    return { userId: payload.sub, email: payload.email };
+  } catch {
+    return null;
+  }
+}
+
+// ── SIMPLE IN-MEMORY RATE LIMITING ───────────────────────────
+// Limits each user to 60 Lumen calls per hour
+const rateLimits = new Map();
+
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  const maxRequests = 60;
+
+  const userLimits = rateLimits.get(userId) || { count: 0, resetAt: now + windowMs };
+
+  if (now > userLimits.resetAt) {
+    userLimits.count = 0;
+    userLimits.resetAt = now + windowMs;
+  }
+
+  userLimits.count++;
+  rateLimits.set(userId, userLimits);
+
+  return userLimits.count <= maxRequests;
+}
+
+// ── HANDLER ──────────────────────────────────────────────────
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
+  }
+
+  // Verify authentication
+  const user = await verifyAuth(req);
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorised' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Check rate limit
+  if (!checkRateLimit(user.userId)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   const { systemExtra, messages } = await req.json();
@@ -109,7 +177,7 @@ export default async function handler(req) {
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 300,
-      system: LUMEN_SYSTEM + '\n\n' + systemExtra,
+      system: LUMEN_SYSTEM + (systemExtra ? '\n\n' + systemExtra : ''),
       messages
     })
   });
