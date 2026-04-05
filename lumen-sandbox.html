@@ -52,6 +52,11 @@
 
     /* ── LAYOUT ── */
     #app { display: grid; grid-template-columns: 1fr 340px; height: 100vh; overflow: hidden; }
+    @media (max-width: 800px) {
+      #app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: auto; min-height: 100vh; }
+      #convo-panel { height: 70vh; }
+      #sidebar { height: 50vh; border-right: none; border-top: 1px solid rgba(255,255,255,0.08); }
+    }
 
     /* ── LEFT: CONVERSATION ── */
     #convo-panel { display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.08); }
@@ -152,7 +157,7 @@
     .btn-propose-save { background: var(--yellow); color: var(--dark); border: none; border-radius: 20px; padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Rubik', sans-serif; }
     .btn-propose-cancel { background: none; border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 9px 16px; font-size: 13px; color: rgba(255,255,255,0.4); cursor: pointer; font-family: 'Rubik', sans-serif; }
 
-    .user-bar { position: fixed; top: 0; right: 0; padding: 10px 20px; font-size: 11px; color: rgba(255,255,255,0.25); display: flex; gap: 16px; align-items: center; z-index: 50; }
+    .user-bar { padding: 0; font-size: 11px; color: rgba(255,255,255,0.25); display: flex; gap: 12px; align-items: center; }
     .signout-btn { background: none; border: none; color: rgba(255,255,255,0.2); font-size: 11px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
     .signout-btn:hover { color: rgba(255,255,255,0.5); }
 
@@ -179,11 +184,6 @@
   </div>
 </div>
 
-<div class="user-bar" id="user-bar" style="display:none;">
-  <span id="user-email-display"></span>
-  <button class="signout-btn" onclick="signOut()">Sign out</button>
-</div>
-
 <div id="app" style="display:none;">
 
   <!-- LEFT: CONVERSATION -->
@@ -194,8 +194,12 @@
         Lumen Sandbox
       </div>
       <div class="header-actions">
-        <button class="btn-sm" onclick="clearConversation()">New conversation</button>
-        <button class="btn-sm btn-propose" onclick="openProposeModal()">＋ Propose instruction</button>
+        <div class="user-bar" id="user-bar" style="display:none;">
+          <span id="user-email-display"></span>
+          <button class="signout-btn" onclick="signOut()">Sign out</button>
+        </div>
+        <button class="btn-sm" onclick="clearConversation()">New</button>
+        <button class="btn-sm btn-propose" onclick="openProposeModal()">＋ Propose</button>
       </div>
     </div>
 
@@ -306,7 +310,7 @@
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').style.display = 'grid';
     document.getElementById('user-bar').style.display = 'flex';
-    document.getElementById('user-email-display').textContent = user.email;
+    document.getElementById('user-email-display').textContent = user.email.split('@')[0];
     loadInstructions();
     loadSignals();
   }
