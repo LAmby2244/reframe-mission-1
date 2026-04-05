@@ -697,9 +697,16 @@
         <textarea id="p1q3" placeholder="Give this season of your life a name or a metaphor..." oninput="onType('p1q3','wc-p1q3','trow-p1q3'); checkAutoLumen()"></textarea>
         <div class="wc" id="wc-p1q3">0 words</div>
 
-        <div class="part-reflection" id="auto-lumen-block" style="margin-top:16px;display:none;">
-          <div class="pr-label"><div class="pr-dot"></div>Lumen noticed something</div>
-          <div class="pr-text" id="auto-lumen-text"></div>
+        <div class="lumen-panel" id="auto-lumen-block" style="margin-top:16px;display:none;border-left:3px solid var(--yellow);border-radius:0 14px 14px 0;">
+          <div class="lumen-panel-header">
+            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen noticed something</div>
+          </div>
+          <div class="lumen-messages" id="auto-lumen-msgs"></div>
+          <div class="lumen-input-row" id="auto-lumen-input-row">
+            <textarea class="lumen-reply" id="auto-lumen-reply" placeholder="Reply to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAutoLumenReply();}"></textarea>
+            <button class="lumen-send" onclick="sendAutoLumenReply()"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
+          </div>
+          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeAutoLumen()">Close</button></div>
         </div>
 
         <div class="lumen-trigger-row" id="trow-p1q3">
@@ -1466,22 +1473,47 @@ Your role as Lumen is to be a mirror, not a coach. You:
       }
     }
 
+    let autoLumenConvo = [];
+
     function fireAutoLumen() {
       const block = document.getElementById('auto-lumen-block');
-      const textEl = document.getElementById('auto-lumen-text');
       block.style.display = 'block';
-      block.classList.add('show');
-      textEl.textContent = '...';
-      const ctx = [
-        `"${getVal('p1q1')}"`,
-        `"${getVal('p1q2')}"`,
-        `"${getVal('p1q3')}"`
-      ].join('\n\n');
+      const ctx = `What made me feel most alive: "${getVal('p1q1')}"\n\nWhat drained or frustrated me: "${getVal('p1q2')}"\n\nThe name I give this chapter: "${getVal('p1q3')}"`;
+      autoLumenConvo = [{ role: 'user', content: ctx }];
+      addThinking('auto-lumen-msgs');
       callLumen(
-        `You are Lumen. You have been quietly reading as someone answers the first three questions of Mission 1 — about the moments that made them feel most alive, the moments that drained them, and the name they gave this chapter of their life. Read all three answers together. Notice ONE thing — a word they repeated, a tension between the two lists, something they half-said, something they named without realising its weight. Speak it directly. One observation only. No question. No preamble. No praise. 1-2 sentences maximum. You are a presence, not a tool.`,
-        [{ role: 'user', content: ctx }],
-        (reply) => { textEl.textContent = reply; }
+        `You are Lumen. You have been quietly reading as someone answers the first three questions of Mission 1 — about the moments that made them feel most alive, the moments that drained them, and the name they gave this chapter of their life. Read all three answers together. Notice ONE specific thing — a word they repeated, a tension between the highs and lows, something they half-said, something they named without realising its weight. State your observation plainly. Then ask ONE question that takes them one layer deeper into what they have written. 2-3 sentences total. No preamble. No praise.`,
+        autoLumenConvo,
+        (reply) => {
+          removeThinking('auto-lumen-msgs');
+          autoLumenConvo.push({ role: 'assistant', content: reply });
+          addMsg('auto-lumen-msgs', 'lumen', reply);
+        }
       );
+    }
+
+    function sendAutoLumenReply() {
+      const input = document.getElementById('auto-lumen-reply');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      autoLumenConvo.push({ role: 'user', content: text });
+      addMsg('auto-lumen-msgs', 'you', text);
+      addThinking('auto-lumen-msgs');
+      callLumen(
+        `You are Lumen in an ongoing exchange. The person is responding to your initial observation about their first three answers. Continue as a mirror. Notice what has shifted or deepened in what they said. Ask one question if it will genuinely open something, or make one quiet closing observation if they seem to have landed. 2 sentences maximum. No advice. No praise.`,
+        autoLumenConvo,
+        (reply) => {
+          removeThinking('auto-lumen-msgs');
+          autoLumenConvo.push({ role: 'assistant', content: reply });
+          addMsg('auto-lumen-msgs', 'lumen', reply);
+        }
+      );
+    }
+
+    function closeAutoLumen() {
+      document.getElementById('auto-lumen-input-row').style.display = 'none';
+      document.querySelector('#auto-lumen-block .lumen-done-row').style.display = 'none';
     }
 
     // ── Lumen reads both statement versions and helps tighten them ──
