@@ -786,7 +786,7 @@
       const ctx = prevAnswers.slice(0, 6).map(r => `${r.question}: "${r.answer.trim().substring(0, 200)}"`).join('\n');
       const sys = `You are Lumen. Read what this person wrote in Mission 5 (The Value of Your Values) and offer 2-3 sentences that reflect back what they most honestly named — the values they identified, how they overplay or underplay them, the beliefs running underneath. This is recognition, not a question. Speak directly to what they wrote. No question. No advice. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: `Mission 5 reflections:\n${ctx}` }] }) });
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: `Mission 5 reflections:\n${ctx}` }] }) });
         const d = await res.json();
         if (d.reply) { document.getElementById('lumen-bridge-text').textContent = d.reply; document.getElementById('lumen-bridge-placeholder').style.display = 'none'; }
       } catch(e) {}
@@ -1141,7 +1141,7 @@
       appendDiaryThinking(entryId);
       const sys = `You are Lumen — an AI mirror trained in the Reframe methodology. The person has logged a trigger diary entry. Here is what they wrote:\n\n${entryCtx || ''}\n\nReflect one precise observation about what you notice — the pattern between the trigger, the feeling, the belief, and the value being challenged. Ask one question that takes them deeper. 2 sentences maximum. No advice. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
         const d = await res.json();
         removeDiaryThinking(entryId);
         const reply = d.reply || 'Lumen is quiet. Keep going.';
@@ -1188,7 +1188,7 @@
       }).join('\n');
       const sys = `You are Lumen. The person has logged ${diaryEntries.length} trigger diary entries over the past week. Here are all their entries:\n\n${allEntries}\n\nLook across everything. Name one precise pattern you notice — the same trigger type repeating, the same feeling surfacing, the same value being challenged, the same belief running underneath. Ask one question that names the pattern without solving it. 2-3 sentences. No advice. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'What do you notice across my entries?' }] }) });
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'What do you notice across my entries?' }] }) });
         const d = await res.json();
         prText.textContent = d.reply || 'Lumen is quiet. Move to the Reflect section when ready.';
         if (prActions) prActions.classList.add('show');
@@ -1234,7 +1234,7 @@
       appendThinking(qId);
       const sys = `You are Lumen — an AI mirror trained in the Reframe methodology. The person is reflecting on Mission 6: Taming Your Triggers. They wrote: "${(answerCtx || '').substring(0, 300)}". Reflect one observation. Ask one precise question. 2 sentences maximum. No advice. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
         const d = await res.json();
         removeThinking(qId);
         const reply = d.reply || 'Lumen is quiet. Keep going.';
@@ -1287,7 +1287,7 @@
       const partNames = { 2: 'Reflect', 3: 'Share', 4: 'Practice' };
       const sys = `You are Lumen. The person has completed Part ${partNum} (${partNames[partNum]}) of Mission 6: Taming Your Triggers. Here is what they wrote:\n\n${ctx}\n\nOffer one precise observation. Ask one question. 2-3 sentences. No praise. No advice.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Reflect on my answers.' }] }) });
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Reflect on my answers.' }] }) });
         const d = await res.json();
         prText.textContent = d.reply || 'Lumen is quiet. Continue when ready.';
         if (prActions) prActions.classList.add('show');
@@ -1306,7 +1306,7 @@
       const entryCount = diaryEntries.length;
       const sys = `You are Lumen. The person has completed Mission 6: Taming Your Triggers. They logged ${entryCount} trigger diary entries and completed all four parts. Here is their reflection work:\n\n${allCtx}\n\nOffer one precise observation that names the core pattern — the trigger, the value it challenges, and the cost of letting it run. Ask the one question that names what changes if they hold this awareness. 2-3 sentences. No summary. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
         const d = await res.json();
         arcText.textContent = d.reply || 'The map is drawn. Name your commitment.';
       } catch(e) { arcText.textContent = 'Name your commitment below.'; }
