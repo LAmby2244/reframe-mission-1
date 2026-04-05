@@ -465,7 +465,7 @@
       .select('question, answer, created_at')
       .eq('user_id', currentUser.id)
       .eq('mission', 'lumen-sandbox')
-      .order('created_at', { ascending: false });
+      .order('question', { ascending: false });
     renderHistory(data || []);
   }
 
@@ -478,7 +478,8 @@
     el.innerHTML = sessions.map(s => {
       try {
         const data = JSON.parse(s.answer);
-        const date = new Date(s.question.replace('session-', '') * 1 || s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const ts = parseInt(s.question.replace('session-', ''));
+        const date = new Date(isNaN(ts) ? s.created_at : ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
         const turns = Math.floor((data.messages || []).length / 2);
         const isActive = s.question === currentSessionId;
         sessionCache[s.question] = data.messages;
