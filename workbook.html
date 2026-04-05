@@ -1203,6 +1203,7 @@
           }
         });
       }
+      await loadLumenConvos();
     }
 
     // ── Auto-save ──
@@ -1408,6 +1409,7 @@ Your role as Lumen is to be a mirror, not a coach. You:
       callLumen(sys, [{ role: 'user', content: answers }], (reply) => {
         textEl.textContent = reply;
         document.getElementById('pr-' + part + '-actions').classList.add('show');
+        saveLumenConvo('lumen-part-' + part, [{ role: 'assistant', content: reply }]);
       });
     }
 
@@ -1444,10 +1446,19 @@ Your role as Lumen is to be a mirror, not a coach. You:
         buildContext('p4q3', 'How they will honour the work')
       ].filter(s => s !== null).join('\n');
 
-      const sys = `The person has completed all four parts of Mission 1. You have everything — their written answers AND the deeper conversations they had with Lumen on individual questions. The Lumen exchanges are where the real depth often surfaced. Read it all as one journey. Hold the whole arc back to them: what emerged, what shifted, what they named that perhaps they hadn't named before. The thing they said in a Lumen exchange that they didn't put in their written answer is often the most important thing. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
+      // Append saved Lumen conversation records to context
+      const lumenRecords = [];
+      if (autoLumenConvo.length > 1) {
+        const exchange = autoLumenConvo.filter((m, i) => !(i === 0 && m.role === 'user' && m.content.length > 200));
+        if (exchange.length) lumenRecords.push('LUMEN AUTO-REFLECTION (after q1-q3):\n' + exchange.map(m => `${m.role === 'assistant' ? 'Lumen' : 'They'}: "${m.content}"`).join('\n'));
+      }
+      const fullContext = sections + (lumenRecords.length ? '\n\n' + lumenRecords.join('\n\n') : '');
 
-      callLumen(sys, [{ role: 'user', content: sections }], (reply) => {
+      const sys = `The person has completed all four parts of Mission 1. You have everything — their written answers AND the Lumen conversations that happened along the way. The Lumen exchanges are where the real depth often surfaced. Read it all as one journey. Hold the whole arc back to them: what emerged, what shifted, what they named that perhaps they hadn't named before. 3–4 sentences. Quiet and precise. End by handing the pen back to them, pointing toward their commitment without telling them what it should be.`;
+
+      callLumen(sys, [{ role: 'user', content: fullContext }], (reply) => {
         textEl.textContent = reply;
+        saveLumenConvo('lumen-arc', [{ role: 'assistant', content: reply }]);
       });
     }
 
@@ -1459,6 +1470,89 @@ Your role as Lumen is to be a mirror, not a coach. You:
     }
 
     const LUMEN_API_URL = '/api/lumen';
+    const LUMEN_CONVO_KEYS = ['lumen-auto-p1','lumen-part-1','lumen-part-2','lumen-statements','lumen-arc'];
+
+    // ── Save a Lumen conversation ──
+    async function saveLumenConvo(key, messages) {
+      if (!currentUser) return;
+      await sb.from('answers').upsert({
+        user_id: currentUser.id,
+        mission: 'mission-1',
+        question: key,
+        answer: JSON.stringify(messages)
+      }, { onConflict: 'user_id,mission,question' });
+    }
+
+    // ── Load and render all saved Lumen conversations ──
+    async function loadLumenConvos() {
+      if (!currentUser) return;
+      const { data } = await sb.from('answers')
+        .select('question, answer')
+        .eq('user_id', currentUser.id)
+        .eq('mission', 'mission-1')
+        .in('question', LUMEN_CONVO_KEYS);
+      if (!data) return;
+      data.forEach(row => {
+        try {
+          const messages = JSON.parse(row.answer);
+          if (!messages || !messages.length) return;
+          renderLumenRecord(row.question, messages);
+        } catch(e) {}
+      });
+    }
+
+    // ── Render a saved conversation as a read-only record ──
+    function renderLumenRecord(key, messages) {
+      if (key === 'lumen-auto-p1') {
+        const block = document.getElementById('auto-lumen-block');
+        const msgsEl = document.getElementById('auto-lumen-msgs');
+        // Only show Lumen's messages (skip the user context blob at index 0)
+        const exchange = messages.filter((m, i) => !(i === 0 && m.role === 'user' && m.content.length > 200));
+        if (!exchange.length) return;
+        block.style.display = 'block';
+        exchange.forEach(m => addMsg('auto-lumen-msgs', m.role === 'assistant' ? 'lumen' : 'you', m.content));
+        // Hide input — record only
+        const inputRow = document.getElementById('auto-lumen-input-row');
+        const doneRow = block.querySelector('.lumen-done-row');
+        if (inputRow) inputRow.style.display = 'none';
+        if (doneRow) doneRow.style.display = 'none';
+        autoLumenFired = true;
+        // Restore convo for context building
+        autoLumenConvo = messages;
+
+      } else if (key.startsWith('lumen-part-')) {
+        const part = key.replace('lumen-part-', '');
+        const pr = document.getElementById('pr-' + part);
+        const textEl = document.getElementById('pr-' + part + '-text');
+        const actions = document.getElementById('pr-' + part + '-actions');
+        if (!pr || !textEl) return;
+        const lumenMsg = messages.find(m => m.role === 'assistant');
+        if (!lumenMsg) return;
+        pr.classList.add('show');
+        textEl.textContent = lumenMsg.content;
+        if (actions) actions.classList.add('show');
+
+      } else if (key === 'lumen-statements') {
+        const pr = document.getElementById('pr-statements');
+        const textEl = document.getElementById('pr-statements-text');
+        if (!pr || !textEl) return;
+        const lumenMsg = messages.find(m => m.role === 'assistant');
+        if (!lumenMsg) return;
+        pr.classList.add('show');
+        textEl.textContent = lumenMsg.content;
+
+      } else if (key === 'lumen-arc') {
+        const arcBlock = document.getElementById('arc-block');
+        const arcText = document.getElementById('arc-text');
+        if (!arcBlock || !arcText) return;
+        const lumenMsg = messages.find(m => m.role === 'assistant');
+        if (!lumenMsg) return;
+        arcBlock.classList.add('show');
+        arcText.textContent = lumenMsg.content;
+        const arcBtn = document.getElementById('arc-btn');
+        if (arcBtn) arcBtn.style.display = 'none';
+      }
+    }
 
     // ── Auto-fire Lumen after q1, q2, q3 all have content ──
     let autoLumenFired = false;
@@ -1488,6 +1582,7 @@ Your role as Lumen is to be a mirror, not a coach. You:
           removeThinking('auto-lumen-msgs');
           autoLumenConvo.push({ role: 'assistant', content: reply });
           addMsg('auto-lumen-msgs', 'lumen', reply);
+          saveLumenConvo('lumen-auto-p1', autoLumenConvo);
         }
       );
     }
@@ -1507,6 +1602,7 @@ Your role as Lumen is to be a mirror, not a coach. You:
           removeThinking('auto-lumen-msgs');
           autoLumenConvo.push({ role: 'assistant', content: reply });
           addMsg('auto-lumen-msgs', 'lumen', reply);
+          saveLumenConvo('lumen-auto-p1', autoLumenConvo);
         }
       );
     }
@@ -1529,7 +1625,10 @@ Your role as Lumen is to be a mirror, not a coach. You:
       callLumen(
         `You are Lumen. The person has written two versions of their reframe statement — a tension statement and an identity shift. Read both. Notice what is strongest and most honest in each. Notice what is still soft, hedged, or borrowed from someone else's language. Offer one observation about what makes these statements land — or what is still holding them back from landing fully. 2 sentences. No praise. No advice. One quiet, precise thing.`,
         [{ role: 'user', content: ctx }],
-        (reply) => { textEl.textContent = reply; }
+        (reply) => {
+          textEl.textContent = reply;
+          saveLumenConvo('lumen-statements', [{ role: 'assistant', content: reply }]);
+        }
       );
     }
 
