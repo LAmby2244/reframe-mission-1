@@ -51,15 +51,15 @@
     .auth-error.show { display: block; }
 
     /* ── LAYOUT ── */
-    #app { display: grid; grid-template-columns: 1fr 340px; height: 100vh; overflow: hidden; }
+    #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; overflow: hidden; }
     @media (max-width: 800px) {
-      #app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: auto; min-height: 100vh; }
+      #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; min-height: 100vh; }
+      #sidebar { height: 50vh; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
       #convo-panel { height: 70vh; }
-      #sidebar { height: 50vh; border-right: none; border-top: 1px solid rgba(255,255,255,0.08); }
     }
 
     /* ── LEFT: CONVERSATION ── */
-    #convo-panel { display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.08); min-height: 0; overflow: hidden; }
+    #convo-panel { display: flex; flex-direction: column; border-left: 1px solid rgba(255,255,255,0.08); min-height: 0; overflow: hidden; }
 
     .panel-header { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
     .panel-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); display: flex; align-items: center; gap: 10px; }
@@ -204,7 +204,51 @@
 
 <div id="app" style="display:none;">
 
-  <!-- LEFT: CONVERSATION -->
+  <!-- LEFT: SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-tabs">
+      <div class="sidebar-tab" id="tab-history" onclick="switchTab('history')">History</div>
+      <div class="sidebar-tab" id="tab-instructions" onclick="switchTab('instructions')">Instructions</div>
+      <div class="sidebar-tab" id="tab-signals" onclick="switchTab('signals')">Signals</div>
+    </div>
+
+    <div class="sidebar-content">
+
+      <!-- Instructions tab -->
+      <div class="tab-panel" id="panel-instructions">
+        <div class="section-label">Proposed instructions</div>
+        <div id="instructions-list">
+          <div class="empty-state">No proposed instructions yet.<br>Converse with Lumen, then propose anything worth keeping.</div>
+        </div>
+      </div>
+
+      <!-- Signals tab -->
+      <div class="tab-panel" id="panel-signals">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="section-label" style="margin-bottom:0;">From user sessions</div>
+          <button class="refresh-btn" onclick="loadSignals()">Refresh</button>
+        </div>
+        <button class="supervise-btn" id="supervise-btn" onclick="superviseLumen()">
+          Ask Lumen to supervise itself →
+        </button>
+        <div id="supervision-block" style="display:none;"></div>
+        <div id="signals-list">
+          <div class="empty-state">Loading signals from user sessions...</div>
+        </div>
+      </div>
+
+      <!-- History tab -->
+      <div class="tab-panel active" id="panel-history">
+        <div class="section-label">Past conversations</div>
+        <div id="history-list">
+          <div class="empty-state">No past conversations yet.<br>Start a new conversation to archive this one.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: CONVERSATION -->
   <div id="convo-panel">
     <div class="panel-header">
       <div class="panel-title">
@@ -233,50 +277,6 @@
         <button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button>
       </div>
       <div class="input-hint">Enter to send · Shift+Enter for new line</div>
-    </div>
-  </div>
-
-  <!-- RIGHT: SIDEBAR -->
-  <div id="sidebar">
-    <div class="sidebar-tabs">
-      <div class="sidebar-tab active" id="tab-instructions" onclick="switchTab('instructions')">Instructions</div>
-      <div class="sidebar-tab" id="tab-signals" onclick="switchTab('signals')">Signals</div>
-      <div class="sidebar-tab" id="tab-history" onclick="switchTab('history')">History</div>
-    </div>
-
-    <div class="sidebar-content">
-
-      <!-- Instructions tab -->
-      <div class="tab-panel active" id="panel-instructions">
-        <div class="section-label">Proposed instructions</div>
-        <div id="instructions-list">
-          <div class="empty-state">No proposed instructions yet.<br>Converse with Lumen, then propose anything worth keeping.</div>
-        </div>
-      </div>
-
-      <!-- Signals tab -->
-      <div class="tab-panel" id="panel-signals">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div class="section-label" style="margin-bottom:0;">From user sessions</div>
-          <button class="refresh-btn" onclick="loadSignals()">Refresh</button>
-        </div>
-        <button class="supervise-btn" id="supervise-btn" onclick="superviseLumen()">
-          Ask Lumen to supervise itself →
-        </button>
-        <div id="supervision-block" style="display:none;"></div>
-        <div id="signals-list">
-          <div class="empty-state">Loading signals from user sessions...</div>
-        </div>
-      </div>
-
-      <!-- History tab -->
-      <div class="tab-panel" id="panel-history">
-        <div class="section-label">Past conversations</div>
-        <div id="history-list">
-          <div class="empty-state">No past conversations yet.<br>Start a new conversation to archive this one.</div>
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -348,6 +348,7 @@
     loadInstructions();
     loadSignals();
     loadHistory();
+    switchTab('history');
   }
 
   async function signOut() { await sb.auth.signOut(); window.location.reload(); }
