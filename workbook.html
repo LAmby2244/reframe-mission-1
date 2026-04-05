@@ -648,7 +648,7 @@
 
       <div class="q-block">
         <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments made you feel most alive, proud, or fully yourself?</span></div>
-        <textarea id="p1q1" placeholder="Write what's actually true..." oninput="onType('p1q1','wc-p1q1','trow-p1q1')"></textarea>
+        <textarea id="p1q1" placeholder="Write what's actually true..." oninput="onType('p1q1','wc-p1q1','trow-p1q1'); checkAutoLumen()"></textarea>
         <div class="wc" id="wc-p1q1">0 words</div>
         <div class="lumen-trigger-row" id="trow-p1q1">
           <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q1','p1q1','What moments made you feel most alive, proud, or fully yourself?')">
@@ -671,7 +671,7 @@
 
       <div class="q-block">
         <div class="q-row"><div class="q-dot"></div><span class="q-text">What moments left you drained, frustrated, or quietly stuck?</span></div>
-        <textarea id="p1q2" placeholder="Be honest about the cost..." oninput="onType('p1q2','wc-p1q2','trow-p1q2')"></textarea>
+        <textarea id="p1q2" placeholder="Be honest about the cost..." oninput="onType('p1q2','wc-p1q2','trow-p1q2'); checkAutoLumen()"></textarea>
         <div class="wc" id="wc-p1q2">0 words</div>
         <div class="lumen-trigger-row" id="trow-p1q2">
           <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q2','p1q2','What moments left you drained, frustrated, or quietly stuck?')">
@@ -694,8 +694,14 @@
 
       <div class="q-block">
         <div class="q-row"><div class="q-dot"></div><span class="q-text">When you look at the highs and lows, what's this chapter best described as?</span></div>
-        <textarea id="p1q3" placeholder="Give this season of your life a name or a metaphor..." oninput="onType('p1q3','wc-p1q3','trow-p1q3')"></textarea>
+        <textarea id="p1q3" placeholder="Give this season of your life a name or a metaphor..." oninput="onType('p1q3','wc-p1q3','trow-p1q3'); checkAutoLumen()"></textarea>
         <div class="wc" id="wc-p1q3">0 words</div>
+
+        <div class="part-reflection" id="auto-lumen-block" style="margin-top:16px;display:none;">
+          <div class="pr-label"><div class="pr-dot"></div>Lumen noticed something</div>
+          <div class="pr-text" id="auto-lumen-text"></div>
+        </div>
+
         <div class="lumen-trigger-row" id="trow-p1q3">
           <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q3','p1q3','When you look at the highs and lows, what is this chapter best described as?')">
             <div class="lumen-l">L</div>Lumen noticed something
@@ -727,46 +733,14 @@
         <div class="q-row"><div class="q-dot"></div><span class="q-text">Me at my best — when and where am I at my best? How do I behave? What do I believe to be true?</span></div>
         <textarea id="p1q4" placeholder="Be specific about the conditions, the behaviours, the beliefs..." oninput="onType('p1q4','wc-p1q4','trow-p1q4')"></textarea>
         <div class="wc" id="wc-p1q4">0 words</div>
-        <div class="lumen-trigger-row" id="trow-p1q4">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q4','p1q4','Me at my best — when and where am I at my best? How do I behave? What do I believe to be true?')">
-            <div class="lumen-l">L</div>Lumen noticed something
-          </button>
-        </div>
-        <div class="lumen-panel" id="lp-p1q4">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q4')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p1q4"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p1q4" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q4','Me at my best — when and where am I at my best?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q4','Me at my best — when and where am I at my best?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q4')">I'm done here — close Lumen</button></div>
-        </div>
+
       </div>
 
       <div class="q-block">
         <div class="q-row"><div class="q-dot"></div><span class="q-text">Me when I'm NOT at my best — when and where does this show up? How do I behave? What do I believe to be true?</span></div>
         <textarea id="p1q5" placeholder="What does your not-best self look like in practice..." oninput="onType('p1q5','wc-p1q5','trow-p1q5')"></textarea>
         <div class="wc" id="wc-p1q5">0 words</div>
-        <div class="lumen-trigger-row" id="trow-p1q5">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q5','p1q5','Me when I am not at my best — when and where does this show up?')">
-            <div class="lumen-l">L</div>Lumen noticed something
-          </button>
-        </div>
-        <div class="lumen-panel" id="lp-p1q5">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q5')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p1q5"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p1q5" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q5','Me when I am not at my best — when and where does this show up?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q5','Me when I am not at my best — when and where does this show up?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q5')">I'm done here — close Lumen</button></div>
-        </div>
+
       </div>
 
       <div class="insight-box">
@@ -781,46 +755,14 @@
         <div class="q-row"><div class="q-dot"></div><span class="q-text">If someone who didn't know you watched your last six months, what would they conclude about who you are?</span></div>
         <textarea id="p1q6" placeholder="Be honest about what your actions are actually voting for..." oninput="onType('p1q6','wc-p1q6','trow-p1q6')"></textarea>
         <div class="wc" id="wc-p1q6">0 words</div>
-        <div class="lumen-trigger-row" id="trow-p1q6">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q6','p1q6','If someone who didn\'t know you watched your last six months, what would they conclude about who you are?')">
-            <div class="lumen-l">L</div>Lumen noticed something
-          </button>
-        </div>
-        <div class="lumen-panel" id="lp-p1q6">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q6')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p1q6"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p1q6" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q6','If someone who didn\'t know you watched your last six months, what would they conclude about who you are?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q6','If someone who didn\'t know you watched your last six months, what would they conclude about who you are?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q6')">I'm done here — close Lumen</button></div>
-        </div>
+
       </div>
 
       <div class="q-block">
         <div class="q-row"><div class="q-dot"></div><span class="q-text">What's the gap between who you say you are and how you are actually being experienced?</span></div>
         <textarea id="p1q7" placeholder="Name the gap honestly..." oninput="onType('p1q7','wc-p1q7','trow-p1q7')"></textarea>
         <div class="wc" id="wc-p1q7">0 words</div>
-        <div class="lumen-trigger-row" id="trow-p1q7">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p1q7','p1q7','What is the gap between who you say you are and how you are actually being experienced?')">
-            <div class="lumen-l">L</div>Lumen noticed something
-          </button>
-        </div>
-        <div class="lumen-panel" id="lp-p1q7">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p1q7')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p1q7"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p1q7" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p1q7','What is the gap between who you say you are and how you are actually being experienced?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p1q7','What is the gap between who you say you are and how you are actually being experienced?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p1q7')">I'm done here — close Lumen</button></div>
-        </div>
+
       </div>
 
       <div class="part-reflection" id="pr-1">
@@ -1067,23 +1009,7 @@
         <p style="font-size:13px;color:var(--mid);font-weight:300;margin:-4px 0 10px 18px;font-style:italic;">e.g. "I love the impact I make in my role, but I'm constantly overwhelmed because I take on too much."</p>
         <textarea id="p4q1" placeholder="I love... but..." oninput="onType('p4q1','wc-p4q1','trow-p4q1')"></textarea>
         <div class="wc" id="wc-p4q1">0 words</div>
-        <div class="lumen-trigger-row" id="trow-p4q1">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p4q1','p4q1','Version 1 — the BUT statement: what I love and what is in the way.')">
-            <div class="lumen-l">L</div>Lumen noticed something
-          </button>
-        </div>
-        <div class="lumen-panel" id="lp-p4q1">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p4q1')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p4q1"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p4q1" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p4q1','The BUT statement')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p4q1','The BUT statement')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p4q1')">I'm done here — close Lumen</button></div>
-        </div>
+
       </div>
 
       <div class="insight-box">
@@ -1099,21 +1025,13 @@
         <textarea id="p4q2" placeholder="I am someone who..." oninput="onType('p4q2','wc-p4q2','trow-p4q2')"></textarea>
         <div class="wc" id="wc-p4q2">0 words</div>
         <div class="lumen-trigger-row" id="trow-p4q2">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p4q2','p4q2','Version 2 — the identity shift: who I already am when I am at my best.')">
-            <div class="lumen-l">L</div>Lumen noticed something
+          <button class="lumen-trigger-btn" onclick="statementsLumen()">
+            <div class="lumen-l">L</div>Ask Lumen to read both versions
           </button>
         </div>
-        <div class="lumen-panel" id="lp-p4q2">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p4q2')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p4q2"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p4q2" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p4q2','The identity shift')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p4q2','The identity shift')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p4q2')">I'm done here — close Lumen</button></div>
+        <div class="part-reflection" id="pr-statements" style="margin-top:12px;">
+          <div class="pr-label"><div class="pr-dot"></div>Lumen — across both versions</div>
+          <div class="pr-text" id="pr-statements-text"></div>
         </div>
       </div>
 
@@ -1121,23 +1039,7 @@
         <div class="q-row"><div class="q-dot"></div><span class="q-text">How will you honour the work you just did? Name one small thing — not a task, something that feels like a gift to yourself.</span></div>
         <textarea id="p4q3" placeholder="Something just for you..." oninput="onType('p4q3','wc-p4q3','trow-p4q3')" style="min-height:64px;"></textarea>
         <div class="wc" id="wc-p4q3">0 words</div>
-        <div class="lumen-trigger-row" id="trow-p4q3">
-          <button class="lumen-trigger-btn" onclick="openLumen('lp-p4q3','p4q3','How will you honour the work you just did?')">
-            <div class="lumen-l">L</div>Lumen noticed something
-          </button>
-        </div>
-        <div class="lumen-panel" id="lp-p4q3">
-          <div class="lumen-panel-header">
-            <div class="lumen-panel-label"><div class="lumen-l">L</div>Lumen</div>
-            <button class="lumen-panel-close" onclick="closeLumen('lp-p4q3')">×</button>
-          </div>
-          <div class="lumen-messages" id="msgs-p4q3"></div>
-          <div class="lumen-input-row">
-            <textarea class="lumen-reply" id="rep-p4q3" placeholder="Reply to Lumen..." onkeydown="replyKey(event,'p4q3','How will you honour the work you just did?')"></textarea>
-            <button class="lumen-send" onclick="sendReply('p4q3','How will you honour the work you just did?')"><svg viewBox="0 0 14 14"><path d="M1 7l11-5-4 5 4 5z"/></svg></button>
-          </div>
-          <div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeLumen('lp-p4q3')">I'm done here — close Lumen</button></div>
-        </div>
+
       </div>
 
       <div class="insight-box">
@@ -1550,6 +1452,54 @@ Your role as Lumen is to be a mirror, not a coach. You:
     }
 
     const LUMEN_API_URL = '/api/lumen';
+
+    // ── Auto-fire Lumen after q1, q2, q3 all have content ──
+    let autoLumenFired = false;
+    function checkAutoLumen() {
+      if (autoLumenFired) return;
+      const w1 = getVal('p1q1').split(/\s+/).filter(Boolean).length;
+      const w2 = getVal('p1q2').split(/\s+/).filter(Boolean).length;
+      const w3 = getVal('p1q3').split(/\s+/).filter(Boolean).length;
+      if (w1 >= 8 && w2 >= 8 && w3 >= 5) {
+        autoLumenFired = true;
+        fireAutoLumen();
+      }
+    }
+
+    function fireAutoLumen() {
+      const block = document.getElementById('auto-lumen-block');
+      const textEl = document.getElementById('auto-lumen-text');
+      block.style.display = 'block';
+      block.classList.add('show');
+      textEl.textContent = '...';
+      const ctx = [
+        `"${getVal('p1q1')}"`,
+        `"${getVal('p1q2')}"`,
+        `"${getVal('p1q3')}"`
+      ].join('\n\n');
+      callLumen(
+        `You are Lumen. You have been quietly reading as someone answers the first three questions of Mission 1 — about the moments that made them feel most alive, the moments that drained them, and the name they gave this chapter of their life. Read all three answers together. Notice ONE thing — a word they repeated, a tension between the two lists, something they half-said, something they named without realising its weight. Speak it directly. One observation only. No question. No preamble. No praise. 1-2 sentences maximum. You are a presence, not a tool.`,
+        [{ role: 'user', content: ctx }],
+        (reply) => { textEl.textContent = reply; }
+      );
+    }
+
+    // ── Lumen reads both statement versions and helps tighten them ──
+    function statementsLumen() {
+      const v1 = getVal('p4q1');
+      const v2 = getVal('p4q2');
+      if (!v1 || !v2) return;
+      const pr = document.getElementById('pr-statements');
+      const textEl = document.getElementById('pr-statements-text');
+      pr.classList.add('show');
+      textEl.textContent = 'Reading both versions...';
+      const ctx = `Version 1 (the tension — BUT statement): "${v1}"\n\nVersion 2 (the identity shift): "${v2}"`;
+      callLumen(
+        `You are Lumen. The person has written two versions of their reframe statement — a tension statement and an identity shift. Read both. Notice what is strongest and most honest in each. Notice what is still soft, hedged, or borrowed from someone else's language. Offer one observation about what makes these statements land — or what is still holding them back from landing fully. 2 sentences. No praise. No advice. One quiet, precise thing.`,
+        [{ role: 'user', content: ctx }],
+        (reply) => { textEl.textContent = reply; }
+      );
+    }
 
     async function getAuthHeaders() {
       const { data: { session } } = await sb.auth.getSession();
