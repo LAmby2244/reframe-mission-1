@@ -755,6 +755,11 @@
 
     async function signOut() { await sb.auth.signOut(); window.location.href = '/dashboard.html'; }
 
+    async function getAuthHeaders() {
+      const { data: { session } } = await sb.auth.getSession();
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` };
+    }
+
     // ── LOAD FIXED ANSWERS ───────────────────────────────────
     async function loadAnswers() {
       const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', MISSION_ID);
