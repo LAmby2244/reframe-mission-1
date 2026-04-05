@@ -725,7 +725,7 @@
       const ctx = prevAnswers.slice(0, 6).map(r => `${r.question}: "${r.answer.trim().substring(0, 200)}"`).join('\n');
       const sys = `You are Lumen. Read what this person wrote in Mission 1 and offer 2-3 sentences that reflect back what they most honestly named — their commitment, the pattern they identified, the gap they saw. This is not a question. This is recognition. You are showing them that what they wrote was heard and held. Speak directly to what they said, using their own words and themes where possible. No question. No advice. No praise. End on what they concluded, not on what comes next.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(),
           body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: `Mission 1 reflections:\n${ctx}` }] }) });
         const d = await res.json();
         if (d.reply) {
@@ -799,7 +799,7 @@
       appendThinking(qId);
       const sys = `You are Lumen — an AI mirror trained in the Reframe methodology by Simon Lamb and specifically Robert Kegan's Immunity to Change model. The person is working on Mission 2: The Immunity Map. They answered: "${(answerCtx || '').substring(0, 300)}" to the question: "${questionCtx || ''}". You are a mirror, not a coach. Reflect one observation. Ask one precise question that takes them deeper into what they are protecting. 2 sentences maximum. No advice. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(),
           body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
         const d = await res.json();
         removeThinking(qId);
@@ -853,7 +853,7 @@
       const partNames = ['Experiment — Uncover Internal Resistance', 'Reflect — Cost and Possibility', 'Share', 'What Next'];
       const sys = `You are Lumen. The person has completed Part ${partNum} (${partNames[partNum-1]}) of Mission 2: The Immunity Map. Here is what they wrote:\n\n${ctx}\n\nOffer one precise observation about the pattern you see across their answers — particularly about what they are protecting and whether the assumption feels true or not. Ask one question that takes them deeper. 2-3 sentences. No praise. No summary. No advice.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(),
           body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Reflect on my Part ' + partNum + ' answers.' }] }) });
         const d = await res.json();
         prText.textContent = d.reply || 'Lumen is quiet. Move to the next part when ready.';
@@ -872,7 +872,7 @@
       }).filter(Boolean).join('\n');
       const sys = `You are Lumen. The person has completed all four parts of Mission 2: The Immunity Map. Here is everything they wrote:\n\n${allCtx}\n\nOffer one precise observation that names what you see at the heart of their immunity — the thing they are most protecting, and the assumption that makes it feel necessary. Ask the one question that names what it would take to loosen it. 2-3 sentences. No summary. No praise.`;
       try {
-        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(),
           body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
         const d = await res.json();
         arcText.textContent = d.reply || 'The map is drawn. Name your commitment.';
