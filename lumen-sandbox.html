@@ -174,6 +174,13 @@
     .supervision-text { font-size: 13px; font-weight: 300; line-height: 1.75; color: rgba(255,255,255,0.8); font-style: italic; margin-bottom: 12px; }
     .supervision-propose { font-size: 10px; padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,190,25,0.3); background: none; color: rgba(255,190,25,0.6); cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; }
     .supervision-propose:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    .history-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; }
+    .history-card:hover { border-color: rgba(255,255,255,0.2); }
+    .history-card.active-session { border-color: rgba(255,190,25,0.4); }
+    .history-date { font-size: 10px; color: rgba(255,255,255,0.3); margin-bottom: 6px; letter-spacing: 0.03em; }
+    .history-preview { font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 300; line-height: 1.5; font-style: italic; }
+    .history-turns { font-size: 10px; color: rgba(255,255,255,0.2); margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -234,6 +241,7 @@
     <div class="sidebar-tabs">
       <div class="sidebar-tab active" id="tab-instructions" onclick="switchTab('instructions')">Instructions</div>
       <div class="sidebar-tab" id="tab-signals" onclick="switchTab('signals')">Signals</div>
+      <div class="sidebar-tab" id="tab-history" onclick="switchTab('history')">History</div>
     </div>
 
     <div class="sidebar-content">
@@ -258,6 +266,14 @@
         <div id="supervision-block" style="display:none;"></div>
         <div id="signals-list">
           <div class="empty-state">Loading signals from user sessions...</div>
+        </div>
+      </div>
+
+      <!-- History tab -->
+      <div class="tab-panel" id="panel-history">
+        <div class="section-label">Past conversations</div>
+        <div id="history-list">
+          <div class="empty-state">No past conversations yet.<br>Start a new conversation to archive this one.</div>
         </div>
       </div>
 
@@ -292,6 +308,8 @@
 
   let currentUser = null;
   let conversation = [];
+  let currentSessionId = null;
+  const sessionCache = {};
   let activeTab = 'instructions';
 
   // ── AUTH ──────────────────────────────────────────────────
@@ -326,8 +344,10 @@
     document.getElementById('app').style.display = 'grid';
     document.getElementById('user-bar').style.display = 'flex';
     document.getElementById('user-email-display').textContent = user.email.split('@')[0];
+    currentSessionId = 'session-' + Date.now();
     loadInstructions();
     loadSignals();
+    loadHistory();
   }
 
   async function signOut() { await sb.auth.signOut(); window.location.reload(); }
@@ -358,26 +378,35 @@
       const reply = d.reply || 'Lumen is quiet.';
       conversation.push({ role: 'assistant', content: reply });
       addMsg('lumen', reply, true);
+      saveCurrentSession();
     } catch(e) {
       removeThinking();
       addMsg('lumen', 'Something went wrong. Try again.');
     }
   }
 
+  const msgTextCache = {};
+  let msgIndex = 0;
+
   function addMsg(role, text, showPropose = false) {
     const msgs = document.getElementById('messages');
     const div = document.createElement('div');
     div.className = 'msg';
     const isLumen = role === 'lumen';
-    let html = `
+    const idx = msgIndex++;
+    if (showPropose) msgTextCache[idx] = text;
+    div.innerHTML = `
       <div class="msg-av ${isLumen ? 'lumen-av' : 'user-av'}">${isLumen ? 'L' : 'S'}</div>
       <div>
         <div class="msg-bubble ${isLumen ? 'lumen-bubble' : 'user-bubble'}">${escHtml(text)}</div>
-        ${showPropose ? `<div class="msg-propose"><button onclick="openProposeWithText(${JSON.stringify(text)})">Propose as instruction ↗</button></div>` : ''}
+        ${showPropose ? `<div class="msg-propose"><button onclick="proposeFromMsg(${idx})">Propose as instruction ↗</button></div>` : ''}
       </div>`;
-    div.innerHTML = html;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function proposeFromMsg(idx) {
+    openProposeWithText(msgTextCache[idx] || '');
   }
 
   function addThinking() {
@@ -391,10 +420,91 @@
 
   function removeThinking() { document.getElementById('thinking')?.remove(); }
 
-  function clearConversation() {
+  async function clearConversation() {
+    if (conversation.length > 1) {
+      await archiveCurrentSession();
+    }
     conversation = [];
+    currentSessionId = 'session-' + Date.now();
     const msgs = document.getElementById('messages');
     msgs.innerHTML = '<div class="system-msg">New conversation started.</div>';
+  }
+
+  async function archiveCurrentSession() {
+    if (!currentUser || conversation.length < 2) return;
+    const sessionId = currentSessionId || ('session-' + Date.now());
+    await sb.from('answers').upsert({
+      user_id: currentUser.id,
+      mission: 'lumen-sandbox',
+      question: sessionId,
+      answer: JSON.stringify({
+        messages: conversation,
+        archived_at: new Date().toISOString(),
+        preview: conversation.find(m => m.role === 'assistant')?.content?.substring(0, 120) || ''
+      })
+    }, { onConflict: 'user_id,mission,question' });
+  }
+
+  async function saveCurrentSession() {
+    if (!currentUser || conversation.length < 2) return;
+    if (!currentSessionId) currentSessionId = 'session-' + Date.now();
+    await sb.from('answers').upsert({
+      user_id: currentUser.id,
+      mission: 'lumen-sandbox',
+      question: currentSessionId,
+      answer: JSON.stringify({
+        messages: conversation,
+        archived_at: new Date().toISOString(),
+        preview: conversation.find(m => m.role === 'assistant')?.content?.substring(0, 120) || ''
+      })
+    }, { onConflict: 'user_id,mission,question' });
+  }
+
+  async function loadHistory() {
+    const { data } = await sb.from('answers')
+      .select('question, answer, created_at')
+      .eq('user_id', currentUser.id)
+      .eq('mission', 'lumen-sandbox')
+      .order('created_at', { ascending: false });
+    renderHistory(data || []);
+  }
+
+  function renderHistory(sessions) {
+    const el = document.getElementById('history-list');
+    if (!sessions.length) {
+      el.innerHTML = '<div class="empty-state">No past conversations yet.<br>Use "New" to archive this one and start fresh.</div>';
+      return;
+    }
+    el.innerHTML = sessions.map(s => {
+      try {
+        const data = JSON.parse(s.answer);
+        const date = new Date(s.question.replace('session-', '') * 1 || s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const turns = Math.floor((data.messages || []).length / 2);
+        const isActive = s.question === currentSessionId;
+        sessionCache[s.question] = data.messages;
+        return `<div class="history-card ${isActive ? 'active-session' : ''}" onclick="loadSession('${s.question}')">
+          <div class="history-date">${date} ${isActive ? '· current' : ''}</div>
+          <div class="history-preview">${escHtml((data.preview || '').substring(0, 100))}${(data.preview || '').length > 100 ? '...' : ''}</div>
+          <div class="history-turns">${turns} exchange${turns !== 1 ? 's' : ''}</div>
+        </div>`;
+      } catch(e) { return ''; }
+    }).join('');
+  }
+
+  function loadSession(sessionId) {
+    try {
+      const messages = sessionCache[sessionId];
+      if (!messages) return;
+      conversation = messages;
+      currentSessionId = sessionId;
+      const msgs = document.getElementById('messages');
+      msgs.innerHTML = '<div class="system-msg">Conversation restored.</div>';
+      messages.forEach(m => {
+        if (m.role === 'user' && m.content.length < 500) addMsg('user', m.content);
+        if (m.role === 'assistant') addMsg('lumen', m.content, true);
+      });
+      switchTab('instructions');
+    } catch(e) {}
   }
 
   function autoResize(el) {
@@ -613,8 +723,7 @@
     // Build signal summary for Lumen
     const signalSummary = currentSignals.map(s =>
       `- ${s.label}: ${s.description}${s.lumenSaid ? ` (Lumen said: "${s.lumenSaid.substring(0,100)}")` : ''}${s.quote ? ` (User replied: "${s.quote}")` : ''} [${s.context}]`
-    ).join('
-');
+    ).join('\n');
 
     const sys = `You are Lumen, and you are being asked to supervise yourself. The following signals have been detected from real user sessions — moments where your responses may have been too pushy, too sparse, or missed something. Read these patterns as a mirror of your own behaviour. What do they reveal about where you are showing up well and where you are falling short? Be specific, honest, and precise. Name 1-2 concrete things you could do differently. This is not self-criticism — it is the same quality of honest reflection you offer others, turned inward. 3-4 sentences.`;
 
@@ -657,6 +766,7 @@ ${signalSummary}`;
     document.getElementById('tab-' + tab).classList.add('active');
     document.getElementById('panel-' + tab).classList.add('active');
     if (tab === 'signals') loadSignals();
+    if (tab === 'history') loadHistory();
   }
 
   // ── UTILS ─────────────────────────────────────────────────
