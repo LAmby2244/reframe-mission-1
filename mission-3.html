@@ -721,6 +721,7 @@
       const text = document.getElementById('ll-m-text').value.trim();
       if (!text) return;
       const age = document.getElementById('ll-m-age').value.trim();
+      const type = llPendingType;
       closeNoteModal();
       const mid = CH / 2;
       const ageNum = parseInt(age);
@@ -728,12 +729,12 @@
       const x = !isNaN(ageNum)
         ? LEFT + Math.floor(ageNum / 10) * DW + (ageNum % 10) * (DW / 10) + 10
         : scrollMid - 70;
-      const y = llPendingType === 'high'
+      const y = type === 'high'
         ? mid - 100 - Math.random() * 80
-        : llPendingType === 'low'
+        : type === 'low'
         ? mid + 40 + Math.random() * 80
         : mid - 22 + (Math.random() - 0.5) * 28;
-      addNote({ id: Date.now(), type: llPendingType, text, age, x, y });
+      addNote({ id: Date.now(), type, text, age, x, y });
       scheduleLLSave();
     }
 
