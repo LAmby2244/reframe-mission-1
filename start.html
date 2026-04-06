@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Start Here — Rewrite Your Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:       #F56914;
+      --orange-light: #FEF0E6;
+      --yellow:       #FFBE19;
+      --yellow-light: #FFF8E0;
+      --dark:         #0A3228;
+      --dark-2:       #0d3d31;
+      --mid:          #377364;
+      --light:        #F5E6CD;
+      --beige-mid:    #EDD9B5;
+      --blush:        #FFB9AA;
+      --sky:          #9BD7E6;
+      --sky-dark:     #2a7a96;
+      --white:        #ffffff;
+      --border:       rgba(10,50,40,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(245,230,205,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-mark {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-mark svg { width: 14px; height: 14px; fill: white; }
+    .nav-logo-text { font-size: 13px; font-weight: 500; color: var(--dark); }
+    .nav-back {
+      font-size: 13px; color: var(--mid); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--dark); }
+    .nav-back svg { width: 14px; height: 14px; }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 140px 48px 64px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: 3px;
+      color: var(--orange); text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.7s ease 0.1s forwards;
+    }
+    .hero h1 {
+      font-size: clamp(38px, 5vw, 64px);
+      font-weight: 300; line-height: 1.05;
+      color: var(--dark); margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.7s ease 0.25s forwards;
+    }
+    .hero h1 em { font-style: italic; color: var(--orange); }
+    .hero-sub {
+      font-size: 17px; font-weight: 300;
+      color: var(--mid); line-height: 1.75;
+      opacity: 0; animation: fadeUp 0.7s ease 0.4s forwards;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PATH CARDS ── */
+    .paths {
+      padding: 0 32px 80px;
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      opacity: 0; animation: fadeUp 0.7s ease 0.55s forwards;
+    }
+
+    .path-card {
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 520px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      cursor: pointer;
+    }
+    .path-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .path-card.coming-soon {
+      cursor: default;
+    }
+    .path-card.coming-soon:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Card colours */
+    .card-learn  { background: var(--dark); }
+    .card-use    { background: var(--orange); }
+    .card-deepen { background: var(--sky); }
+
+    /* Card inner */
+    .card-inner {
+      padding: 40px 36px 36px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Decorative shape */
+    .card-shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.12;
+    }
+    .card-learn  .card-shape { width: 200px; height: 200px; background: white; top: -60px; right: -60px; }
+    .card-use    .card-shape { width: 240px; height: 240px; background: white; bottom: -80px; right: -60px; }
+    .card-deepen .card-shape { width: 180px; height: 180px; background: var(--sky-dark); top: -40px; left: -40px; }
+
+    /* Layer label */
+    .card-layer {
+      font-size: 10px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; margin-bottom: 28px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-learn  .card-layer { color: rgba(255,255,255,0.45); }
+    .card-use    .card-layer { color: rgba(255,255,255,0.55); }
+    .card-deepen .card-layer { color: var(--sky-dark); }
+
+    .card-layer-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .card-learn  .card-layer-dot { background: var(--yellow); }
+    .card-use    .card-layer-dot { background: white; }
+    .card-deepen .card-layer-dot { background: var(--sky-dark); }
+
+    /* Card number */
+    .card-num {
+      font-size: 80px; font-weight: 700; line-height: 1;
+      margin-bottom: 4px; letter-spacing: -4px;
+    }
+    .card-learn  .card-num { color: rgba(255,255,255,0.07); }
+    .card-use    .card-num { color: rgba(255,255,255,0.12); }
+    .card-deepen .card-num { color: rgba(42,122,150,0.15); }
+
+    /* Card title */
+    .card-title {
+      font-size: clamp(28px, 3vw, 38px);
+      font-weight: 700; line-height: 1.05;
+      margin-bottom: 4px;
+    }
+    .card-learn  .card-title { color: white; }
+    .card-use    .card-title { color: white; }
+    .card-deepen .card-title { color: var(--dark); }
+
+    .card-title em {
+      display: block; font-style: italic; font-weight: 300;
+      font-size: 0.8em;
+    }
+    .card-learn  .card-title em { color: var(--yellow); }
+    .card-use    .card-title em { color: rgba(255,255,255,0.7); }
+    .card-deepen .card-title em { color: var(--sky-dark); }
+
+    /* Card divider */
+    .card-divider {
+      height: 1px; margin: 24px 0;
+    }
+    .card-learn  .card-divider { background: rgba(255,255,255,0.12); }
+    .card-use    .card-divider { background: rgba(255,255,255,0.2); }
+    .card-deepen .card-divider { background: rgba(42,122,150,0.2); }
+
+    /* Card body */
+    .card-body {
+      font-size: 15px; font-weight: 300;
+      line-height: 1.75; flex: 1;
+    }
+    .card-learn  .card-body { color: rgba(255,255,255,0.65); }
+    .card-use    .card-body { color: rgba(255,255,255,0.8); }
+    .card-deepen .card-body { color: var(--dark-2); opacity: 0.8; }
+
+    /* Card features */
+    .card-features {
+      margin-top: 24px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .card-feature {
+      font-size: 12px; font-weight: 400;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-learn  .card-feature { color: rgba(255,255,255,0.4); }
+    .card-use    .card-feature { color: rgba(255,255,255,0.55); }
+    .card-deepen .card-feature { color: var(--sky-dark); }
+
+    .card-feature-dot {
+      width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0;
+    }
+    .card-learn  .card-feature-dot { background: var(--yellow); }
+    .card-use    .card-feature-dot { background: rgba(255,255,255,0.5); }
+    .card-deepen .card-feature-dot { background: var(--sky-dark); }
+
+    /* Card CTA */
+    .card-cta {
+      margin-top: 32px;
+    }
+    .btn-card {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 24px; border-radius: 10px;
+      font-size: 14px; font-weight: 500;
+      font-family: 'Rubik', sans-serif;
+      text-decoration: none; border: none;
+      cursor: pointer; transition: all 0.2s;
+      width: 100%; justify-content: center;
+    }
+    .btn-learn {
+      background: var(--yellow); color: var(--dark);
+    }
+    .btn-learn:hover { background: #ffd040; }
+
+    .btn-use {
+      background: white; color: var(--orange);
+    }
+    .btn-use:hover { background: rgba(255,255,255,0.9); }
+
+    .btn-deepen-events {
+      background: var(--sky-dark); color: white;
+    }
+    .btn-deepen-events:hover { background: #236480; }
+
+    .btn-coming-soon {
+      background: rgba(42,122,150,0.15);
+      color: var(--sky-dark);
+      border: 1.5px solid rgba(42,122,150,0.25);
+      cursor: default;
+      font-size: 12px; letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Coming soon pill */
+    .coming-soon-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(42,122,150,0.12);
+      border: 1px solid rgba(42,122,150,0.2);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 11px; font-weight: 500;
+      color: var(--sky-dark); letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .coming-soon-pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--sky-dark); opacity: 0.5;
+    }
+
+    /* ── WHAT'S INSIDE STRIP ── */
+    .inside-strip {
+      background: var(--dark);
+      padding: 56px 48px;
+      text-align: center;
+    }
+    .inside-strip h3 {
+      font-size: 13px; font-weight: 500; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--yellow);
+      margin-bottom: 40px;
+    }
+    .inside-tools {
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: 12px;
+      max-width: 800px; margin: 0 auto;
+    }
+    .inside-tool {
+      padding: 10px 20px; border-radius: 30px;
+      font-size: 13px; font-weight: 400;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .tool-learn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+    }
+    .tool-use {
+      background: rgba(245,105,20,0.12);
+      border: 1px solid rgba(245,105,20,0.2);
+      color: var(--orange);
+    }
+    .tool-deepen {
+      background: rgba(155,215,230,0.08);
+      border: 1px solid rgba(155,215,230,0.15);
+      color: var(--sky);
+    }
+    .tool-dot { width: 5px; height: 5px; border-radius: 50%; }
+    .tool-learn  .tool-dot { background: rgba(255,255,255,0.2); }
+    .tool-use    .tool-dot { background: var(--orange); }
+    .tool-deepen .tool-dot { background: var(--sky); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 32px 48px;
+      border-top: 0.5px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo { font-size: 13px; font-weight: 500; color: var(--dark); }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 12px; color: var(--mid);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--dark); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .paths { grid-template-columns: 1fr; max-width: 520px; }
+      .path-card { min-height: auto; }
+      nav { padding: 16px 24px; }
+      .hero { padding: 120px 24px 48px; }
+      .inside-strip { padding: 48px 24px; }
+      footer { padding: 24px; }
+    }
+    @media (max-width: 600px) {
+      .paths { padding: 0 16px 64px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/index.html" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"/></svg>
+      </div>
+      <span class="nav-logo-text">Rewrite Your Life</span>
+    </a>
+    <a href="/index.html" class="nav-back">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 2L4 7l5 5"/>
+      </svg>
+      Back to home
+    </a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Where would you like to begin?</div>
+    <h1>Three ways to do<br><em>this work</em></h1>
+    <p class="hero-sub">The Reframe platform has three distinct layers. Each one serves a different moment — choose the one that fits where you are right now.</p>
+  </div>
+
+  <!-- PATH CARDS -->
+  <div class="paths">
+
+    <!-- LEARN IT -->
+    <div class="path-card card-learn" onclick="window.location='/dashboard.html'">
+      <div class="card-shape"></div>
+      <div class="card-inner">
+        <div class="card-layer">
+          <div class="card-layer-dot"></div>
+          Path one
+        </div>
+        <div class="card-num">01</div>
+        <div class="card-title">
+          Learn It
+          <em>The companion to Rewrite Your Life</em>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          This is where the patterns get named, the stories get examined, and the wiring starts to change. Each mission is anchored to a chapter of the book — read it, listen to it, then go deeper than you could alone.
+        </div>
+        <div class="card-features">
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            14 sequential missions
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Audio chapter per mission
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Lumen reflects your progress
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Do them in order · take your time
+          </div>
+        </div>
+        <div class="card-cta">
+          <a href="/dashboard.html" class="btn-card btn-learn">Go to missions →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- USE IT -->
+    <div class="path-card card-use" onclick="window.location='/use-it.html'">
+      <div class="card-shape"></div>
+      <div class="card-inner">
+        <div class="card-layer">
+          <div class="card-layer-dot"></div>
+          Path two
+        </div>
+        <div class="card-num">02</div>
+        <div class="card-title">
+          Use It
+          <em>Reframe Every Day</em>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          The work doesn't stop when the mission does. These are the tools you return to — when you're triggered, when a hard conversation is coming, when your body is telling you something you haven't named yet.
+        </div>
+        <div class="card-features">
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Tame a Trigger
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Courageous Conversation Prep
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Live Reframe Tool
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Connect Your Wearable ✦ new
+          </div>
+        </div>
+        <div class="card-cta">
+          <a href="/use-it.html" class="btn-card btn-use">Go to tools →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEEPEN IT -->
+    <div class="path-card card-deepen coming-soon">
+      <div class="card-shape"></div>
+      <div class="card-inner">
+        <div class="card-layer">
+          <div class="card-layer-dot"></div>
+          Path three
+        </div>
+        <div class="coming-soon-pill">
+          <div class="coming-soon-pulse"></div>
+          Building now
+        </div>
+        <div class="card-num">03</div>
+        <div class="card-title">
+          Deepen It
+          <em>The Community</em>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          Change doesn't happen in isolation. The community, the live events, the coaching — this is where the work meets other people doing the same honest reckoning. We're building this now.
+        </div>
+        <div class="card-features">
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Purposeful Change Learning Circles
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Live events with Simon
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            1:1 coaching pathways
+          </div>
+          <div class="card-feature">
+            <div class="card-feature-dot"></div>
+            Community cohorts
+          </div>
+        </div>
+        <div class="card-cta" style="display:flex;flex-direction:column;gap:10px">
+          <a href="https://events.purposefulchange.com/apr26"
+             class="btn-card btn-deepen-events"
+             onclick="event.stopPropagation()">
+            Join the next live event →
+          </a>
+          <div class="btn-card btn-coming-soon">
+            Community · Coming Soon
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WHAT'S INSIDE STRIP -->
+  <div class="inside-strip">
+    <h3>Everything inside the platform</h3>
+    <div class="inside-tools">
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>Your Case for Change</div>
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>The Immunity Map</div>
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>Your Story Lifeline</div>
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>The Stories Behind the Stories</div>
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>The Value of Your Values</div>
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>Taming Your Triggers</div>
+      <div class="inside-tool tool-learn"><div class="tool-dot"></div>Feedback is a Gift</div>
+      <div class="inside-tool tool-use"><div class="tool-dot"></div>Tame a Trigger</div>
+      <div class="inside-tool tool-use"><div class="tool-dot"></div>Courageous Conversation Prep</div>
+      <div class="inside-tool tool-use"><div class="tool-dot"></div>Live Reframe Tool</div>
+      <div class="inside-tool tool-use"><div class="tool-dot"></div>Feedback Tracker</div>
+      <div class="inside-tool tool-use"><div class="tool-dot"></div>Connect Your Wearable</div>
+      <div class="inside-tool tool-deepen"><div class="tool-dot"></div>Learning Circles</div>
+      <div class="inside-tool tool-deepen"><div class="tool-dot"></div>Live Events</div>
+      <div class="inside-tool tool-deepen"><div class="tool-dot"></div>Coaching</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo"><strong>Rewrite Your Life</strong> · A Purposeful Change product</div>
+    <div class="footer-links">
+      <a href="https://purposefulchange.com">purposefulchange.com</a>
+      <a href="https://purposefulchange.com/about-us/">About</a>
+      <a href="https://events.purposefulchange.com/apr26">Events</a>
+      <a href="https://purposefulchange.com/contact/">Contact</a>
+    </div>
+  </footer>
+
+</body>
+</html>
