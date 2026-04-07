@@ -96,9 +96,15 @@ export default async function handler(req) {
       // Still redirect — tokens saved in URL hash for client-side pickup
     }
 
-    // Redirect back to wearable page with tokens in hash (client picks them up)
+    // Redirect back to wearable page with token in query params
+    // Page picks these up, stores in localStorage, then fetches live data
+    const expiresAt = Date.now() + tokens.expires_in * 1000;
     const redirectUrl = new URL(`${process.env.APP_BASE_URL}/wearable.html`);
-    redirectUrl.hash = `whoop_connected=1&member_id=${profile.user_id || ''}`;
+    redirectUrl.searchParams.set('whoop_connected', '1');
+    redirectUrl.searchParams.set('whoop_token', tokens.access_token);
+    redirectUrl.searchParams.set('whoop_refresh', tokens.refresh_token || '');
+    redirectUrl.searchParams.set('whoop_expires', expiresAt.toString());
+    redirectUrl.searchParams.set('whoop_member', profile.user_id?.toString() || '');
     return Response.redirect(redirectUrl.toString(), 302);
   }
 
