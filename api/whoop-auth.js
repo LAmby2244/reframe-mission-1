@@ -96,16 +96,13 @@ export default async function handler(req) {
       // Still redirect — tokens saved in URL hash for client-side pickup
     }
 
-    // Redirect back to wearable page with token in query params
-    // Page picks these up, stores in localStorage, then fetches live data
-    const expiresAt = Date.now() + tokens.expires_in * 1000;
-    const redirectUrl = new URL(`${process.env.APP_BASE_URL}/wearable.html`);
-    redirectUrl.searchParams.set('whoop_connected', '1');
-    redirectUrl.searchParams.set('whoop_token', tokens.access_token);
-    redirectUrl.searchParams.set('whoop_refresh', tokens.refresh_token || '');
-    redirectUrl.searchParams.set('whoop_expires', expiresAt.toString());
-    redirectUrl.searchParams.set('whoop_member', profile.user_id?.toString() || '');
-    return Response.redirect(redirectUrl.toString(), 302);
+    // Redirect to the callback page which stores token in localStorage
+    // Using short param names (wt/wr/wm) to avoid URL length issues with long JWTs
+    const callbackUrl = new URL(`${process.env.APP_BASE_URL}/whoop-callback.html`);
+    callbackUrl.searchParams.set('wt', tokens.access_token);
+    callbackUrl.searchParams.set('wr', tokens.refresh_token || '');
+    callbackUrl.searchParams.set('wm', profile.user_id?.toString() || '');
+    return Response.redirect(callbackUrl.toString(), 302);
   }
 
   // ── STEP 3: REFRESH → get new access token ───────────
