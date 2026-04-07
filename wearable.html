@@ -1236,6 +1236,13 @@
     </svg>
     Entries
   </button>
+  <a href="/study-dashboard.html" class="bnav-btn" style="text-decoration:none;color:inherit;">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 17V7l7-4 7 4v10"/>
+      <path d="M8 17v-6h4v6"/>
+    </svg>
+    Study
+  </a>
 </div>
 
 <script>
@@ -1280,8 +1287,13 @@ function getLumenHeaders() {
 // ══════════════════════════════════════════════════════════
 
 // WHOOP access token — set from localStorage after OAuth connect
-let whoopToken = localStorage.getItem('whoop_access_token') || null;
-let whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
+let whoopToken  = null;
+let whoopExpiry = 0;
+
+function loadWhoopToken() {
+  whoopToken  = localStorage.getItem('whoop_access_token') || null;
+  whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
+}
 
 function isWhoopConnected() {
   return whoopToken && Date.now() < whoopExpiry;
@@ -1344,10 +1356,9 @@ async function getWhoopData() {
   return scenarios[idx];
 }
 
-// Token is stored by whoop-callback.html — just pick it up from localStorage
+// Load token from localStorage - stored by whoop-callback.html
 function handleWhoopCallback() {
-  whoopToken  = localStorage.getItem('whoop_access_token') || null;
-  whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
+  loadWhoopToken();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1986,8 +1997,8 @@ function initIntroState() {
 // START
 // ══════════════════════════════════════════════════════════
 initAuth().then(async () => {
-  // Only proceed if auth wall was dismissed (session found)
   if (!authToken) return;
+  loadWhoopToken();       // read fresh from localStorage
   handleWhoopCallback();
   await loadEntries();
   initIntroState();
