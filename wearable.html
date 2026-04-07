@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1062,7 +1063,7 @@
     </div>
 
     <p class="signal-intro" style="margin-top:28px; margin-bottom:0; font-size:13px;">
-      <em>Using simulated WHOOP data — real API connection coming soon. The scoring logic and Lumen reflection are fully live.</em>
+      <em id="data-source-note">Loading your WHOOP data...</em>
     </p>
 
   </div>
@@ -1164,29 +1165,112 @@
 
 <script>
 // ══════════════════════════════════════════════════════════
-// DATA LAYER — simulated WHOOP data
-// Swap getWhoopData() for a real API call when ready
+// AUTH — Supabase session for Lumen API
 // ══════════════════════════════════════════════════════════
 
-function getWhoopData() {
-  // Simulated scenarios — rotate through these to test all states
+const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+let sb = null;
+let authToken = '';
+
+async function initAuth() {
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.access_token) {
+      authToken = session.access_token;
+    }
+  } catch(e) {
+    // No auth available — Lumen will be quiet
+  }
+}
+
+function getLumenHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  return headers;
+}
+// ══════════════════════════════════════════════════════════
+// WHOOP DATA — Live API + simulated fallback
+// ══════════════════════════════════════════════════════════
+
+// WHOOP access token — set from localStorage after OAuth connect
+let whoopToken = localStorage.getItem('whoop_access_token') || null;
+let whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
+
+function isWhoopConnected() {
+  return whoopToken && Date.now() < whoopExpiry;
+}
+
+async function getWhoopData() {
+  // Try live WHOOP data first
+  if (isWhoopConnected()) {
+    try {
+      const res = await fetch('/api/whoop-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: whoopToken })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.recovery !== null && data.recovery !== undefined) {
+          document.getElementById('data-source-note').innerHTML =
+            `<span style="color:var(--green)">● Live WHOOP data</span> · ${data.date} · ${data.days_of_history} days of history`;
+          return data;
+        }
+      }
+    } catch(e) {
+      console.warn('Live WHOOP fetch failed, using simulated:', e.message);
+    }
+  }
+
+  // Not connected — show connect prompt
+  if (!whoopToken) {
+    document.getElementById('data-source-note').innerHTML =
+      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
+      `<span style="opacity:0.5">· Using simulated data for now</span>`;
+  } else {
+    document.getElementById('data-source-note').innerHTML =
+      `<span style="color:var(--yellow)">⚠ WHOOP session expired</span> · ` +
+      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+  }
+
+  // Simulated fallback — same scenarios as before
   const scenarios = [
-    // RED: poor recovery, low HRV, sleep was fine (psychological signal)
-    { recovery: 24, hrv: 38, strain: 4.2, hrv_baseline: 62, strain_baseline: 8.0,
-      sleep_score: 87, days_trend: [-5, -8, -12], workout_logged: false },
-    // RED: declining trend
-    { recovery: 41, hrv: 51, strain: 6.1, hrv_baseline: 67, strain_baseline: 9.0,
-      sleep_score: 79, days_trend: [-4, -7, -9], workout_logged: false },
-    // GREEN: high recovery, HRV above baseline
-    { recovery: 84, hrv: 78, strain: 9.2, hrv_baseline: 62, strain_baseline: 8.0,
-      sleep_score: 91, days_trend: [+5, +8, +10], workout_logged: true },
-    // GREEN: bounce back after red days
-    { recovery: 71, hrv: 70, strain: 7.8, hrv_baseline: 62, strain_baseline: 8.0,
-      sleep_score: 88, days_trend: [-8, -3, +9], workout_logged: false },
+    { recovery: 24, hrv: 38, hrv_baseline: 62, strain: 4.2, strain_baseline: 8.0,
+      sleep_score: 87, sleep_stress: 'poor', workout_logged: false,
+      days_trend: [-5, -8, -12], rec_z: -1.2, hrv_z: -0.9, strain_z: -0.4,
+      signal_state: 'red_psych', exploration_score: 7, data_source: 'simulated' },
+    { recovery: 41, hrv: 51, hrv_baseline: 67, strain: 6.1, strain_baseline: 9.0,
+      sleep_score: 79, sleep_stress: 'sufficient', workout_logged: false,
+      days_trend: [-4, -7, -9], rec_z: -0.9, hrv_z: -0.8, strain_z: -0.3,
+      signal_state: 'red_trend', exploration_score: 5, data_source: 'simulated' },
+    { recovery: 84, hrv: 78, hrv_baseline: 62, strain: 9.2, strain_baseline: 8.0,
+      sleep_score: 91, sleep_stress: 'optimal', workout_logged: true,
+      days_trend: [+5, +8, +10], rec_z: 1.1, hrv_z: 0.9, strain_z: 0.6,
+      signal_state: 'grn_thriving', exploration_score: 0, data_source: 'simulated' },
+    { recovery: 71, hrv: 70, hrv_baseline: 62, strain: 7.8, strain_baseline: 8.0,
+      sleep_score: 88, sleep_stress: 'optimal', workout_logged: false,
+      days_trend: [-8, -3, +9], rec_z: 0.5, hrv_z: 0.4, strain_z: -0.1,
+      signal_state: 'grn_bounce', exploration_score: 0, data_source: 'simulated' },
   ];
-  // Pick based on day of week for consistent demo experience
   const idx = new Date().getDay() % scenarios.length;
   return scenarios[idx];
+}
+
+// Handle WHOOP OAuth callback — picks up token from URL hash
+function handleWhoopCallback() {
+  const hash = window.location.hash;
+  if (!hash.includes('whoop_connected=1')) return;
+
+  // Token was stored server-side — prompt user to re-load
+  // In production, the callback stores in Supabase and we fetch from there
+  // For now: show success message
+  window.location.hash = '';
+  document.getElementById('data-source-note').innerHTML =
+    `<span style="color:var(--green)">● WHOOP connected</span> · Loading your data...`;
+  setTimeout(() => init(), 1000);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1319,8 +1403,111 @@ function scoreWhoopData(d) {
 }
 
 // ══════════════════════════════════════════════════════════
-// STATE
+// PERSISTENCE — Supabase primary, localStorage fallback
 // ══════════════════════════════════════════════════════════
+
+async function saveEntry(entry) {
+  // Always save to localStorage immediately
+  entries.unshift(entry);
+  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  // Save to Supabase if authenticated
+  if (!sb || !authToken) return entry;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return entry;
+
+    const { data, error } = await sb
+      .from('wearable_entries')
+      .insert({
+        user_id:       session.user.id,
+        mode:          entry.mode,
+        pattern_id:    entry.pattern,
+        pattern_title: entry.patternTitle,
+        recovery:      entry.data.recovery,
+        hrv:           entry.data.hrv,
+        strain:        entry.data.strain,
+        answers:       entry.answers
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+
+    // Store Supabase id so we can update with Lumen reply
+    entry.supabaseId = data.id;
+    localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  } catch(e) {
+    console.warn('Supabase save failed, using localStorage:', e.message);
+  }
+
+  return entry;
+}
+
+async function updateEntryLumenReply(entry, reply) {
+  // Update localStorage
+  entry.lumenReply = reply;
+  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  // Update Supabase if we have an id
+  if (!sb || !entry.supabaseId) return;
+
+  try {
+    await sb
+      .from('wearable_entries')
+      .update({ lumen_reply: reply })
+      .eq('id', entry.supabaseId);
+  } catch(e) {
+    console.warn('Supabase update failed:', e.message);
+  }
+}
+
+async function loadEntries() {
+  // Start with localStorage
+  entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
+
+  // Hydrate from Supabase if authenticated
+  if (!sb || !authToken) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await sb
+      .from('wearable_entries')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error || !data) return;
+
+    // Map Supabase rows back to local format
+    entries = data.map(row => ({
+      id:           row.id,
+      supabaseId:   row.id,
+      date:         row.created_at,
+      mode:         row.mode,
+      pattern:      row.pattern_id,
+      patternTitle: row.pattern_title,
+      data: {
+        recovery: row.recovery,
+        hrv:      row.hrv,
+        strain:   row.strain
+      },
+      answers:    row.answers || {},
+      lumenReply: row.lumen_reply
+    }));
+
+    // Keep localStorage in sync
+    localStorage.setItem('wb_entries', JSON.stringify(entries));
+
+  } catch(e) {
+    console.warn('Supabase load failed, using localStorage:', e.message);
+  }
+}
 
 let currentData = null;
 let currentPattern = null;
@@ -1334,8 +1521,8 @@ let entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
 // INIT
 // ══════════════════════════════════════════════════════════
 
-function init() {
-  currentData = getWhoopData();
+async function init() {
+  currentData = await getWhoopData();
   currentPattern = scoreWhoopData(currentData);
   currentMode = currentPattern.mode;
 
@@ -1474,12 +1661,12 @@ function updateQProgress() {
     `Question ${currentQ + 1} of ${total}`;
 }
 
-function submitEntry() {
+async function submitEntry() {
   // Collect last answer
   const lastEl = document.getElementById('qa-' + currentQ);
   answers[currentQ] = lastEl ? lastEl.value.trim() : '';
 
-  // Save entry
+  // Build entry
   const entry = {
     id: Date.now(),
     date: new Date().toISOString(),
@@ -1490,8 +1677,9 @@ function submitEntry() {
     answers: { ...answers },
     lumenReply: null
   };
-  entries.unshift(entry);
-  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  // Save to Supabase + localStorage
+  await saveEntry(entry);
 
   // Go to Lumen screen
   showScreen('lumen');
@@ -1561,24 +1749,21 @@ RULES:
 
   addThinking();
 
+  if (!authToken) {
+    removeThinking();
+    addMsg('lumen', 'Lumen needs you to be signed in to reflect on your entries. <a href="/dashboard.html" style="color:var(--yellow);text-decoration:underline;">Sign in here →</a>');
+    return;
+  }
+
   try {
-    const res = await fetch('/api/lumen', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemExtra: system,
-        messages: [{ role: 'user', content: 'Please reflect on what I\'ve written.' }]
-      })
-    });
     const data = await res.json();
     removeThinking();
     const reply = data.reply || 'Lumen is quiet. Stay with what you wrote.';
     lumenConvo.push({ role: 'assistant', content: reply });
     addMsg('lumen', reply);
 
-    // Save Lumen reply to entry
-    entries[0].lumenReply = reply;
-    localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+    // Save Lumen reply to Supabase + localStorage
+    await updateEntryLumenReply(entries[0], reply);
 
   } catch(e) {
     removeThinking();
@@ -1601,7 +1786,7 @@ async function sendToLumen() {
   try {
     const res = await fetch('/api/lumen', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getLumenHeaders(),
       body: JSON.stringify({ systemExtra: system, messages: lumenConvo })
     });
     const data = await res.json();
@@ -1723,8 +1908,12 @@ function initIntroState() {
 // ══════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════
-initIntroState();
-init();
+initAuth().then(async () => {
+  handleWhoopCallback();
+  await loadEntries();
+  initIntroState();
+  await init();
+});
 </script>
 
 </body>
