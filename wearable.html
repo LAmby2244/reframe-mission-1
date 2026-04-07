@@ -1469,23 +1469,34 @@ const PATTERNS = {
 };
 
 function scoreWhoopData(d) {
-  const hrv_pct_below = (d.hrv_baseline - d.hrv) / d.hrv_baseline;
-  const is_declining = d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1]);
-  const is_recovering = d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
-  const is_green_streak = d.days_trend.every(v => v > 0);
-  const high_strain_no_workout = d.strain > d.strain_baseline * 1.1 && !d.workout_logged;
+  // If the API already scored the state, use it directly
+  if (d.signal_state) {
+    const stateMap = {
+      'red_psych':   PATTERNS.RED_PSYCH,
+      'red_trend':   PATTERNS.RED_TREND,
+      'red_strain':  PATTERNS.RED_STRAIN,
+      'grn_thriving': PATTERNS.GREEN_HIGH,
+      'grn_bounce':  PATTERNS.GREEN_BOUNCE,
+      'grn_streak':  PATTERNS.GREEN_STREAK,
+    };
+    if (stateMap[d.signal_state]) return stateMap[d.signal_state];
+  }
 
-  // RED patterns
-  if (d.recovery < 33 && d.sleep_score > 75 && d.strain < d.strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
+  // Fallback local scoring for simulated data
+  const hrv_baseline = d.hrv_baseline || 62;
+  const strain_baseline = d.strain_baseline || 8;
+  const hrv_pct_below = (hrv_baseline - d.hrv) / hrv_baseline;
+  const is_declining = d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1]);
+  const is_recovering = d.days_trend && d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
+  const is_green_streak = d.days_trend && d.days_trend.every(v => v > 0);
+  const high_strain_no_workout = d.strain > strain_baseline * 1.1 && !d.workout_logged;
+
+  if (d.recovery < 33 && d.sleep_score > 75 && d.strain < strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
   if (is_declining && hrv_pct_below > 0.1) return PATTERNS.RED_TREND;
   if (high_strain_no_workout) return PATTERNS.RED_STRAIN;
-
-  // GREEN patterns
   if (is_green_streak && d.recovery >= 67) return PATTERNS.GREEN_STREAK;
   if (is_recovering && d.recovery >= 67) return PATTERNS.GREEN_BOUNCE;
-  if (d.recovery >= 67 && d.hrv >= d.hrv_baseline * 0.95) return PATTERNS.GREEN_HIGH;
-
-  // Fallback — use recovery level
+  if (d.recovery >= 67 && d.hrv >= hrv_baseline * 0.95) return PATTERNS.GREEN_HIGH;
   if (d.recovery < 40) return PATTERNS.RED_PSYCH;
   return PATTERNS.GREEN_HIGH;
 }
