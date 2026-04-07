@@ -468,31 +468,8 @@
 </head>
 <body>
 
-  <!-- AUTH GATE -->
-  <div class="auth-gate" id="auth-gate">
-    <div class="auth-box">
-      <div class="auth-eyebrow">Purposeful Change · Reframe</div>
-      <h2 id="auth-title">Welcome back</h2>
-      <p id="auth-desc">Sign in to continue your journey. Your reflections are saved and waiting.</p>
-      <div class="auth-error" id="auth-error"></div>
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" id="auth-email" placeholder="your@email.com" />
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') authSubmit()" />
-      </div>
-      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
-      <div class="auth-toggle">
-        <span id="auth-toggle-text">Don't have an account?</span>
-        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
-      </div>
-    </div>
-  </div>
-
   <!-- TOP BAR -->
-  <div class="topbar" id="topbar" style="display:none">
+  <div class="topbar" id="topbar">
     <a href="/" class="topbar-brand">
       <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
       <span class="topbar-name">Rewrite Your Life</span>
@@ -677,47 +654,10 @@
       if (session) {
         currentUser = session.user;
         await init();
+      } else {
+        window.location.href = '/signin.html?next=/dashboard.html';
       }
     });
-
-    function toggleAuth() {
-      isSignUp = !isSignUp;
-      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
-      document.getElementById('auth-desc').textContent = isSignUp ? 'Your reflections will be saved so you can return anytime.' : 'Sign in to continue your journey. Your reflections are saved and waiting.';
-      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
-      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
-      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
-      document.getElementById('auth-error').classList.remove('show');
-    }
-
-    async function authSubmit() {
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
-      const btn = document.getElementById('auth-btn');
-      const errEl = document.getElementById('auth-error');
-      errEl.classList.remove('show');
-      btn.textContent = 'Please wait...';
-      btn.disabled = true;
-      try {
-        const result = isSignUp
-          ? await sb.auth.signUp({ email, password })
-          : await sb.auth.signInWithPassword({ email, password });
-        if (result.error) {
-          errEl.textContent = result.error.message;
-          errEl.classList.add('show');
-          btn.textContent = isSignUp ? 'Create account' : 'Sign in';
-          btn.disabled = false;
-        } else {
-          currentUser = result.data.user;
-          await init();
-        }
-      } catch(e) {
-        errEl.textContent = 'Something went wrong. Please try again.';
-        errEl.classList.add('show');
-        btn.textContent = isSignUp ? 'Create account' : 'Sign in';
-        btn.disabled = false;
-      }
-    }
 
     async function signOut() {
       await sb.auth.signOut();

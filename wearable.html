@@ -829,9 +829,84 @@
       .metric-value { font-size: 28px; }
       .bottom-nav { padding: 10px 20px; }
     }
+    /* ── AUTH WALL ── */
+    .auth-wall {
+      position: fixed; inset: 0; z-index: 500;
+      background: var(--light);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .auth-wall.hidden { display: none; }
+    .auth-box {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 8px 40px rgba(10,50,40,0.1);
+    }
+    .auth-box-logo {
+      font-size: 13px; font-weight: 700; letter-spacing: 1px;
+      color: var(--orange); text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .auth-box h2 {
+      font-size: 22px; font-weight: 700; color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .auth-box p {
+      font-size: 14px; font-weight: 300; color: var(--muted);
+      margin-bottom: 24px; line-height: 1.5;
+    }
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--dark); margin-bottom: 5px; letter-spacing: 0.3px;
+    }
+    .auth-field input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: 'Rubik', sans-serif; font-size: 15px;
+      color: var(--dark); background: white;
+      transition: border-color 0.2s;
+    }
+    .auth-field input:focus { outline: none; border-color: var(--orange); }
+    .auth-submit-btn {
+      width: 100%; padding: 13px;
+      background: var(--dark); color: white;
+      border: none; border-radius: 10px;
+      font-family: 'Rubik', sans-serif;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 4px;
+      transition: background 0.2s;
+    }
+    .auth-submit-btn:hover { background: var(--mid); }
+    .auth-error-msg {
+      font-size: 13px; color: var(--red);
+      margin-top: 10px; display: none;
+    }
+    .auth-error-msg.show { display: block; }
+    .auth-user-bar {
+      background: var(--dark); padding: 10px 40px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      position: fixed; top: 64px; left: 0; right: 0;
+      z-index: 150;
+    }
+    .auth-user-email { font-size: 13px; color: rgba(245,230,205,0.6); }
+    .auth-signout-btn {
+      font-size: 12px; font-weight: 500; color: var(--orange);
+      background: none; border: none; cursor: pointer;
+      font-family: 'Rubik', sans-serif;
+    }
   </style>
 </head>
 <body>
+
+<!-- USER BAR — shown when signed in -->
+<div class="auth-user-bar" id="user-bar" style="display:none">
+  <span class="auth-user-email" id="user-email"></span>
+  <button class="auth-signout-btn" onclick="signOut()">Sign out</button>
+</div>
 
 <!-- TOP NAV -->
 <div class="top-nav">
@@ -1179,10 +1254,20 @@ async function initAuth() {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.access_token) {
       authToken = session.access_token;
+      document.getElementById('user-bar').style.display = 'flex';
+      document.getElementById('user-email').textContent = session.user.email;
+    } else {
+      // Not signed in — redirect to sign in page, return here after
+      window.location.href = '/signin.html?next=' + encodeURIComponent(window.location.pathname);
     }
   } catch(e) {
-    // No auth available — Lumen will be quiet
+    window.location.href = '/signin.html';
   }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = '/signin.html';
 }
 
 function getLumenHeaders() {
@@ -1926,6 +2011,8 @@ function initIntroState() {
 // START
 // ══════════════════════════════════════════════════════════
 initAuth().then(async () => {
+  // Only proceed if auth wall was dismissed (session found)
+  if (!authToken) return;
   handleWhoopCallback();
   await loadEntries();
   initIntroState();
