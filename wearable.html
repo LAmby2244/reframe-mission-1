@@ -173,6 +173,9 @@
       background: var(--amber-bg);
       border-color: rgba(230,126,34,0.15);
     }
+    .amber-signal .signal-icon  { background: rgba(230,126,34,0.1); }
+    .amber-signal .signal-title { color: var(--amber); }
+    .amber-signal .pattern-badge { background: rgba(255,190,25,0.12); color: #D4860A; }
 
     .signal-header {
       display: flex; align-items: center; gap: 12px;
@@ -228,7 +231,10 @@
     .btn-red:hover { background: #a93226; }
     .btn-green { background: var(--green); color: white; }
     .btn-green:hover { background: #229954; }
-    .btn-skip {
+    .btn-amber { background: #FFBE19; color: var(--dark); }
+    .btn-amber:hover { background: #f0b000; }
+    .btn-next-amber { background: #FFBE19; color: var(--dark); }
+    .btn-next-amber:hover { background: #f0b000; }
       background: none; border: none;
       font-size: 13px; color: var(--mid);
       cursor: pointer; font-family: 'Rubik', sans-serif;
@@ -248,6 +254,7 @@
       position: relative; overflow: hidden;
     }
     .q-header.red-header   { background: var(--red); }
+    .q-header.amber-header { background: #D4860A; }
     .q-header.green-header { background: var(--green); }
     .q-header::before {
       content: '';
@@ -1468,37 +1475,116 @@ const PATTERNS = {
   }
 };
 
+// ── AMBER PATTERNS ─────────────────────────────────────
+// The middle zone — curiosity, not urgency. System under mild load.
+const AMBER = {
+  AMBER_LOAD: {
+    id: 'amber_load', mode: 'amber',
+    title: 'Your system is carrying something',
+    desc: 'Recovery in the middle range, HRV slightly below your baseline. Not a crisis — but something is asking for your attention. This is worth a gentle look before it becomes a pattern.',
+    badges: ['Moderate recovery', 'HRV drifting', 'Worth checking in'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="#FFBE19" stroke-width="2.5" fill="rgba(255,190,25,0.1)"/><path d="M24 16v10" stroke="#FFBE19" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="32" r="2" fill="#FFBE19"/></svg>',
+    qHeader: 'Something is asking for your attention',
+    qSub: 'Your system is in the middle — not depleted, not thriving. There\'s something worth noticing here.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'What\'s been on your mind more than usual this week?', sub: 'Not necessarily a problem — just what keeps surfacing. What\'s been taking up more space than it usually does?' },
+      { q: 'Where has your energy been going that isn\'t showing up in your data?', sub: 'Mental effort, emotional labour, background worry. The stuff that doesn\'t look like strain but costs something.' },
+      { q: 'What would feel like relief right now?', sub: 'Not a solution — just the feeling of something lifting. What is your body asking for?' },
+      { q: 'What\'s one thing you could do differently today that would help your system settle?', sub: 'Small and specific. Not a plan — just one thing.' }
+    ]
+  },
+  AMBER_TREND: {
+    id: 'amber_trend', mode: 'amber',
+    title: 'Something has been quietly building',
+    desc: 'Your HRV has been drifting slightly below your baseline over the last few days. Nothing alarming — but the body doesn\'t drift without reason. This is the moment to get curious before the pattern deepens.',
+    badges: ['Gradual HRV drift', 'Multi-day pattern', 'Early signal'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><path d="M8 34 L18 26 L26 30 L38 16" stroke="#FFBE19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38" cy="16" r="3" fill="#FFBE19" opacity="0.5"/><path d="M38 16 L44 12" stroke="#FFBE19" stroke-width="2" stroke-linecap="round" opacity="0.4"/></svg>',
+    qHeader: 'Something has been quietly building',
+    qSub: 'A gentle drift over a few days. The body notices before the mind does — let\'s find out what it\'s picking up.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'What has been slightly off this week, even if nothing specific happened?', sub: 'The quality of interactions, the ease of tasks, the texture of the day. What has been subtly different?' },
+      { q: 'Where have you been giving more than feels sustainable?', sub: 'In your work, your relationships, your own expectations of yourself. Where is the quiet drain?' },
+      { q: 'What has your body been trying to tell you that you\'ve been explaining away?', sub: 'The tiredness you called "just busy", the tension you called "nothing". What is it actually?' },
+      { q: 'If this pattern continued for another week, what would need to shift?', sub: 'Not catastrophising — just following the signal forward. What does your body already know?' }
+    ]
+  },
+  AMBER_RECOVERY: {
+    id: 'amber_recovery', mode: 'amber',
+    title: 'You\'re coming back — take it gently',
+    desc: 'Recovery is moving in the right direction but hasn\'t fully restored yet. Your system is doing the work. The question is what\'s helping — and whether you\'re giving it what it needs to complete the recovery.',
+    badges: ['Recovery rebuilding', 'System stabilising', 'Gentle check in'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><path d="M8 32 L18 28 L28 24 L38 18" stroke="#FFBE19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38" cy="18" r="4" fill="#FFBE19" opacity="0.6"/><path d="M24 38 Q24 30 30 24" stroke="#FFBE19" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3,3" opacity="0.4"/></svg>',
+    qHeader: 'You\'re coming back — stay curious',
+    qSub: 'Your system is moving in the right direction. Let\'s understand what\'s helping.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'What changed in the last 24-48 hours that might be helping your system settle?', sub: 'Something you did, stopped doing, said, or let go of. Even something that seemed small.' },
+      { q: 'What are you noticing about how you\'ve been with yourself this week?', sub: 'Not what you did — how you\'ve been. Kinder, harsher, more patient, more pressured. What\'s the quality?' },
+      { q: 'What need is being slowly met that wasn\'t before?', sub: 'Rest, connection, recognition, space, play, honesty. What is starting to get a little more attention?' },
+      { q: 'What would help your system complete the recovery rather than interrupt it?', sub: 'Not a plan — just what you already know, if you let yourself know it.' }
+    ]
+  }
+};
+
 function scoreWhoopData(d) {
   // If the API already scored the state, use it directly
   if (d.signal_state) {
     const stateMap = {
-      'red_psych':   PATTERNS.RED_PSYCH,
-      'red_trend':   PATTERNS.RED_TREND,
-      'red_strain':  PATTERNS.RED_STRAIN,
+      'red_psych':    PATTERNS.RED_PSYCH,
+      'red_trend':    PATTERNS.RED_TREND,
+      'red_strain':   PATTERNS.RED_STRAIN,
       'grn_thriving': PATTERNS.GREEN_HIGH,
-      'grn_bounce':  PATTERNS.GREEN_BOUNCE,
-      'grn_streak':  PATTERNS.GREEN_STREAK,
+      'grn_bounce':   PATTERNS.GREEN_BOUNCE,
+      'grn_streak':   PATTERNS.GREEN_STREAK,
+      'amb_load':     AMBER.AMBER_LOAD,
+      'amb_trend':    AMBER.AMBER_TREND,
+      'amb_recovery': AMBER.AMBER_RECOVERY,
     };
     if (stateMap[d.signal_state]) return stateMap[d.signal_state];
+
+    // Medium confidence red in the amber recovery range → amber
+    if (d.signal_confidence === 'medium') {
+      const rec = d.recovery ?? 50;
+      if (rec >= 34 && rec <= 66) {
+        const recTrend = d.recovery_trend || [];
+        const recovering = recTrend.length >= 2 && recTrend[0] > recTrend[1];
+        if (recovering) return AMBER.AMBER_RECOVERY;
+        if (d.signal_state === 'red_trend') return AMBER.AMBER_TREND;
+        return AMBER.AMBER_LOAD;
+      }
+    }
   }
 
   // Fallback local scoring for simulated data
-  const hrv_baseline = d.hrv_baseline || 62;
+  const hrv_baseline    = d.hrv_baseline || 62;
   const strain_baseline = d.strain_baseline || 8;
-  const hrv_pct_below = (hrv_baseline - d.hrv) / hrv_baseline;
-  const is_declining = d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1]);
-  const is_recovering = d.days_trend && d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
+  const recovery        = d.recovery ?? 50;
+  const hrv_pct_below   = (hrv_baseline - (d.hrv || 0)) / hrv_baseline;
+  const is_declining    = d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1]);
+  const is_recovering   = d.days_trend && d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
   const is_green_streak = d.days_trend && d.days_trend.every(v => v > 0);
   const high_strain_no_workout = d.strain > strain_baseline * 1.1 && !d.workout_logged;
 
-  if (d.recovery < 33 && d.sleep_score > 75 && d.strain < strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
-  if (is_declining && hrv_pct_below > 0.1) return PATTERNS.RED_TREND;
+  // RED — clear signal
+  if (recovery < 33 && d.sleep_score > 75 && d.strain < strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
+  if (is_declining && hrv_pct_below > 0.2) return PATTERNS.RED_TREND;
   if (high_strain_no_workout) return PATTERNS.RED_STRAIN;
-  if (is_green_streak && d.recovery >= 67) return PATTERNS.GREEN_STREAK;
-  if (is_recovering && d.recovery >= 67) return PATTERNS.GREEN_BOUNCE;
-  if (d.recovery >= 67 && d.hrv >= hrv_baseline * 0.95) return PATTERNS.GREEN_HIGH;
-  if (d.recovery < 40) return PATTERNS.RED_PSYCH;
-  return PATTERNS.GREEN_HIGH;
+
+  // AMBER — middle zone (recovery 34–66)
+  if (recovery >= 34 && recovery <= 66) {
+    if (is_declining && hrv_pct_below > 0.05) return AMBER.AMBER_TREND;
+    if (is_recovering) return AMBER.AMBER_RECOVERY;
+    return AMBER.AMBER_LOAD;
+  }
+
+  // GREEN — system running well
+  if (is_green_streak && recovery >= 67) return PATTERNS.GREEN_STREAK;
+  if (is_recovering && recovery >= 67)   return PATTERNS.GREEN_BOUNCE;
+  if (recovery >= 67)                    return PATTERNS.GREEN_HIGH;
+
+  return AMBER.AMBER_LOAD;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1657,7 +1743,7 @@ async function init() {
 
   // Signal card
   const card = document.getElementById('signal-card');
-  card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : 'green-signal');
+  card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : currentMode === 'amber' ? 'amber-signal' : 'green-signal');
 
   document.getElementById('signal-icon-el').innerHTML = currentPattern.icon;
   document.getElementById('signal-title').textContent = currentPattern.title;
@@ -1670,8 +1756,10 @@ async function init() {
 
   // CTA button
   const btn = document.getElementById('btn-begin');
-  btn.textContent = currentMode === 'red' ? 'Explore what\'s beneath →' : 'Explore what\'s working →';
-  btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : 'btn-green');
+  btn.textContent = currentMode === 'red' ? 'Explore what\'s beneath →'
+    : currentMode === 'amber' ? 'Check in →'
+    : 'Explore what\'s working →';
+  btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : currentMode === 'amber' ? 'btn-amber' : 'btn-green');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1691,7 +1779,7 @@ function buildQuestionPanels() {
   const isRed = currentMode === 'red';
 
   // Header
-  document.getElementById('q-header').className = 'q-header ' + (isRed ? 'red-header' : 'green-header');
+  document.getElementById('q-header').className = 'q-header ' + (currentMode === 'red' ? 'red-header' : currentMode === 'amber' ? 'amber-header' : 'green-header');
   document.getElementById('q-mode-label').textContent = currentPattern.mode_label;
   document.getElementById('q-header-title').innerHTML = currentPattern.qHeader;
   document.getElementById('q-header-sub').textContent = currentPattern.qSub;
@@ -1699,11 +1787,12 @@ function buildQuestionPanels() {
   // Dots
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById('dot-' + i);
-    dot.className = 'q-dot' + (i === 0 ? (' ' + (isRed ? 'active-red' : 'active-green')) : '');
+    dot.className = 'q-dot' + (i === 0 ? (' ' + (currentMode === 'red' ? 'active-red' : currentMode === 'amber' ? 'active-amber' : 'active-green')) : '');
   }
 
   // Build panels
   const container = document.getElementById('q-panels');
+  const btnClass = currentMode === 'red' ? 'btn-next-red' : currentMode === 'amber' ? 'btn-next-amber' : 'btn-next-green';
   container.innerHTML = qs.map((q, i) => `
     <div class="q-panel${i === 0 ? ' active' : ''}" id="qp-${i}">
       <div class="q-label">Question ${i+1}</div>
@@ -1714,7 +1803,7 @@ function buildQuestionPanels() {
       <div class="wc" id="wc-${i}">0 words</div>
       <div class="q-nav">
         ${i > 0 ? `<button class="btn-prev-q" onclick="prevQ(${i})">←</button>` : ''}
-        <button class="btn-next-q ${isRed ? 'btn-next-red' : 'btn-next-green'}"
+        <button class="btn-next-q ${btnClass}"
           onclick="${i < qs.length - 1 ? `nextQ(${i})` : 'submitEntry()'}">
           ${i < qs.length - 1 ? 'Next →' : 'See what Lumen notices →'}
         </button>
