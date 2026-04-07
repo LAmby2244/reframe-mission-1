@@ -1844,6 +1844,14 @@ RULES:
   }
 
   try {
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: getLumenHeaders(),
+      body: JSON.stringify({
+        systemExtra: system,
+        messages: [{ role: 'user', content: 'Please reflect on what I\'ve written.' }]
+      })
+    });
     const data = await res.json();
     removeThinking();
     const reply = data.reply || 'Lumen is quiet. Stay with what you wrote.';
