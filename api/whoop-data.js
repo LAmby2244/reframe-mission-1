@@ -22,7 +22,7 @@
 
 export const config = { runtime: 'edge' };
 
-const WHOOP_BASE = 'https://api.prod.whoop.com/developer/v1';
+const WHOOP_BASE = 'https://api.prod.whoop.com/developer/v2';
 
 // ── WHOOP API HELPERS ─────────────────────────────────
 
@@ -209,14 +209,14 @@ export default async function handler(req) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 28);
 
-    const startStr = startDate.toISOString().split('T')[0];
-    const endStr   = endDate.toISOString().split('T')[0];
+    const startStr = startDate.toISOString();
+    const endStr   = endDate.toISOString();
 
-    // Fetch in parallel — all available via WHOOP public API
+    // Fetch in parallel — all available via WHOOP v2 API
     const [cyclesRes, sleepRes, workoutsRes] = await Promise.all([
-      whoopGet(`/cycle?start=${startStr}&end=${endStr}&limit=30`, access_token),
-      whoopGet(`/activity/sleep?start=${startStr}&end=${endStr}&limit=30`, access_token),
-      whoopGet(`/activity/workout?start=${startStr}&end=${endStr}&limit=30`, access_token),
+      whoopGet(`/cycle?start=${startStr}&end=${endStr}&limit=25`, access_token),
+      whoopGet(`/activity/sleep?start=${startStr}&end=${endStr}&limit=25`, access_token),
+      whoopGet(`/activity/workout?start=${startStr}&end=${endStr}&limit=25`, access_token),
     ]);
 
     const cycles   = cyclesRes.records   || [];
@@ -260,15 +260,14 @@ export default async function handler(req) {
         recovery_pct:      score.recovery_score ?? null,
         hrv_ms:            score.hrv_rmssd_milli ?? null,
         rhr_bpm:           score.resting_heart_rate ?? null,
-        respiratory_rate:  score.spo2_percentage ?? sleepScore.respiratory_rate ?? null,
+        respiratory_rate:  sleepScore.respiratory_rate ?? null,
         sleep_hours:       hoursSlept,
         sleep_need_hours:  sleepNeed,
         sleep_perf_pct:    sleepScore.sleep_performance_percentage ?? null,
         sleep_stress:      sleepStress,
         day_strain:        cycle.score?.strain ?? null,
-        // Non-activity stress: computed from total strain - workout strain
         non_activity_stress: cycle.score?.strain && workoutDates.has(date)
-          ? null // will compute below
+          ? null
           : cycle.score?.strain ?? null,
         workout_logged: workoutDates.has(date),
         sleep_suff: hoursSlept && sleepNeed ? hoursSlept / sleepNeed : null,
