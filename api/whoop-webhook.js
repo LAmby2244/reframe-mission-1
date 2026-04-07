@@ -17,7 +17,7 @@
 
 export const config = { runtime: 'edge' };
 
-const WHOOP_BASE = 'https://api.prod.whoop.com/developer/v1';
+const WHOOP_BASE = 'https://api.prod.whoop.com/developer/v2';
 
 export default async function handler(req) {
 
