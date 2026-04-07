@@ -253,8 +253,9 @@ export default async function handler(req) {
       const cycle     = cycleById[rec.cycle_id] || {};
       const cycleScore = cycle.score || {};
 
-      // Find matching sleep by cycle_id
-      const sleep = sleeps.find(s => s.cycle_id === rec.cycle_id);
+      // Find matching sleep by cycle_id — exclude naps
+      const sleep = sleeps.find(s => s.cycle_id === rec.cycle_id && !s.nap)
+                 || sleeps.find(s => s.cycle_id === rec.cycle_id); // fallback to any
       const sleepScore = sleep?.score || {};
 
       const hoursSlept = sleepScore.stage_summary?.total_in_bed_time_milli
