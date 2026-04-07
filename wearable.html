@@ -1344,35 +1344,10 @@ async function getWhoopData() {
   return scenarios[idx];
 }
 
-// Handle WHOOP OAuth callback — picks up token from URL query params
+// Token is stored by whoop-callback.html — just pick it up from localStorage
 function handleWhoopCallback() {
-  const params = new URLSearchParams(window.location.search);
-  if (!params.get('whoop_connected')) return;
-
-  const token   = params.get('whoop_token');
-  const refresh = params.get('whoop_refresh');
-  const expires = params.get('whoop_expires');
-  const member  = params.get('whoop_member');
-
-  if (token) {
-    // Set expiry to 24 hours from now — webhook will refresh when needed
-    const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString();
-    localStorage.setItem('whoop_access_token',  token);
-    localStorage.setItem('whoop_refresh_token', refresh || '');
-    localStorage.setItem('whoop_token_expiry',  expiresAt);
-    localStorage.setItem('whoop_member_id',     member || '');
-
-    // Update module-level token variable
-    whoopToken  = token;
-    whoopExpiry = Date.now() + 24 * 60 * 60 * 1000;
-
-    // Clean up URL without reloading
-    const clean = window.location.pathname;
-    window.history.replaceState({}, '', clean);
-
-    document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--green)">● WHOOP connected</span> · Loading your live data...`;
-  }
+  whoopToken  = localStorage.getItem('whoop_access_token') || null;
+  whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
 }
 
 // ══════════════════════════════════════════════════════════
