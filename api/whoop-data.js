@@ -204,75 +204,88 @@ export default async function handler(req) {
 
   try {
     // ── 1. FETCH 28 DAYS OF WHOOP DATA ──────────────────
+    // v2 API structure:
+    // - /v2/recovery        → recovery_score, hrv_rmssd_milli, resting_heart_rate
+    // - /v2/cycle           → strain only (NOT recovery data)
+    // - /v2/activity/sleep  → sleep duration, performance, respiratory_rate
+    // - /v2/activity/workout → workout presence per day
 
-    const endDate   = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 28);
-
     const startStr = startDate.toISOString();
-    const endStr   = endDate.toISOString();
+    const endStr   = new Date().toISOString();
 
-    // Fetch in parallel — all available via WHOOP v2 API
-    const [cyclesRes, sleepRes, workoutsRes] = await Promise.all([
+    // Fetch recovery, cycles, sleep, workouts in parallel
+    const [recoveryRes, cyclesRes, sleepRes, workoutsRes] = await Promise.all([
+      whoopGet(`/recovery?start=${startStr}&end=${endStr}&limit=25`, access_token),
       whoopGet(`/cycle?start=${startStr}&end=${endStr}&limit=25`, access_token),
       whoopGet(`/activity/sleep?start=${startStr}&end=${endStr}&limit=25`, access_token),
       whoopGet(`/activity/workout?start=${startStr}&end=${endStr}&limit=25`, access_token),
     ]);
 
-    const cycles   = cyclesRes.records   || [];
-    const sleeps   = sleepRes.records    || [];
-    const workouts = workoutsRes.records || [];
+    const recoveries = recoveryRes.records  || [];
+    const cycles     = cyclesRes.records    || [];
+    const sleeps     = sleepRes.records     || [];
+    const workouts   = workoutsRes.records  || [];
 
-    if (!cycles.length) {
-      return new Response(JSON.stringify({ error: 'No WHOOP data available yet' }), {
+    if (!recoveries.length) {
+      return new Response(JSON.stringify({ error: 'No WHOOP recovery data available yet' }), {
         status: 404, headers: { 'Content-Type': 'application/json' }
       });
     }
 
     // ── 2. BUILD DAILY RECORDS ───────────────────────────
-    // Map each cycle to a structured daily record
+    // Recovery records are the primary source — they contain the key metrics
+    // Each recovery has a cycle_id linking to cycle (for strain)
 
+    // Index cycles by id for fast lookup
+    const cycleById = {};
+    cycles.forEach(c => { cycleById[c.id] = c; });
+
+    // Index workouts by date
     const workoutDates = new Set(
       workouts.map(w => w.start?.split('T')[0]).filter(Boolean)
     );
 
-    const daily = cycles.map(cycle => {
-      const date = cycle.start?.split('T')[0];
-      const score = cycle.score || {};
+    const daily = recoveries.map(rec => {
+      const recScore  = rec.score || {};
+      const date      = rec.created_at?.split('T')[0];
+      const cycle     = cycleById[rec.cycle_id] || {};
+      const cycleScore = cycle.score || {};
 
-      // Match sleep to this cycle day
-      const sleep = sleeps.find(s => s.start?.split('T')[0] === date);
+      // Find matching sleep by cycle_id
+      const sleep = sleeps.find(s => s.cycle_id === rec.cycle_id);
       const sleepScore = sleep?.score || {};
 
       const hoursSlept = sleepScore.stage_summary?.total_in_bed_time_milli
         ? sleepScore.stage_summary.total_in_bed_time_milli / 3600000 : null;
       const sleepNeed  = sleepScore.sleep_needed?.baseline_milli
         ? sleepScore.sleep_needed.baseline_milli / 3600000 : null;
-
-      // Sleep stress: use WHOOP's respiratory rate as proxy if stress not available
-      // WHOOP API: sleep.score.respiratory_rate available
       const sleepStress = sleepScore.respiratory_rate
-        ? (sleepScore.respiratory_rate > 17 ? 'poor' : sleepScore.respiratory_rate > 15 ? 'sufficient' : 'optimal')
+        ? (sleepScore.respiratory_rate > 17 ? 'poor'
+          : sleepScore.respiratory_rate > 15 ? 'sufficient' : 'optimal')
         : null;
 
       return {
         date,
-        recovery_pct:      score.recovery_score ?? null,
-        hrv_ms:            score.hrv_rmssd_milli ?? null,
-        rhr_bpm:           score.resting_heart_rate ?? null,
-        respiratory_rate:  sleepScore.respiratory_rate ?? null,
+        // Recovery metrics — from /v2/recovery
+        recovery_pct:      recScore.recovery_score ?? null,
+        hrv_ms:            recScore.hrv_rmssd_milli ?? null,
+        rhr_bpm:           recScore.resting_heart_rate ?? null,
+        // Strain — from /v2/cycle
+        day_strain:        cycleScore.strain ?? null,
+        // Sleep — from /v2/activity/sleep
         sleep_hours:       hoursSlept,
         sleep_need_hours:  sleepNeed,
         sleep_perf_pct:    sleepScore.sleep_performance_percentage ?? null,
         sleep_stress:      sleepStress,
-        day_strain:        cycle.score?.strain ?? null,
-        non_activity_stress: cycle.score?.strain && workoutDates.has(date)
-          ? null
-          : cycle.score?.strain ?? null,
-        workout_logged: workoutDates.has(date),
-        sleep_suff: hoursSlept && sleepNeed ? hoursSlept / sleepNeed : null,
+        respiratory_rate:  sleepScore.respiratory_rate ?? null,
+        // Workout
+        workout_logged:    workoutDates.has(date),
+        sleep_suff:        hoursSlept && sleepNeed ? hoursSlept / sleepNeed : null,
       };
-    }).filter(d => d.date).sort((a, b) => b.date.localeCompare(a.date));
+    }).filter(d => d.date && d.recovery_pct !== null)
+      .sort((a, b) => b.date.localeCompare(a.date));
 
     if (!daily.length) {
       return new Response(JSON.stringify({ error: 'Could not parse WHOOP data' }), {

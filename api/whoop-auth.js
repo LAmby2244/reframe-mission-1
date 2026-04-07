@@ -66,7 +66,7 @@ export default async function handler(req) {
     // tokens = { access_token, refresh_token, expires_in, token_type, scope }
 
     // Get WHOOP member profile to find their member_id
-    const profileRes = await fetch('https://api.prod.whoop.com/developer/v1/user/profile/basic', {
+    const profileRes = await fetch('https://api.prod.whoop.com/developer/v2/user/profile/basic', {
       headers: { 'Authorization': `Bearer ${tokens.access_token}` }
     });
     const profile = profileRes.ok ? await profileRes.json() : {};
