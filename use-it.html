@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Use It — Reframe Every Day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:       #F56914;
+      --orange-light: #FEF0E6;
+      --yellow:       #FFBE19;
+      --dark:         #0A3228;
+      --mid:          #377364;
+      --light:        #F5E6CD;
+      --beige-mid:    #EDD9B5;
+      --sky:          #9BD7E6;
+      --sky-dark:     #2a7a96;
+      --white:        #ffffff;
+      --border:       rgba(10,50,40,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP NAV ── */
+    .top-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(245,230,205,0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid var(--border);
+    }
+    .top-nav-inner {
+      padding: 14px 48px;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 24px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .nav-logo-mark {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-mark svg { width: 12px; height: 12px; fill: white; }
+    .nav-logo-text { font-size: 13px; font-weight: 500; color: var(--dark); }
+
+    .tab-nav {
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(10,50,40,0.06);
+      border-radius: 10px; padding: 4px;
+    }
+    .tab-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 18px; border-radius: 7px;
+      font-size: 13px; font-weight: 500;
+      font-family: 'Rubik', sans-serif;
+      text-decoration: none; border: none;
+      cursor: pointer; transition: all 0.2s;
+      white-space: nowrap; background: transparent; color: var(--mid);
+    }
+    .tab-btn:hover { background: rgba(10,50,40,0.06); color: var(--dark); }
+    .tab-learn.active { background: var(--dark); color: white; }
+    .tab-use.active   { background: var(--orange); color: white; }
+    .tab-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .tab-learn.active .tab-dot { background: var(--yellow); }
+    .tab-use.active   .tab-dot { background: rgba(255,255,255,0.6); }
+    .tab-deepen { color: var(--sky-dark); opacity: 0.55; cursor: default; font-size: 12px; }
+    .tab-deepen:hover { background: transparent; color: var(--sky-dark); }
+    .tab-deepen .tab-dot { background: var(--sky); }
+    .tab-soon {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.5px;
+      background: rgba(42,122,150,0.15); border-radius: 4px;
+      padding: 2px 5px; color: var(--sky-dark); text-transform: uppercase;
+    }
+    .nav-right {
+      font-size: 12px; color: var(--mid);
+      text-decoration: none; flex-shrink: 0; transition: color 0.2s;
+    }
+    .nav-right:hover { color: var(--dark); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      padding: 112px 48px 56px;
+      background: var(--orange);
+      position: relative; overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute; top: -100px; right: -100px;
+      width: 380px; height: 380px; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .page-header-inner { max-width: 600px; position: relative; z-index: 2; }
+    .page-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 3px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5);
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: clamp(40px, 5vw, 62px);
+      font-weight: 300; line-height: 1.02;
+      color: white; margin-bottom: 20px;
+    }
+    .page-header h1 em { font-style: italic; }
+    .page-header-sub {
+      font-size: 16px; font-weight: 300;
+      color: rgba(255,255,255,0.72); line-height: 1.75;
+    }
+
+    /* ── BODY ── */
+    .body {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 64px 48px 96px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--mid);
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── LIVE TOOL ── */
+    .live-tool {
+      background: var(--dark);
+      border-radius: 20px;
+      padding: 44px 48px;
+      margin-bottom: 56px;
+      position: relative; overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none; display: block; color: inherit;
+    }
+    .live-tool:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .live-tool::before {
+      content: '';
+      position: absolute; bottom: -80px; right: -80px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: rgba(255,190,25,0.06);
+    }
+    .live-tool-inner { position: relative; z-index: 2; }
+
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(245,105,20,0.15);
+      border: 1px solid rgba(245,105,20,0.25);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 28px;
+    }
+    .live-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--orange);
+      animation: livepulse 2s infinite;
+    }
+    @keyframes livepulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .live-tool h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700; color: white;
+      line-height: 1.05; margin-bottom: 16px;
+    }
+    .live-tool-body {
+      font-size: 16px; font-weight: 300;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.75; max-width: 520px;
+      margin-bottom: 36px;
+    }
+    .live-tool-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--yellow); color: var(--dark);
+      padding: 14px 28px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      transition: gap 0.2s, background 0.2s;
+    }
+    .live-tool:hover .live-tool-cta {
+      background: #ffd040; gap: 16px;
+    }
+
+    /* ── COMING LIST ── */
+    .coming-list {
+      display: flex; flex-direction: column;
+      margin-bottom: 56px;
+    }
+    .coming-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center; gap: 24px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .coming-item:first-child { border-top: 1px solid var(--border); }
+    .coming-item h3 {
+      font-size: 17px; font-weight: 500;
+      color: var(--dark); margin-bottom: 6px;
+    }
+    .coming-item p {
+      font-size: 14px; font-weight: 300;
+      color: var(--mid); line-height: 1.65;
+    }
+    .coming-tag {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--mid);
+      opacity: 0.45; white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* ── WEARABLE ── */
+    .wearable-section {
+      background: var(--dark);
+      border-radius: 20px;
+      padding: 44px 48px;
+      position: relative; overflow: hidden;
+    }
+    .wearable-section::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: rgba(155,215,230,0.05);
+    }
+    .wearable-inner { position: relative; z-index: 2; }
+
+    .wearable-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(155,215,230,0.1);
+      border: 1px solid rgba(155,215,230,0.15);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--sky);
+      margin-bottom: 28px;
+    }
+
+    .wearable-section h2 {
+      font-size: clamp(24px, 3.5vw, 36px);
+      font-weight: 700; color: white;
+      line-height: 1.1; margin-bottom: 14px;
+    }
+    .wearable-section h2 em {
+      font-style: italic; font-weight: 300;
+      color: rgba(255,255,255,0.45);
+    }
+    .wearable-body {
+      font-size: 15px; font-weight: 300;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.75; max-width: 500px;
+      margin-bottom: 36px;
+    }
+
+    .signal-preview {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 32px; max-width: 440px;
+    }
+    .signal-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 18px; border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .signal-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-pulse {
+      background: var(--orange);
+      animation: dotpulse 2s infinite;
+    }
+    @keyframes dotpulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245,105,20,0.5); }
+      50% { box-shadow: 0 0 0 5px rgba(245,105,20,0); }
+    }
+    .dot-amber { background: var(--yellow); }
+    .dot-green { background: #5cb85c; }
+    .signal-text {
+      font-size: 13px; font-weight: 300;
+      color: rgba(255,255,255,0.5); line-height: 1.4;
+    }
+    .signal-text strong { color: white; font-weight: 500; }
+
+    .wearable-note {
+      font-size: 12px; font-weight: 300;
+      color: rgba(255,255,255,0.25);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .wearable-note::before {
+      content: '';
+      width: 20px; height: 1px;
+      background: rgba(255,255,255,0.15); flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 28px 48px;
+      border-top: 0.5px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    footer p { font-size: 13px; font-weight: 500; color: var(--dark); }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 12px; color: var(--mid);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--dark); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .top-nav-inner { padding: 14px 20px; }
+      .tab-nav { display: none; }
+      .page-header { padding: 100px 24px 44px; }
+      .body { padding: 48px 24px 72px; }
+      .live-tool { padding: 32px 28px; }
+      .wearable-section { padding: 32px 28px; }
+      .coming-item { grid-template-columns: 1fr; gap: 8px; }
+      footer { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <div class="top-nav">
+    <div class="top-nav-inner">
+      <a href="/index.html" class="nav-logo">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"/></svg>
+        </div>
+        <span class="nav-logo-text">Rewrite Your Life</span>
+      </a>
+      <div class="tab-nav">
+        <a href="/dashboard.html" class="tab-btn tab-learn">
+          <div class="tab-dot"></div>
+          Learn It
+        </a>
+        <a href="/use-it.html" class="tab-btn tab-use active">
+          <div class="tab-dot"></div>
+          Use It
+        </a>
+        <div class="tab-btn tab-deepen">
+          <div class="tab-dot"></div>
+          Deepen It
+          <span class="tab-soon">Soon</span>
+        </div>
+      </div>
+      <a href="/dashboard.html" class="nav-right">My journey →</a>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-eyebrow">Use It · Reframe Every Day</div>
+      <h1>For the moments<br><em>life actually throws at you</em></h1>
+      <p class="page-header-sub">The work doesn't stop when the mission does. These tools are built to be returned to — whenever you need them, wherever you are.</p>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <div class="section-label">Available now</div>
+
+    <a href="/mission-6.html" class="live-tool">
+      <div class="live-tool-inner">
+        <div class="live-badge">
+          <div class="live-badge-dot"></div>
+          Live
+        </div>
+        <h2>Tame a Trigger</h2>
+        <p class="live-tool-body">Something just happened and you felt it. Use this while it's still fresh — capture what fired, what you felt in your body, what you were believing to be true underneath it. Then let Lumen show you what it sees.</p>
+        <span class="live-tool-cta">Open the tool →</span>
+      </div>
+    </a>
+
+    <div class="section-label">Coming next</div>
+
+    <div class="coming-list">
+      <div class="coming-item">
+        <div>
+          <h3>Courageous Conversation Prep</h3>
+          <p>There's a conversation you've been avoiding. This helps you prepare — what you want to say, what you're afraid of, and how to stay in the room when it gets hard.</p>
+        </div>
+        <div class="coming-tag">Coming soon</div>
+      </div>
+      <div class="coming-item">
+        <div>
+          <h3>Live Reframe Tool</h3>
+          <p>You're in a story right now that isn't serving you. Check the facts, zoom out, find the reframe — in real time, not in hindsight.</p>
+        </div>
+        <div class="coming-tag">Coming soon</div>
+      </div>
+      <div class="coming-item">
+        <div>
+          <h3>Feedback Tracker</h3>
+          <p>Feedback is data. Receive it without the defensive story, spot what's real, and decide what you want to do with it.</p>
+        </div>
+        <div class="coming-tag">Coming soon</div>
+      </div>
+    </div>
+
+    <div class="section-label">Available now</div>
+
+    <a href="/wearable.html" class="wearable-section" style="text-decoration:none;display:block;cursor:pointer;transition:transform 0.2s ease,box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div class="wearable-inner">
+        <div class="wearable-badge">● Live — try it now</div>
+        <h2>Connect Your Wearable<br><em>Your body knows before you do</em></h2>
+        <p class="wearable-body">Your WHOOP, Oura, or Garmin is already detecting stress spikes. But the signal is only half the story. This tool connects your biometric data to the Reframe methodology — so when your body flags something, you can understand what it's really about, and find the path through it.</p>
+        <div class="signal-preview">
+          <div class="signal-row">
+            <div class="signal-dot dot-pulse"></div>
+            <div class="signal-text"><strong>2:47pm</strong> — stress spike detected by WHOOP</div>
+          </div>
+          <div class="signal-row">
+            <div class="signal-dot dot-amber"></div>
+            <div class="signal-text">Lumen: <strong>"You named recognition again. Third time this week."</strong></div>
+          </div>
+          <div class="signal-row">
+            <div class="signal-dot dot-green"></div>
+            <div class="signal-text">Pattern named → <strong>path to Mission 6 opened</strong></div>
+          </div>
+        </div>
+        <div style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:500;color:white;font-family:'Rubik',sans-serif;">
+          Explore beneath the signal →
+        </div>
+        <p class="wearable-note" style="margin-top:16px;">Connects with WHOOP · Oura · Garmin · Apple Health</p>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p><strong>Rewrite Your Life</strong> · A Purposeful Change product</p>
+    <div class="footer-links">
+      <a href="https://purposefulchange.com">purposefulchange.com</a>
+      <a href="https://events.purposefulchange.com/apr26">Events</a>
+      <a href="https://purposefulchange.com/contact/">Contact</a>
+    </div>
+  </footer>
+
+</body>
+</html>
