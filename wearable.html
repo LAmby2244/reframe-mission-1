@@ -1259,18 +1259,33 @@ async function getWhoopData() {
   return scenarios[idx];
 }
 
-// Handle WHOOP OAuth callback — picks up token from URL hash
+// Handle WHOOP OAuth callback — picks up token from URL query params
 function handleWhoopCallback() {
-  const hash = window.location.hash;
-  if (!hash.includes('whoop_connected=1')) return;
+  const params = new URLSearchParams(window.location.search);
+  if (!params.get('whoop_connected')) return;
 
-  // Token was stored server-side — prompt user to re-load
-  // In production, the callback stores in Supabase and we fetch from there
-  // For now: show success message
-  window.location.hash = '';
-  document.getElementById('data-source-note').innerHTML =
-    `<span style="color:var(--green)">● WHOOP connected</span> · Loading your data...`;
-  setTimeout(() => init(), 1000);
+  const token   = params.get('whoop_token');
+  const refresh = params.get('whoop_refresh');
+  const expires = params.get('whoop_expires');
+  const member  = params.get('whoop_member');
+
+  if (token) {
+    localStorage.setItem('whoop_access_token',  token);
+    localStorage.setItem('whoop_refresh_token', refresh || '');
+    localStorage.setItem('whoop_token_expiry',  expires || '');
+    localStorage.setItem('whoop_member_id',     member || '');
+
+    // Update module-level token variable
+    whoopToken  = token;
+    whoopExpiry = parseInt(expires || '0');
+
+    // Clean up URL without reloading
+    const clean = window.location.pathname;
+    window.history.replaceState({}, '', clean);
+
+    document.getElementById('data-source-note').innerHTML =
+      `<span style="color:var(--green)">● WHOOP connected</span> · Loading your live data...`;
+  }
 }
 
 // ══════════════════════════════════════════════════════════
