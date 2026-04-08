@@ -1,139 +1,170 @@
 /**
  * /api/whoop-auth.js
- * Vercel Edge Function — WHOOP OAuth 2.0
+ * Vercel Edge Function — WHOOP OAuth 2.0 handler
  *
- * GET /api/whoop-auth?action=connect           → redirects to WHOOP auth
- * GET /api/whoop-auth?action=callback&code=X   → exchanges code for tokens, saves to Supabase
- *
- * Environment variables required (set in Vercel dashboard):
- *   WHOOP_CLIENT_ID       — from developer.whoop.com
- *   WHOOP_CLIENT_SECRET   — from developer.whoop.com
- *   SUPABASE_URL          — your Supabase project URL
- *   SUPABASE_SERVICE_KEY  — service role key (not anon — needed to write tokens)
- *   APP_BASE_URL          — e.g. https://reframe-mission-1.vercel.app
+ * ?action=connect   → redirects user to WHOOP OAuth
+ * ?action=callback  → exchanges code for token, stores in Supabase, redirects cleanly
+ * ?action=refresh   → refreshes an expired token
  */
 
 export const config = { runtime: 'edge' };
 
-const WHOOP_AUTH_URL   = 'https://api.prod.whoop.com/oauth/oauth2/auth';
-const WHOOP_TOKEN_URL  = 'https://api.prod.whoop.com/oauth/oauth2/token';
-const WHOOP_SCOPE      = 'offline read:recovery read:sleep read:workout read:body_measurement read:cycles read:profile';
+const WHOOP_BASE     = 'https://api.prod.whoop.com';
+const REDIRECT_URI   = 'https://reframe-mission-1.vercel.app/api/whoop-auth?action=callback';
+const CALLBACK_PAGE  = 'https://reframe-mission-1.vercel.app/whoop-callback.html';
 
 export default async function handler(req) {
   const url    = new URL(req.url);
   const action = url.searchParams.get('action');
 
-  // ── STEP 1: CONNECT → redirect to WHOOP ──────────────
+  // ── CONNECT: redirect to WHOOP OAuth ────────────────────────────
   if (action === 'connect') {
-    const authUrl = new URL(WHOOP_AUTH_URL);
+    const state = crypto.randomUUID();
+    const authUrl = new URL(`${WHOOP_BASE}/oauth/oauth2/auth`);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', process.env.WHOOP_CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', `${process.env.APP_BASE_URL}/api/whoop-auth?action=callback`);
-    authUrl.searchParams.set('scope', WHOOP_SCOPE);
-    authUrl.searchParams.set('state', crypto.randomUUID()); // CSRF protection
+    authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+    authUrl.searchParams.set('scope', 'offline read:recovery read:sleep read:workout read:body_measurement read:cycles read:profile');
+    authUrl.searchParams.set('state', state);
 
     return Response.redirect(authUrl.toString(), 302);
   }
 
-  // ── STEP 2: CALLBACK → exchange code for tokens ──────
+  // ── CALLBACK: exchange code, store in Supabase, redirect cleanly ─
   if (action === 'callback') {
     const code  = url.searchParams.get('code');
     const error = url.searchParams.get('error');
 
     if (error || !code) {
-      return new Response(`WHOOP auth error: ${error || 'no code'}`, { status: 400 });
+      return Response.redirect(`${CALLBACK_PAGE}?error=${encodeURIComponent(error || 'no_code')}`, 302);
     }
 
-    // Exchange code for access + refresh tokens
-    const tokenRes = await fetch(WHOOP_TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type:    'authorization_code',
-        code,
-        client_id:     process.env.WHOOP_CLIENT_ID,
-        client_secret: process.env.WHOOP_CLIENT_SECRET,
-        redirect_uri:  `${process.env.APP_BASE_URL}/api/whoop-auth?action=callback`,
-      })
-    });
+    try {
+      // Exchange code for tokens
+      const tokenRes = await fetch(`${WHOOP_BASE}/oauth/oauth2/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type:    'authorization_code',
+          code,
+          redirect_uri:  REDIRECT_URI,
+          client_id:     process.env.WHOOP_CLIENT_ID,
+          client_secret: process.env.WHOOP_CLIENT_SECRET,
+        })
+      });
 
-    if (!tokenRes.ok) {
-      const err = await tokenRes.text();
-      return new Response(`Token exchange failed: ${err}`, { status: 500 });
+      if (!tokenRes.ok) {
+        const err = await tokenRes.text();
+        return Response.redirect(`${CALLBACK_PAGE}?error=${encodeURIComponent('token_exchange_failed')}`, 302);
+      }
+
+      const tokens = await tokenRes.json();
+      const { access_token, refresh_token, expires_in } = tokens;
+      const expiresAt = new Date(Date.now() + (expires_in || 3600) * 1000).toISOString();
+
+      // Get WHOOP member ID
+      const profileRes = await fetch('https://api.prod.whoop.com/developer/v1/user/profile/basic', {
+        headers: { 'Authorization': `Bearer ${access_token}` }
+      });
+      const profile = profileRes.ok ? await profileRes.json() : {};
+      const whoopMemberId = String(profile.user_id || profile.id || 'unknown');
+
+      // Store in Supabase using service key
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+        await fetch(`${process.env.SUPABASE_URL}/rest/v1/whoop_connections`, {
+          method: 'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'apikey':        process.env.SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+            'Prefer':        'resolution=merge-duplicates',
+          },
+          body: JSON.stringify({
+            whoop_member_id: whoopMemberId,
+            access_token,
+            refresh_token:   refresh_token || '',
+            expires_at:      expiresAt,
+            scope:           tokens.scope || '',
+            updated_at:      new Date().toISOString(),
+          })
+        });
+      }
+
+      // Redirect cleanly — NO tokens in URL
+      return Response.redirect(CALLBACK_PAGE, 302);
+
+    } catch (err) {
+      return Response.redirect(`${CALLBACK_PAGE}?error=${encodeURIComponent(err.message)}`, 302);
     }
-
-    const tokens = await tokenRes.json();
-    // tokens = { access_token, refresh_token, expires_in, token_type, scope }
-
-    // Get WHOOP member profile to find their member_id
-    const profileRes = await fetch('https://api.prod.whoop.com/developer/v2/user/profile/basic', {
-      headers: { 'Authorization': `Bearer ${tokens.access_token}` }
-    });
-    const profile = profileRes.ok ? await profileRes.json() : {};
-
-    // Save tokens to Supabase whoop_connections table
-    // Use service role key so we can write without user session
-    const supaRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/whoop_connections`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'apikey':        process.env.SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
-        'Prefer':        'resolution=merge-duplicates',
-      },
-      body: JSON.stringify({
-        whoop_member_id: profile.user_id?.toString() || 'unknown',
-        access_token:    tokens.access_token,
-        refresh_token:   tokens.refresh_token,
-        expires_at:      new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        scope:           tokens.scope,
-      })
-    });
-
-    if (!supaRes.ok) {
-      const err = await supaRes.text();
-      console.error('Supabase write failed:', err);
-      // Still redirect — tokens saved in URL hash for client-side pickup
-    }
-
-    // Redirect to the callback page which stores token in localStorage
-    // Using short param names (wt/wr/wm) to avoid URL length issues with long JWTs
-    const callbackUrl = new URL(`${process.env.APP_BASE_URL}/whoop-callback.html`);
-    callbackUrl.searchParams.set('wt', tokens.access_token);
-    callbackUrl.searchParams.set('wr', tokens.refresh_token || '');
-    callbackUrl.searchParams.set('wm', profile.user_id?.toString() || '');
-    return Response.redirect(callbackUrl.toString(), 302);
   }
 
-  // ── STEP 3: REFRESH → get new access token ───────────
+  // ── REFRESH: refresh an expired token ───────────────────────────
   if (action === 'refresh') {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return new Response('Unauthorized', { status: 401 });
-
-    const body = await req.json().catch(() => ({}));
-    const refreshToken = body.refresh_token;
-    if (!refreshToken) return new Response('Missing refresh_token', { status: 400 });
-
-    const tokenRes = await fetch(WHOOP_TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type:    'refresh_token',
-        refresh_token: refreshToken,
-        client_id:     process.env.WHOOP_CLIENT_ID,
-        client_secret: process.env.WHOOP_CLIENT_SECRET,
-      })
-    });
-
-    if (!tokenRes.ok) {
-      return new Response('Refresh failed', { status: 401 });
+    const refreshToken = url.searchParams.get('refresh_token');
+    if (!refreshToken) {
+      return new Response(JSON.stringify({ error: 'Missing refresh_token' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    const tokens = await tokenRes.json();
-    return new Response(JSON.stringify(tokens), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    try {
+      const tokenRes = await fetch(`${WHOOP_BASE}/oauth/oauth2/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type:    'refresh_token',
+          refresh_token: refreshToken,
+          client_id:     process.env.WHOOP_CLIENT_ID,
+          client_secret: process.env.WHOOP_CLIENT_SECRET,
+        })
+      });
+
+      if (!tokenRes.ok) {
+        return new Response(JSON.stringify({ error: 'Refresh failed' }), {
+          status: 401, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      const tokens = await tokenRes.json();
+      const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
+
+      // Update Supabase
+      if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+        await fetch(`${process.env.SUPABASE_URL}/rest/v1/whoop_connections?refresh_token=eq.${encodeURIComponent(refreshToken)}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type':  'application/json',
+            'apikey':        process.env.SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+          },
+          body: JSON.stringify({
+            access_token:  tokens.access_token,
+            refresh_token: tokens.refresh_token || refreshToken,
+            expires_at:    expiresAt,
+            updated_at:    new Date().toISOString(),
+          })
+        });
+      }
+
+      return new Response(JSON.stringify({
+        access_token:  tokens.access_token,
+        refresh_token: tokens.refresh_token || refreshToken,
+        expires_at:    expiresAt,
+      }), {
+        headers: {
+          'Content-Type':                'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      });
+
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500, headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 
-  return new Response('Invalid action. Use ?action=connect, ?action=callback, or ?action=refresh', { status: 400 });
+  return new Response('Invalid action. Use ?action=connect, ?action=callback, or ?action=refresh', {
+    status: 400
+  });
 }
