@@ -1379,7 +1379,7 @@ async function tryRefreshWhoopToken() {
 }
 
 async function getWhoopData() {
-  // Try live WHOOP data first
+  // ── 1. Token valid — try live data ──────────────────────────────
   if (isWhoopConnected()) {
     try {
       const res = await fetch('/api/whoop-data', {
@@ -1387,7 +1387,6 @@ async function getWhoopData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ access_token: whoopToken })
       });
-
       if (res.ok) {
         const data = await res.json();
         if (data.recovery !== null && data.recovery !== undefined) {
@@ -1399,15 +1398,18 @@ async function getWhoopData() {
     } catch(e) {
       console.warn('Live WHOOP fetch failed:', e.message);
     }
+    // Token valid but API call failed — show warning, use simulated
+    document.getElementById('data-source-note').innerHTML =
+      `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · <a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+    return simulatedData();
   }
 
-  // Token expired — try auto-refresh before giving up
+  // ── 2. Token expired — try refresh ──────────────────────────────
   if (whoopToken && !isWhoopConnected()) {
     document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--mid);font-style:italic;">Refreshing your WHOOP connection...</span>`;
+      `<span style="color:var(--mid);font-style:italic;">Refreshing WHOOP connection...</span>`;
     const refreshed = await tryRefreshWhoopToken();
     if (refreshed) {
-      // Retry with fresh token
       try {
         const res = await fetch('/api/whoop-data', {
           method: 'POST',
@@ -1426,26 +1428,21 @@ async function getWhoopData() {
         console.warn('Retry after refresh failed:', e.message);
       }
     }
-    // Refresh failed — auto-reconnect, no simulated fallback
+    // Refresh failed — redirect to reconnect
     document.getElementById('data-source-note').innerHTML =
       `<span style="color:var(--mid);font-style:italic;">Reconnecting to WHOOP...</span>`;
-    setTimeout(() => { window.location.href = '/api/whoop-auth?action=connect'; }, 500);
+    setTimeout(() => { window.location.href = '/api/whoop-auth?action=connect'; }, 800);
     return null;
   }
 
-  // Not connected at all — show connect prompt and use simulated
-  if (!whoopToken) {
-    document.getElementById('data-source-note').innerHTML =
-      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
-      `<span style="opacity:0.5">· Using simulated data for now</span>`;
-  } else {
-    // Has token but something else went wrong with live fetch — show reconnect
-    document.getElementById('data-source-note').innerHTML =
-      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Reconnect WHOOP →</a>`;
-    return null;
-  }
+  // ── 3. No token at all — connect prompt + simulated ─────────────
+  document.getElementById('data-source-note').innerHTML =
+    `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
+    `<span style="opacity:0.5">· Using simulated data for now</span>`;
+  return simulatedData();
+}
 
-  // Simulated fallback — same scenarios as before
+function simulatedData() {
   const scenarios = [
     { recovery: 24, hrv: 38, hrv_baseline: 62, strain: 4.2, strain_baseline: 8.0,
       sleep_score: 87, sleep_stress: 'poor', workout_logged: false,
