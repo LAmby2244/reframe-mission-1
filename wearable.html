@@ -1426,17 +1426,16 @@ async function getWhoopData() {
         console.warn('Retry after refresh failed:', e.message);
       }
     }
+    // Refresh failed — auto-reconnect, no simulated fallback
+    window.location.href = '/api/whoop-auth?action=connect';
+    return null;
   }
 
-  // Not connected — show connect prompt
+  // Not connected at all — show connect prompt
   if (!whoopToken) {
     document.getElementById('data-source-note').innerHTML =
       `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
       `<span style="opacity:0.5">· Using simulated data for now</span>`;
-  } else {
-    document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--yellow)">⚠ Could not refresh WHOOP</span> · ` +
-      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
   }
 
   // Simulated fallback — same scenarios as before
@@ -1807,6 +1806,7 @@ let entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
 
 async function init() {
   currentData = await getWhoopData();
+  if (!currentData) return; // redirecting to reconnect
   currentPattern = scoreWhoopData(currentData);
   currentMode = currentPattern.mode;
 
