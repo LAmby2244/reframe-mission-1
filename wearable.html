@@ -1890,40 +1890,41 @@ function renderLumenOpening() {
   `;
   ctaEl.parentNode.insertBefore(div, ctaEl);
 
+  // Analyse the trend arc
+  const recTrend = d.recovery_trend || [];
+  const todayRec = recTrend[0] || d.recovery;
+  const prevDays = recTrend.slice(1);
+  const prevLow = prevDays.length ? Math.min(...prevDays) : null;
+  const prevHigh = prevDays.length ? Math.max(...prevDays) : null;
+  const daysBelowBaseline = prevDays.filter(r => r < (d.recovery_baseline || 50)).length;
+  const turnedCorner = prevDays.length >= 2 && daysBelowBaseline >= 1 && todayRec > (d.recovery_baseline || 50);
+  const trendStr = recTrend.length > 1
+    ? recTrend.map((r, i) => `Day -${i}: ${r}%`).join(', ')
+    : `Today: ${d.recovery}%`;
+
   // Static fallback
   let fallback = '';
-  if (mode === 'red') {
-    if ((d.hrv_z || 0) < -0.8 && (d.sleep_suff || 0) >= 0.85) {
-      fallback = `Your body slept but didn't recover. That gap usually means something non-physical was running overnight. The questions below will help you name it.`;
-    } else {
-      fallback = `Something cost your system today that wasn't the workout. It's worth following that thread.`;
-    }
+  if (turnedCorner) {
+    fallback = `You've come back from ${daysBelowBaseline} day${daysBelowBaseline > 1 ? 's' : ''} below baseline to ${d.recovery}% today. Something shifted. The questions below will help you name what that was before it slips back into the background.`;
+  } else if (mode === 'red') {
+    fallback = `Your body slept but didn't recover. That gap usually means something non-physical was running. The questions below will help you name it.`;
   } else if (mode === 'amber') {
     fallback = `Your body is in the middle — not crisis, but something is asking for attention. A small thing noticed now is easier to work with than a pattern later.`;
   } else {
-    if (d.hrv < d.hrv_baseline) {
-      fallback = `Recovery is strong, but your HRV is still ${(d.hrv_baseline - d.hrv).toFixed(1)}ms below baseline. Something is working — but not everything has let go. Worth finding out what.`;
-    } else {
-      fallback = `Several strong days in a row. Your body is telling you something is working. The questions below will help you make it conscious before it slips back.`;
-    }
+    fallback = `Several strong days running. Your body is telling you something is working. The questions below will help you make it conscious before it slips back.`;
   }
 
-  // Build Lumen prompt — data as clue, not report
-  const trendArr = d.days_trend || [];
-  const hrvTrend = trendArr.length >= 3
-    ? (trendArr[trendArr.length-1] < trendArr[0] ? 'declining over recent days' : 'stable or rising')
-    : null;
+  // Build Lumen prompt with explicit arc framing
+  const systemExtra = `You are writing the opening observation for the Body Signal tool.
 
-  const systemExtra = `You are writing the opening observation for the Body Signal tool. Your job is to read the data as a clue — not report it back.
+Recovery trend (most recent first): ${trendStr}
+Personal baseline: ${d.recovery_baseline}%
+Today: ${d.recovery}% recovery, ${d.hrv}ms HRV (baseline ${d.hrv_baseline}ms)
+Strain: ${d.strain}${d.workout_logged ? ', workout logged' : ''}
+Signal: ${mode}
+${turnedCorner ? `IMPORTANT: This person turned a corner today — they had ${daysBelowBaseline} day(s) below baseline (low of ${prevLow}%) and have come back to ${todayRec}% today. This is the most important thing to name.` : ''}
 
-The data:
-- Recovery: ${d.recovery}% (personal baseline: ${d.recovery_baseline}%, z-score: ${(d.rec_z||0).toFixed(1)})
-- HRV: ${d.hrv}ms (baseline: ${d.hrv_baseline}ms${hrvTrend ? ', trend: ' + hrvTrend : ''})
-- Strain: ${d.strain}${d.workout_logged ? ', workout logged' : ', no workout logged'}${d.last_workout_days_ago > 1 ? ' — last workout ' + d.last_workout_days_ago + ' days ago' : ''}
-- Sleep: ${d.sleep_score}% performance, ${d.sleep_hours}h of ${d.sleep_need}h needed
-- Signal: ${mode}, exploration score ${d.exploration_score}/10
-
-Write 2-3 sentences in Lumen's voice. Treat the data as a clue to something psychological — what might the body be signalling about what's happening beneath the surface? Name one specific thing the data suggests, then open a door with a gentle invitation to explore — not a direct question, but something that makes the person want to look. Warm, grounded, a little curious. Never clinical. Under 60 words.`;
+Your job: Read the trend arc, not just today in isolation. What does the journey from low to today suggest about what changed? Write 2-3 sentences that name the arc specifically, offer one observation about what it might mean beneath the surface, then end with a single sentence that makes them want to look at the questions below — not a generic invitation, but one that feels personally relevant to their specific turn. Warm, grounded, direct. Under 65 words. No preamble. Never clinical.`;
 
   const authData = JSON.parse(localStorage.getItem('sb-aoqjfqmlcccsosddqnws-auth-token') || '{}');
   const token = authData?.access_token || '';
