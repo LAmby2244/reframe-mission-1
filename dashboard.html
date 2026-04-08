@@ -135,38 +135,6 @@
     }
     .topbar-signout:hover { color: rgba(255,255,255,0.65); }
 
-    /* ── TAB NAV ── */
-    .tab-nav {
-      display: flex; align-items: center; gap: 4px;
-      background: rgba(255,255,255,0.07);
-      border-radius: 10px; padding: 4px;
-    }
-    .tab-btn {
-      display: flex; align-items: center; gap: 7px;
-      padding: 7px 16px; border-radius: 7px;
-      font-size: 12px; font-weight: 500;
-      font-family: 'Rubik', sans-serif;
-      text-decoration: none; border: none;
-      cursor: pointer; transition: all 0.2s;
-      white-space: nowrap; background: transparent;
-      color: rgba(255,255,255,0.4);
-    }
-    .tab-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); }
-    .tab-learn.active { background: rgba(255,255,255,0.1); color: white; }
-    .tab-use { color: rgba(255,255,255,0.4); }
-    .tab-use:hover { color: rgba(255,255,255,0.7); }
-    .tab-deepen { opacity: 0.35; cursor: default; font-size: 11px; }
-    .tab-deepen:hover { background: transparent; color: rgba(255,255,255,0.4); }
-    .tab-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    .tab-learn.active .tab-dot { background: var(--yellow); }
-    .tab-use .tab-dot { background: var(--orange); opacity: 0.6; }
-    .tab-deepen .tab-dot { background: var(--sky); }
-    .tab-soon {
-      font-size: 8px; font-weight: 600; letter-spacing: 0.5px;
-      background: rgba(155,215,230,0.15); border-radius: 3px;
-      padding: 2px 4px; color: var(--sky); text-transform: uppercase;
-    }
-
     /* ── LAYOUT ── */
     .layout {
       display: grid;
@@ -468,50 +436,12 @@
 </head>
 <body>
 
-  <!-- AUTH GATE -->
-  <div class="auth-gate" id="auth-gate">
-    <div class="auth-box">
-      <div class="auth-eyebrow">Purposeful Change · Reframe</div>
-      <h2 id="auth-title">Welcome back</h2>
-      <p id="auth-desc">Sign in to continue your journey. Your reflections are saved and waiting.</p>
-      <div class="auth-error" id="auth-error"></div>
-      <div class="auth-field">
-        <label>Email</label>
-        <input type="email" id="auth-email" placeholder="your@email.com" />
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" id="auth-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') authSubmit()" />
-      </div>
-      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
-      <div class="auth-toggle">
-        <span id="auth-toggle-text">Don't have an account?</span>
-        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
-      </div>
-    </div>
-  </div>
-
   <!-- TOP BAR -->
-  <div class="topbar" id="topbar" style="display:none">
+  <div class="topbar" id="topbar">
     <a href="/" class="topbar-brand">
       <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
       <span class="topbar-name">Rewrite Your Life</span>
     </a>
-    <div class="tab-nav">
-      <a href="/dashboard.html" class="tab-btn tab-learn active">
-        <div class="tab-dot"></div>
-        Learn It
-      </a>
-      <a href="/use-it.html" class="tab-btn tab-use">
-        <div class="tab-dot"></div>
-        Use It
-      </a>
-      <div class="tab-btn tab-deepen">
-        <div class="tab-dot"></div>
-        Deepen It
-        <span class="tab-soon">Soon</span>
-      </div>
-    </div>
     <div class="topbar-right">
       <span class="topbar-user" id="topbar-user"></span>
       <button class="topbar-signout" onclick="signOut()">Sign out</button>
@@ -519,7 +449,7 @@
   </div>
 
   <!-- MAIN LAYOUT -->
-  <div class="layout" id="main-layout" style="display:none">
+  <div class="layout" id="main-layout">
 
     <!-- MAIN COLUMN -->
     <div class="main">
@@ -677,18 +607,10 @@
       if (session) {
         currentUser = session.user;
         await init();
+      } else {
+        window.location.href = '/signin.html?next=/dashboard.html';
       }
     });
-
-    function toggleAuth() {
-      isSignUp = !isSignUp;
-      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
-      document.getElementById('auth-desc').textContent = isSignUp ? 'Your reflections will be saved so you can return anytime.' : 'Sign in to continue your journey. Your reflections are saved and waiting.';
-      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
-      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
-      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
-      document.getElementById('auth-error').classList.remove('show');
-    }
 
     async function authSubmit() {
       const email = document.getElementById('auth-email').value.trim();
@@ -721,14 +643,10 @@
 
     async function signOut() {
       await sb.auth.signOut();
-      currentUser = null;
-      document.getElementById('main-layout').style.display = 'none';
-      document.getElementById('topbar').style.display = 'none';
-      document.getElementById('auth-gate').classList.remove('hidden');
+      window.location.href = '/signin.html';
     }
 
     async function init() {
-      document.getElementById('auth-gate').classList.add('hidden');
       document.getElementById('topbar').style.display = 'flex';
       document.getElementById('main-layout').style.display = 'grid';
       document.getElementById('topbar-user').textContent = currentUser.email;

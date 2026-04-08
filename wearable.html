@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -172,6 +173,9 @@
       background: var(--amber-bg);
       border-color: rgba(230,126,34,0.15);
     }
+    .amber-signal .signal-icon  { background: rgba(230,126,34,0.1); }
+    .amber-signal .signal-title { color: var(--amber); }
+    .amber-signal .pattern-badge { background: rgba(255,190,25,0.12); color: #D4860A; }
 
     .signal-header {
       display: flex; align-items: center; gap: 12px;
@@ -227,7 +231,10 @@
     .btn-red:hover { background: #a93226; }
     .btn-green { background: var(--green); color: white; }
     .btn-green:hover { background: #229954; }
-    .btn-skip {
+    .btn-amber { background: #FFBE19; color: var(--dark); }
+    .btn-amber:hover { background: #f0b000; }
+    .btn-next-amber { background: #FFBE19; color: var(--dark); }
+    .btn-next-amber:hover { background: #f0b000; }
       background: none; border: none;
       font-size: 13px; color: var(--mid);
       cursor: pointer; font-family: 'Rubik', sans-serif;
@@ -247,6 +254,7 @@
       position: relative; overflow: hidden;
     }
     .q-header.red-header   { background: var(--red); }
+    .q-header.amber-header { background: #D4860A; }
     .q-header.green-header { background: var(--green); }
     .q-header::before {
       content: '';
@@ -285,6 +293,7 @@
     .q-dot.done { background: var(--mid); }
     .q-dot.active-red   { background: var(--red); transform: scale(1.3); }
     .q-dot.active-green { background: var(--green); transform: scale(1.3); }
+    .q-dot.active-amber { background: #D4860A; transform: scale(1.3); }
     .q-progress-label {
       font-size: 12px; color: var(--mid); margin-left: 8px;
     }
@@ -553,6 +562,7 @@
     }
     .badge-red   { background: rgba(192,57,43,0.1); color: var(--red); }
     .badge-green { background: rgba(39,174,96,0.1); color: var(--green); }
+    .badge-amber { background: rgba(212,134,10,0.1); color: #D4860A; }
     .entry-date  { font-size: 12px; color: var(--mid); }
     .entry-pattern-name {
       font-size: 15px; font-weight: 500;
@@ -828,9 +838,84 @@
       .metric-value { font-size: 28px; }
       .bottom-nav { padding: 10px 20px; }
     }
+    /* ── AUTH WALL ── */
+    .auth-wall {
+      position: fixed; inset: 0; z-index: 500;
+      background: var(--light);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .auth-wall.hidden { display: none; }
+    .auth-box {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 8px 40px rgba(10,50,40,0.1);
+    }
+    .auth-box-logo {
+      font-size: 13px; font-weight: 700; letter-spacing: 1px;
+      color: var(--orange); text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .auth-box h2 {
+      font-size: 22px; font-weight: 700; color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .auth-box p {
+      font-size: 14px; font-weight: 300; color: var(--muted);
+      margin-bottom: 24px; line-height: 1.5;
+    }
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--dark); margin-bottom: 5px; letter-spacing: 0.3px;
+    }
+    .auth-field input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: 'Rubik', sans-serif; font-size: 15px;
+      color: var(--dark); background: white;
+      transition: border-color 0.2s;
+    }
+    .auth-field input:focus { outline: none; border-color: var(--orange); }
+    .auth-submit-btn {
+      width: 100%; padding: 13px;
+      background: var(--dark); color: white;
+      border: none; border-radius: 10px;
+      font-family: 'Rubik', sans-serif;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 4px;
+      transition: background 0.2s;
+    }
+    .auth-submit-btn:hover { background: var(--mid); }
+    .auth-error-msg {
+      font-size: 13px; color: var(--red);
+      margin-top: 10px; display: none;
+    }
+    .auth-error-msg.show { display: block; }
+    .auth-user-bar {
+      background: var(--dark); padding: 10px 40px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      position: fixed; top: 64px; left: 0; right: 0;
+      z-index: 150;
+    }
+    .auth-user-email { font-size: 13px; color: rgba(245,230,205,0.6); }
+    .auth-signout-btn {
+      font-size: 12px; font-weight: 500; color: var(--orange);
+      background: none; border: none; cursor: pointer;
+      font-family: 'Rubik', sans-serif;
+    }
   </style>
 </head>
 <body>
+
+<!-- USER BAR — shown when signed in -->
+<div class="auth-user-bar" id="user-bar" style="display:none">
+  <span class="auth-user-email" id="user-email"></span>
+  <button class="auth-signout-btn" onclick="signOut()">Sign out</button>
+</div>
 
 <!-- TOP NAV -->
 <div class="top-nav">
@@ -936,6 +1021,51 @@
         <div class="hiw-state-name">Your body logged something</div>
         <div class="hiw-state-data">High strain · No workout logged</div>
         <div class="hiw-state-meaning">Your body logged something you haven't named</div>
+      </div>
+    </div>
+
+    <div class="hiw-states-label" style="margin-top:28px">
+      <div class="hiw-states-label-line" style="background:rgba(212,134,10,0.2)"></div>
+      <span>When the signal is amber</span>
+      <div class="hiw-states-label-line" style="background:rgba(212,134,10,0.2)"></div>
+    </div>
+
+    <div class="hiw-states">
+      <div class="hiw-state" style="background:#FEF9EC;border-color:rgba(212,134,10,0.12);">
+        <div class="hiw-state-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="16" stroke="#D4860A" stroke-width="2.5" fill="rgba(255,190,25,0.1)"/>
+            <path d="M24 16v10" stroke="#D4860A" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="24" cy="32" r="2" fill="#D4860A"/>
+          </svg>
+        </div>
+        <div class="hiw-state-name">Something is asking for attention</div>
+        <div class="hiw-state-data">Middle recovery · HRV drifting · Worth checking in</div>
+        <div class="hiw-state-meaning" style="color:#D4860A;">Not a crisis — something to notice</div>
+      </div>
+      <div class="hiw-state" style="background:#FEF9EC;border-color:rgba(212,134,10,0.12);">
+        <div class="hiw-state-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 34 L18 26 L26 30 L38 16" stroke="#D4860A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="38" cy="16" r="3" fill="#D4860A" opacity="0.5"/>
+            <path d="M38 16 L44 12" stroke="#D4860A" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="hiw-state-name">Something has been quietly building</div>
+        <div class="hiw-state-data">HRV drifting · Early pattern · Catchable now</div>
+        <div class="hiw-state-meaning" style="color:#D4860A;">Curiosity before it becomes a pattern</div>
+      </div>
+      <div class="hiw-state" style="background:#FEF9EC;border-color:rgba(212,134,10,0.12);">
+        <div class="hiw-state-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 32 L18 28 L28 24 L38 18" stroke="#D4860A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="38" cy="18" r="4" fill="#D4860A" opacity="0.6"/>
+            <path d="M24 38 Q24 30 30 24" stroke="#D4860A" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3,3" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="hiw-state-name">You're coming back — take it gently</div>
+        <div class="hiw-state-data">Recovery rising · System stabilising</div>
+        <div class="hiw-state-meaning" style="color:#D4860A;">Restore it — don't interrupt it</div>
       </div>
     </div>
 
@@ -1062,7 +1192,7 @@
     </div>
 
     <p class="signal-intro" style="margin-top:28px; margin-bottom:0; font-size:13px;">
-      <em>Using simulated WHOOP data — real API connection coming soon. The scoring logic and Lumen reflection are fully live.</em>
+      <em id="data-source-note">Loading your WHOOP data...</em>
     </p>
 
   </div>
@@ -1160,33 +1290,129 @@
     </svg>
     Entries
   </button>
+  <a href="/study-dashboard.html" class="bnav-btn" style="text-decoration:none;color:inherit;">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 17V7l7-4 7 4v10"/>
+      <path d="M8 17v-6h4v6"/>
+    </svg>
+    Study
+  </a>
 </div>
 
 <script>
 // ══════════════════════════════════════════════════════════
-// DATA LAYER — simulated WHOOP data
-// Swap getWhoopData() for a real API call when ready
+// AUTH — Supabase session for Lumen API
 // ══════════════════════════════════════════════════════════
 
-function getWhoopData() {
-  // Simulated scenarios — rotate through these to test all states
+const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+let sb = null;
+let authToken = '';
+
+async function initAuth() {
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.access_token) {
+      authToken = session.access_token;
+      document.getElementById('user-bar').style.display = 'flex';
+      document.getElementById('user-email').textContent = session.user.email;
+    } else {
+      // Not signed in — redirect to sign in page, return here after
+      window.location.href = '/signin.html?next=' + encodeURIComponent(window.location.pathname);
+    }
+  } catch(e) {
+    window.location.href = '/signin.html';
+  }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = '/signin.html';
+}
+
+function getLumenHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  return headers;
+}
+// ══════════════════════════════════════════════════════════
+// WHOOP DATA — Live API + simulated fallback
+// ══════════════════════════════════════════════════════════
+
+// WHOOP access token — set from localStorage after OAuth connect
+let whoopToken  = null;
+let whoopExpiry = 0;
+
+function loadWhoopToken() {
+  whoopToken  = localStorage.getItem('whoop_access_token') || null;
+  whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
+}
+
+function isWhoopConnected() {
+  return whoopToken && Date.now() < whoopExpiry;
+}
+
+async function getWhoopData() {
+  // Try live WHOOP data first
+  if (isWhoopConnected()) {
+    try {
+      const res = await fetch('/api/whoop-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: whoopToken })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.recovery !== null && data.recovery !== undefined) {
+          document.getElementById('data-source-note').innerHTML =
+            `<span style="color:var(--green)">● Live WHOOP data</span> · ${data.date} · ${data.days_of_history} days of history`;
+          return data;
+        }
+      }
+    } catch(e) {
+      console.warn('Live WHOOP fetch failed, using simulated:', e.message);
+    }
+  }
+
+  // Not connected — show connect prompt
+  if (!whoopToken) {
+    document.getElementById('data-source-note').innerHTML =
+      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
+      `<span style="opacity:0.5">· Using simulated data for now</span>`;
+  } else {
+    document.getElementById('data-source-note').innerHTML =
+      `<span style="color:var(--yellow)">⚠ WHOOP session expired</span> · ` +
+      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+  }
+
+  // Simulated fallback — same scenarios as before
   const scenarios = [
-    // RED: poor recovery, low HRV, sleep was fine (psychological signal)
-    { recovery: 24, hrv: 38, strain: 4.2, hrv_baseline: 62, strain_baseline: 8.0,
-      sleep_score: 87, days_trend: [-5, -8, -12], workout_logged: false },
-    // RED: declining trend
-    { recovery: 41, hrv: 51, strain: 6.1, hrv_baseline: 67, strain_baseline: 9.0,
-      sleep_score: 79, days_trend: [-4, -7, -9], workout_logged: false },
-    // GREEN: high recovery, HRV above baseline
-    { recovery: 84, hrv: 78, strain: 9.2, hrv_baseline: 62, strain_baseline: 8.0,
-      sleep_score: 91, days_trend: [+5, +8, +10], workout_logged: true },
-    // GREEN: bounce back after red days
-    { recovery: 71, hrv: 70, strain: 7.8, hrv_baseline: 62, strain_baseline: 8.0,
-      sleep_score: 88, days_trend: [-8, -3, +9], workout_logged: false },
+    { recovery: 24, hrv: 38, hrv_baseline: 62, strain: 4.2, strain_baseline: 8.0,
+      sleep_score: 87, sleep_stress: 'poor', workout_logged: false,
+      days_trend: [-5, -8, -12], rec_z: -1.2, hrv_z: -0.9, strain_z: -0.4,
+      signal_state: 'red_psych', exploration_score: 7, data_source: 'simulated' },
+    { recovery: 41, hrv: 51, hrv_baseline: 67, strain: 6.1, strain_baseline: 9.0,
+      sleep_score: 79, sleep_stress: 'sufficient', workout_logged: false,
+      days_trend: [-4, -7, -9], rec_z: -0.9, hrv_z: -0.8, strain_z: -0.3,
+      signal_state: 'red_trend', exploration_score: 5, data_source: 'simulated' },
+    { recovery: 84, hrv: 78, hrv_baseline: 62, strain: 9.2, strain_baseline: 8.0,
+      sleep_score: 91, sleep_stress: 'optimal', workout_logged: true,
+      days_trend: [+5, +8, +10], rec_z: 1.1, hrv_z: 0.9, strain_z: 0.6,
+      signal_state: 'grn_thriving', exploration_score: 0, data_source: 'simulated' },
+    { recovery: 71, hrv: 70, hrv_baseline: 62, strain: 7.8, strain_baseline: 8.0,
+      sleep_score: 88, sleep_stress: 'optimal', workout_logged: false,
+      days_trend: [-8, -3, +9], rec_z: 0.5, hrv_z: 0.4, strain_z: -0.1,
+      signal_state: 'grn_bounce', exploration_score: 0, data_source: 'simulated' },
   ];
-  // Pick based on day of week for consistent demo experience
   const idx = new Date().getDay() % scenarios.length;
   return scenarios[idx];
+}
+
+// Load token from localStorage - stored by whoop-callback.html
+function handleWhoopCallback() {
+  loadWhoopToken();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1296,31 +1522,224 @@ const PATTERNS = {
   }
 };
 
-function scoreWhoopData(d) {
-  const hrv_pct_below = (d.hrv_baseline - d.hrv) / d.hrv_baseline;
-  const is_declining = d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1]);
-  const is_recovering = d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
-  const is_green_streak = d.days_trend.every(v => v > 0);
-  const high_strain_no_workout = d.strain > d.strain_baseline * 1.1 && !d.workout_logged;
+// ── AMBER PATTERNS ─────────────────────────────────────
+// The middle zone — curiosity, not urgency. System under mild load.
+const AMBER = {
+  AMBER_LOAD: {
+    id: 'amber_load', mode: 'amber',
+    title: 'Your system is carrying something',
+    desc: 'Recovery in the middle range, HRV slightly below your baseline. Not a crisis — but something is asking for your attention. This is worth a gentle look before it becomes a pattern.',
+    badges: ['Moderate recovery', 'HRV drifting', 'Worth checking in'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="#FFBE19" stroke-width="2.5" fill="rgba(255,190,25,0.1)"/><path d="M24 16v10" stroke="#FFBE19" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="32" r="2" fill="#FFBE19"/></svg>',
+    qHeader: 'Something is asking for your attention',
+    qSub: 'Your system is in the middle — not depleted, not thriving. There\'s something worth noticing here.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'What\'s been on your mind more than usual this week?', sub: 'Not necessarily a problem — just what keeps surfacing. What\'s been taking up more space than it usually does?' },
+      { q: 'Where has your energy been going that isn\'t showing up in your data?', sub: 'Mental effort, emotional labour, background worry. The stuff that doesn\'t look like strain but costs something.' },
+      { q: 'What would feel like relief right now?', sub: 'Not a solution — just the feeling of something lifting. What is your body asking for?' },
+      { q: 'What\'s one thing you could do differently today that would help your system settle?', sub: 'Small and specific. Not a plan — just one thing.' }
+    ]
+  },
+  AMBER_TREND: {
+    id: 'amber_trend', mode: 'amber',
+    title: 'Something has been quietly building',
+    desc: 'Your HRV has been drifting slightly below your baseline over the last few days. Nothing alarming — but the body doesn\'t drift without reason. This is the moment to get curious before the pattern deepens.',
+    badges: ['Gradual HRV drift', 'Multi-day pattern', 'Early signal'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><path d="M8 34 L18 26 L26 30 L38 16" stroke="#FFBE19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38" cy="16" r="3" fill="#FFBE19" opacity="0.5"/><path d="M38 16 L44 12" stroke="#FFBE19" stroke-width="2" stroke-linecap="round" opacity="0.4"/></svg>',
+    qHeader: 'Something has been quietly building',
+    qSub: 'A gentle drift over a few days. The body notices before the mind does — let\'s find out what it\'s picking up.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'What has been slightly off this week, even if nothing specific happened?', sub: 'The quality of interactions, the ease of tasks, the texture of the day. What has been subtly different?' },
+      { q: 'Where have you been giving more than feels sustainable?', sub: 'In your work, your relationships, your own expectations of yourself. Where is the quiet drain?' },
+      { q: 'What has your body been trying to tell you that you\'ve been explaining away?', sub: 'The tiredness you called "just busy", the tension you called "nothing". What is it actually?' },
+      { q: 'If this pattern continued for another week, what would need to shift?', sub: 'Not catastrophising — just following the signal forward. What does your body already know?' }
+    ]
+  },
+  AMBER_RECOVERY: {
+    id: 'amber_recovery', mode: 'amber',
+    title: 'You\'re coming back — take it gently',
+    desc: 'Recovery is moving in the right direction but hasn\'t fully restored yet. Your system is doing the work. The question is what\'s helping — and whether you\'re giving it what it needs to complete the recovery.',
+    badges: ['Recovery rebuilding', 'System stabilising', 'Gentle check in'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><path d="M8 32 L18 28 L28 24 L38 18" stroke="#FFBE19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38" cy="18" r="4" fill="#FFBE19" opacity="0.6"/><path d="M24 38 Q24 30 30 24" stroke="#FFBE19" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3,3" opacity="0.4"/></svg>',
+    qHeader: 'You\'re coming back — stay curious',
+    qSub: 'Your system is moving in the right direction. Let\'s understand what\'s helping.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'What changed in the last 24-48 hours that might be helping your system settle?', sub: 'Something you did, stopped doing, said, or let go of. Even something that seemed small.' },
+      { q: 'What are you noticing about how you\'ve been with yourself this week?', sub: 'Not what you did — how you\'ve been. Kinder, harsher, more patient, more pressured. What\'s the quality?' },
+      { q: 'What need is being slowly met that wasn\'t before?', sub: 'Rest, connection, recognition, space, play, honesty. What is starting to get a little more attention?' },
+      { q: 'What would help your system complete the recovery rather than interrupt it?', sub: 'Not a plan — just what you already know, if you let yourself know it.' }
+    ]
+  }
+};
 
-  // RED patterns
-  if (d.recovery < 33 && d.sleep_score > 75 && d.strain < d.strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
-  if (is_declining && hrv_pct_below > 0.1) return PATTERNS.RED_TREND;
+function scoreWhoopData(d) {
+  // If the API already scored the state, use it directly
+  if (d.signal_state) {
+    const stateMap = {
+      'red_psych':    PATTERNS.RED_PSYCH,
+      'red_trend':    PATTERNS.RED_TREND,
+      'red_strain':   PATTERNS.RED_STRAIN,
+      'grn_thriving': PATTERNS.GREEN_HIGH,
+      'grn_bounce':   PATTERNS.GREEN_BOUNCE,
+      'grn_streak':   PATTERNS.GREEN_STREAK,
+      'amb_load':     AMBER.AMBER_LOAD,
+      'amb_trend':    AMBER.AMBER_TREND,
+      'amb_recovery': AMBER.AMBER_RECOVERY,
+    };
+    if (stateMap[d.signal_state]) return stateMap[d.signal_state];
+
+    // Medium confidence red in the amber recovery range → amber
+    if (d.signal_confidence === 'medium') {
+      const rec = d.recovery ?? 50;
+      if (rec >= 34 && rec <= 66) {
+        const recTrend = d.recovery_trend || [];
+        const recovering = recTrend.length >= 2 && recTrend[0] > recTrend[1];
+        if (recovering) return AMBER.AMBER_RECOVERY;
+        if (d.signal_state === 'red_trend') return AMBER.AMBER_TREND;
+        return AMBER.AMBER_LOAD;
+      }
+    }
+  }
+
+  // Fallback local scoring for simulated data
+  const hrv_baseline    = d.hrv_baseline || 62;
+  const strain_baseline = d.strain_baseline || 8;
+  const recovery        = d.recovery ?? 50;
+  const hrv_pct_below   = (hrv_baseline - (d.hrv || 0)) / hrv_baseline;
+  const is_declining    = d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1]);
+  const is_recovering   = d.days_trend && d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
+  const is_green_streak = d.days_trend && d.days_trend.every(v => v > 0);
+  const high_strain_no_workout = d.strain > strain_baseline * 1.1 && !d.workout_logged;
+
+  // RED — clear signal
+  if (recovery < 33 && d.sleep_score > 75 && d.strain < strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
+  if (is_declining && hrv_pct_below > 0.2) return PATTERNS.RED_TREND;
   if (high_strain_no_workout) return PATTERNS.RED_STRAIN;
 
-  // GREEN patterns
-  if (is_green_streak && d.recovery >= 67) return PATTERNS.GREEN_STREAK;
-  if (is_recovering && d.recovery >= 67) return PATTERNS.GREEN_BOUNCE;
-  if (d.recovery >= 67 && d.hrv >= d.hrv_baseline * 0.95) return PATTERNS.GREEN_HIGH;
+  // AMBER — middle zone (recovery 34–66)
+  if (recovery >= 34 && recovery <= 66) {
+    if (is_declining && hrv_pct_below > 0.05) return AMBER.AMBER_TREND;
+    if (is_recovering) return AMBER.AMBER_RECOVERY;
+    return AMBER.AMBER_LOAD;
+  }
 
-  // Fallback — use recovery level
-  if (d.recovery < 40) return PATTERNS.RED_PSYCH;
-  return PATTERNS.GREEN_HIGH;
+  // GREEN — system running well
+  if (is_green_streak && recovery >= 67) return PATTERNS.GREEN_STREAK;
+  if (is_recovering && recovery >= 67)   return PATTERNS.GREEN_BOUNCE;
+  if (recovery >= 67)                    return PATTERNS.GREEN_HIGH;
+
+  return AMBER.AMBER_LOAD;
 }
 
 // ══════════════════════════════════════════════════════════
-// STATE
+// PERSISTENCE — Supabase primary, localStorage fallback
 // ══════════════════════════════════════════════════════════
+
+async function saveEntry(entry) {
+  // Always save to localStorage immediately
+  entries.unshift(entry);
+  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  // Save to Supabase if authenticated
+  if (!sb || !authToken) return entry;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return entry;
+
+    const { data, error } = await sb
+      .from('wearable_entries')
+      .insert({
+        user_id:       session.user.id,
+        mode:          entry.mode,
+        pattern_id:    entry.pattern,
+        pattern_title: entry.patternTitle,
+        recovery:      entry.data.recovery,
+        hrv:           entry.data.hrv,
+        strain:        entry.data.strain,
+        answers:       entry.answers
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+
+    // Store Supabase id so we can update with Lumen reply
+    entry.supabaseId = data.id;
+    localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  } catch(e) {
+    console.warn('Supabase save failed, using localStorage:', e.message);
+  }
+
+  return entry;
+}
+
+async function updateEntryLumenReply(entry, reply) {
+  // Update localStorage
+  entry.lumenReply = reply;
+  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  // Update Supabase if we have an id
+  if (!sb || !entry.supabaseId) return;
+
+  try {
+    await sb
+      .from('wearable_entries')
+      .update({ lumen_reply: reply })
+      .eq('id', entry.supabaseId);
+  } catch(e) {
+    console.warn('Supabase update failed:', e.message);
+  }
+}
+
+async function loadEntries() {
+  // Start with localStorage
+  entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
+
+  // Hydrate from Supabase if authenticated
+  if (!sb || !authToken) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await sb
+      .from('wearable_entries')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error || !data) return;
+
+    // Map Supabase rows back to local format
+    entries = data.map(row => ({
+      id:           row.id,
+      supabaseId:   row.id,
+      date:         row.created_at,
+      mode:         row.mode,
+      pattern:      row.pattern_id,
+      patternTitle: row.pattern_title,
+      data: {
+        recovery: row.recovery,
+        hrv:      row.hrv,
+        strain:   row.strain
+      },
+      answers:    row.answers || {},
+      lumenReply: row.lumen_reply
+    }));
+
+    // Keep localStorage in sync
+    localStorage.setItem('wb_entries', JSON.stringify(entries));
+
+  } catch(e) {
+    console.warn('Supabase load failed, using localStorage:', e.message);
+  }
+}
 
 let currentData = null;
 let currentPattern = null;
@@ -1334,8 +1753,8 @@ let entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
 // INIT
 // ══════════════════════════════════════════════════════════
 
-function init() {
-  currentData = getWhoopData();
+async function init() {
+  currentData = await getWhoopData();
   currentPattern = scoreWhoopData(currentData);
   currentMode = currentPattern.mode;
 
@@ -1371,7 +1790,7 @@ function init() {
 
   // Signal card
   const card = document.getElementById('signal-card');
-  card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : 'green-signal');
+  card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : currentMode === 'amber' ? 'amber-signal' : 'green-signal');
 
   document.getElementById('signal-icon-el').innerHTML = currentPattern.icon;
   document.getElementById('signal-title').textContent = currentPattern.title;
@@ -1384,8 +1803,10 @@ function init() {
 
   // CTA button
   const btn = document.getElementById('btn-begin');
-  btn.textContent = currentMode === 'red' ? 'Explore what\'s beneath →' : 'Explore what\'s working →';
-  btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : 'btn-green');
+  btn.textContent = currentMode === 'red' ? 'Explore what\'s beneath →'
+    : currentMode === 'amber' ? 'Check in →'
+    : 'Explore what\'s working →';
+  btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : currentMode === 'amber' ? 'btn-amber' : 'btn-green');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1405,7 +1826,7 @@ function buildQuestionPanels() {
   const isRed = currentMode === 'red';
 
   // Header
-  document.getElementById('q-header').className = 'q-header ' + (isRed ? 'red-header' : 'green-header');
+  document.getElementById('q-header').className = 'q-header ' + (currentMode === 'red' ? 'red-header' : currentMode === 'amber' ? 'amber-header' : 'green-header');
   document.getElementById('q-mode-label').textContent = currentPattern.mode_label;
   document.getElementById('q-header-title').innerHTML = currentPattern.qHeader;
   document.getElementById('q-header-sub').textContent = currentPattern.qSub;
@@ -1413,11 +1834,12 @@ function buildQuestionPanels() {
   // Dots
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById('dot-' + i);
-    dot.className = 'q-dot' + (i === 0 ? (' ' + (isRed ? 'active-red' : 'active-green')) : '');
+    dot.className = 'q-dot' + (i === 0 ? (' ' + (currentMode === 'red' ? 'active-red' : currentMode === 'amber' ? 'active-amber' : 'active-green')) : '');
   }
 
   // Build panels
   const container = document.getElementById('q-panels');
+  const btnClass = currentMode === 'red' ? 'btn-next-red' : currentMode === 'amber' ? 'btn-next-amber' : 'btn-next-green';
   container.innerHTML = qs.map((q, i) => `
     <div class="q-panel${i === 0 ? ' active' : ''}" id="qp-${i}">
       <div class="q-label">Question ${i+1}</div>
@@ -1428,7 +1850,7 @@ function buildQuestionPanels() {
       <div class="wc" id="wc-${i}">0 words</div>
       <div class="q-nav">
         ${i > 0 ? `<button class="btn-prev-q" onclick="prevQ(${i})">←</button>` : ''}
-        <button class="btn-next-q ${isRed ? 'btn-next-red' : 'btn-next-green'}"
+        <button class="btn-next-q ${btnClass}"
           onclick="${i < qs.length - 1 ? `nextQ(${i})` : 'submitEntry()'}">
           ${i < qs.length - 1 ? 'Next →' : 'See what Lumen notices →'}
         </button>
@@ -1474,12 +1896,12 @@ function updateQProgress() {
     `Question ${currentQ + 1} of ${total}`;
 }
 
-function submitEntry() {
+async function submitEntry() {
   // Collect last answer
   const lastEl = document.getElementById('qa-' + currentQ);
   answers[currentQ] = lastEl ? lastEl.value.trim() : '';
 
-  // Save entry
+  // Build entry
   const entry = {
     id: Date.now(),
     date: new Date().toISOString(),
@@ -1490,8 +1912,9 @@ function submitEntry() {
     answers: { ...answers },
     lumenReply: null
   };
-  entries.unshift(entry);
-  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+
+  // Save to Supabase + localStorage
+  await saveEntry(entry);
 
   // Go to Lumen screen
   showScreen('lumen');
@@ -1529,8 +1952,10 @@ async function triggerLumenReflection(entry) {
   ).filter(Boolean).join('\n\n');
 
   const isGreen = entry.mode === 'green';
-  const modeContext = isGreen
+  const modeContext = entry.mode === 'green'
     ? 'This is a GLIMMER entry — the person\'s body is in a healthy, recovered state and they are capturing what underpins that. Your role is to help them name the mental and emotional code that runs a healthy system. What beliefs, values, or conditions are present when they thrive? Reflect warmly but precisely.'
+    : entry.mode === 'amber'
+    ? 'This is a CHECK IN entry — the person\'s body is in the middle zone, carrying something quietly. Neither depleted nor thriving. Your role is gentle curiosity, not urgency. Help them notice what is asking for attention, name what has been quietly building, or understand what is helping them restore. Do not excavate. Do not dramatise. Be curious with them.'
     : 'This is a TRIGGER entry — the person\'s biometric data showed physiological stress or depletion. They have answered questions about what might be underneath it. Your role is to surface the pattern, name what you notice, and ask one question that takes them one layer deeper. Do not give advice. Do not comfort. Mirror.';
 
   const historyContext = entries.length > 1
@@ -1561,10 +1986,16 @@ RULES:
 
   addThinking();
 
+  if (!authToken) {
+    removeThinking();
+    addMsg('lumen', 'Lumen needs you to be signed in to reflect on your entries. <a href="/dashboard.html" style="color:var(--yellow);text-decoration:underline;">Sign in here →</a>');
+    return;
+  }
+
   try {
     const res = await fetch('/api/lumen', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getLumenHeaders(),
       body: JSON.stringify({
         systemExtra: system,
         messages: [{ role: 'user', content: 'Please reflect on what I\'ve written.' }]
@@ -1576,9 +2007,8 @@ RULES:
     lumenConvo.push({ role: 'assistant', content: reply });
     addMsg('lumen', reply);
 
-    // Save Lumen reply to entry
-    entries[0].lumenReply = reply;
-    localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+    // Save Lumen reply to Supabase + localStorage
+    await updateEntryLumenReply(entries[0], reply);
 
   } catch(e) {
     removeThinking();
@@ -1601,7 +2031,7 @@ async function sendToLumen() {
   try {
     const res = await fetch('/api/lumen', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getLumenHeaders(),
       body: JSON.stringify({ systemExtra: system, messages: lumenConvo })
     });
     const data = await res.json();
@@ -1668,8 +2098,8 @@ function renderHistory() {
     return `
       <div class="entry-card">
         <div class="entry-card-top">
-          <span class="entry-mode-badge ${isGreen ? 'badge-green' : 'badge-red'}">
-            ${isGreen ? '✦ Glimmer' : '⚡ Trigger'}
+          <span class="entry-mode-badge ${e.mode === 'green' ? 'badge-green' : e.mode === 'amber' ? 'badge-amber' : 'badge-red'}">
+            ${e.mode === 'green' ? '✦ Glimmer' : e.mode === 'amber' ? '◎ Check in' : '⚡ Trigger'}
           </span>
           <span class="entry-date">${date}</span>
         </div>
@@ -1723,8 +2153,14 @@ function initIntroState() {
 // ══════════════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════════════
-initIntroState();
-init();
+initAuth().then(async () => {
+  if (!authToken) return;
+  loadWhoopToken();       // read fresh from localStorage
+  handleWhoopCallback();
+  await loadEntries();
+  initIntroState();
+  await init();
+});
 </script>
 
 </body>
