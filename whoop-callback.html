@@ -3,116 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connecting WHOOP — Reframe</title>
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;600&display=swap" rel="stylesheet" />
+  <title>Connecting WHOOP…</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    body { 
       font-family: 'Rubik', sans-serif;
-      background: #F5E6CD;
-      color: #0A3228;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 48px 40px;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 4px 32px rgba(10,50,40,0.08);
+      background: #0A3228; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; margin: 0; flex-direction: column; gap: 16px;
     }
     .spinner {
       width: 40px; height: 40px;
-      border: 3px solid rgba(39,174,96,0.2);
-      border-top-color: #27AE60;
-      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #FFBE19; border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 24px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-    p { font-size: 14px; font-weight: 300; color: rgba(10,50,40,0.5); }
-    .success { color: #27AE60; font-size: 40px; margin-bottom: 16px; display: none; }
-    .error-msg { color: #C0392B; font-size: 14px; margin-top: 16px; display: none; }
+    p { color: rgba(255,255,255,0.7); font-size: 14px; margin: 0; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="spinner" id="spinner"></div>
-    <div class="success" id="success">✓</div>
-    <h2 id="heading">Connecting your WHOOP</h2>
-    <p id="subtext">Storing your connection securely...</p>
-    <p class="error-msg" id="error"></p>
-  </div>
-
+  <div class="spinner"></div>
+  <p>Connecting your WHOOP…</p>
   <script>
-    function fail(msg) {
-      document.getElementById('spinner').style.display = 'none';
-      document.getElementById('heading').textContent = 'Something went wrong';
-      document.getElementById('subtext').textContent = 'Please try connecting again.';
-      document.getElementById('error').textContent = msg;
-      document.getElementById('error').style.display = 'block';
-      setTimeout(() => { window.location.href = '/wearable.html'; }, 3000);
-    }
+    const params = new URLSearchParams(window.location.search);
+    const mid = params.get('mid');
+    const at  = params.get('at');
+    const rt  = params.get('rt');
+    const exp = params.get('exp');
 
-    function succeed() {
-      document.getElementById('spinner').style.display = 'none';
-      document.getElementById('success').style.display = 'block';
-      document.getElementById('heading').textContent = 'WHOOP connected';
-      document.getElementById('subtext').textContent = 'Loading your live data...';
-      setTimeout(() => { window.location.href = '/wearable.html'; }, 1200);
-    }
+    if (mid) localStorage.setItem('whoop_member_id', mid);
+    if (at)  localStorage.setItem('whoop_access_token', at);
+    if (rt)  localStorage.setItem('whoop_refresh_token', rt);
+    if (exp) localStorage.setItem('whoop_token_expiry', exp);
 
-    (async function() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const error  = params.get('error');
-        const mid    = params.get('mid');
-
-        if (error) {
-          fail('WHOOP connection failed: ' + error);
-          return;
-        }
-
-        if (!mid) {
-          fail('No connection ID received.');
-          return;
-        }
-
-        // Fetch the token from our server-side API using the member ID
-        // The actual token never touches the URL
-        const res = await fetch(`/api/whoop-auth?action=fetch&mid=${encodeURIComponent(mid)}`);
-        if (!res.ok) {
-          fail('Could not retrieve WHOOP credentials.');
-          return;
-        }
-
-        const conn = await res.json();
-        if (!conn.access_token) {
-          fail('Invalid connection data received.');
-          return;
-        }
-
-        // Store in localStorage for use by wearable.html
-        const expiresAt = conn.expires_at
-          ? new Date(conn.expires_at).getTime().toString()
-          : (Date.now() + 24 * 60 * 60 * 1000).toString();
-
-        localStorage.setItem('whoop_access_token',  conn.access_token);
-        localStorage.setItem('whoop_refresh_token', conn.refresh_token || '');
-        localStorage.setItem('whoop_token_expiry',  expiresAt);
-        localStorage.setItem('whoop_member_id',     mid);
-
-        succeed();
-      } catch(e) {
-        fail(e.message);
-      }
-    })();
+    setTimeout(() => { window.location.href = '/wearable.html'; }, 800);
   </script>
 </body>
 </html>
