@@ -127,7 +127,7 @@
     }
     .data-metrics {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 20px;
     }
     .metric {
@@ -834,7 +834,7 @@
       .lumen-convo-area { padding: 24px 20px 16px; }
       .lumen-input-area { padding: 0 20px 80px; }
       .history-page { padding: 72px 20px 80px; }
-      .data-metrics { grid-template-columns: repeat(3,1fr); gap: 12px; }
+      .data-metrics { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .metric-value { font-size: 28px; }
       .bottom-nav { padding: 10px 20px; }
     }
@@ -1170,6 +1170,11 @@
             <div class="metric-value" id="m-strain">—</div>
             <div class="metric-label">Strain</div>
             <div class="metric-trend" id="t-strain"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-value" id="m-workout" style="font-size:18px;">—</div>
+            <div class="metric-label">Last workout</div>
+            <div class="metric-trend" id="t-workout"></div>
           </div>
         </div>
       </div>
@@ -1788,6 +1793,29 @@ async function init() {
     ? '<span class="trend-down">No workout logged</span>'
     : '<span class="trend-up">Workout logged</span>';
 
+  // Last workout
+  const workoutEl = document.getElementById('m-workout');
+  const lastWo = currentData.last_workout_days_ago;
+  if (lastWo === 0) {
+    workoutEl.textContent = 'Today';
+    workoutEl.className = 'metric-value val-green';
+    document.getElementById('t-workout').innerHTML = '<span class="trend-up">↑ active</span>';
+  } else if (lastWo === 1) {
+    workoutEl.textContent = 'Yesterday';
+    workoutEl.className = 'metric-value val-green';
+    document.getElementById('t-workout').innerHTML = '<span class="trend-flat">— recent</span>';
+  } else if (lastWo != null) {
+    workoutEl.textContent = `${lastWo}d ago`;
+    workoutEl.className = 'metric-value ' + (lastWo <= 3 ? 'val-amber' : 'val-red');
+    document.getElementById('t-workout').innerHTML = lastWo > 3
+      ? '<span class="trend-down">↓ overdue</span>'
+      : '<span class="trend-flat">— ok</span>';
+  } else {
+    workoutEl.textContent = '—';
+    workoutEl.className = 'metric-value val-amber';
+    document.getElementById('t-workout').innerHTML = '<span class="trend-flat">No data</span>';
+  }
+
   // Signal card
   const card = document.getElementById('signal-card');
   card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : currentMode === 'amber' ? 'amber-signal' : 'green-signal');
@@ -1807,6 +1835,70 @@ async function init() {
     : currentMode === 'amber' ? 'Check in →'
     : 'Explore what\'s working →';
   btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : currentMode === 'amber' ? 'btn-amber' : 'btn-green');
+
+  // Lumen opening observation — screen 1, before questions
+  renderLumenOpening();
+}
+
+function renderLumenOpening() {
+  // Remove any existing opening
+  const existing = document.getElementById('lumen-opening');
+  if (existing) existing.remove();
+
+  const d = currentData;
+  const mode = currentMode;
+
+  // Build a contextual observation based on the signal
+  let obs = '';
+
+  if (mode === 'red') {
+    if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
+      obs = `Your HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
+    } else if (d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1])) {
+      obs = `HRV has been declining for several days without a change in training load. Something has been accumulating.`;
+    } else {
+      obs = `Your body registered significant load today with no workout to explain it. Worth naming what happened.`;
+    }
+  } else if (mode === 'amber') {
+    obs = `Recovery is in the middle range — something is asking for attention before it becomes a pattern.`;
+  } else {
+    // Green — the nuanced read
+    const noWorkout = !d.workout_logged;
+    const lastWo = d.last_workout_days_ago;
+    const hrvBelowBaseline = d.hrv < d.hrv_baseline;
+
+    if (noWorkout && lastWo > 3) {
+      obs = `Recovery is holding well — but no workout in ${lastWo} days. The body is restoring, not being challenged. What's the thread, and is rest itself the pattern?`;
+    } else if (hrvBelowBaseline) {
+      obs = `Recovery is strong but HRV is still below your baseline. Something is working — but the nervous system hasn't fully let go yet. What's still being held?`;
+    } else {
+      obs = `Several consecutive days of strong recovery. There's a thread running through this. Let's name it before it becomes unconscious again.`;
+    }
+  }
+
+  // Only show if we have something useful to say
+  if (!obs) return;
+
+  const container = document.getElementById('data-section');
+  const ctaEl = container.querySelector('.signal-cta');
+
+  const div = document.createElement('div');
+  div.id = 'lumen-opening';
+  div.style.cssText = `
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(255,190,25,0.07);
+    border: 1px solid rgba(255,190,25,0.15);
+    border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 20px; margin-top: 4px;
+  `;
+  div.innerHTML = `
+    <div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div>
+    <div style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">${obs}</div>
+  `;
+
+  ctaEl.parentNode.insertBefore(div, ctaEl);
 }
 
 // ══════════════════════════════════════════════════════════

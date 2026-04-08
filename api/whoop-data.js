@@ -7,24 +7,13 @@
  *
  * Returns: scored WHOOP data ready for Body Signal — same shape as the
  * simulated getWhoopData() it replaces.
- *
- * What it does:
- *   1. Fetches 28 days of WHOOP data (recovery, HRV, sleep, strain, stress)
- *   2. Computes personal baselines (28-day mean + SD for each metric)
- *   3. Computes z-scores for today's values against baseline
- *   4. Runs the six-state scoring engine
- *   5. Returns structured data + the scored state
- *
- * Environment variables required:
- *   WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET (for token refresh)
- *   SUPABASE_URL, SUPABASE_SERVICE_KEY (for saving daily_state)
  */
 
 export const config = { runtime: 'edge' };
 
-const WHOOP_BASE = 'https://api.prod.whoop.com/developer/v2';
+const WHOOP_BASE = 'https://api.prod.whoop.com/developer/v1';
 
-// ── WHOOP API HELPERS ─────────────────────────────────
+// ── WHOOP API HELPERS ────────────────────────────────────────────
 
 async function whoopGet(path, token) {
   const res = await fetch(`${WHOOP_BASE}${path}`, {
@@ -34,7 +23,7 @@ async function whoopGet(path, token) {
   return res.json();
 }
 
-// ── STATS HELPERS ─────────────────────────────────────
+// ── STATS HELPERS ─────────────────────────────────────────────────
 
 function mean(arr) {
   if (!arr.length) return 0;
@@ -42,10 +31,10 @@ function mean(arr) {
 }
 
 function sd(arr) {
-  if (arr.length < 2) return 1; // avoid div/0
+  if (arr.length < 2) return 1;
   const m = mean(arr);
   const variance = arr.reduce((a, b) => a + Math.pow(b - m, 2), 0) / arr.length;
-  return Math.max(Math.sqrt(variance), 0.1); // floor at 0.1 to avoid div/0
+  return Math.max(Math.sqrt(variance), 0.1);
 }
 
 function zScore(value, baseline_mean, baseline_sd) {
@@ -53,9 +42,7 @@ function zScore(value, baseline_mean, baseline_sd) {
   return (value - baseline_mean) / baseline_sd;
 }
 
-// ── SCORING ENGINE ────────────────────────────────────
-// Six state formulae — grounded in WHOOP API fields and research
-// Full formula documentation in research paper section 2.3
+// ── SCORING ENGINE ────────────────────────────────────────────────
 
 function scoreSignalState(today, baselines, history) {
   const {
@@ -65,19 +52,16 @@ function scoreSignalState(today, baselines, history) {
     recovery_pct, hrv_ms, strain
   } = today;
 
-  // Compute HRV 3-day trend
   const last3hrv = history.slice(0, 3).map(d => d.hrv_ms).filter(Boolean);
   const hrv3dMean = mean(last3hrv);
   const hrvDeclining = last3hrv.length >= 2 &&
-    last3hrv[0] < last3hrv[last3hrv.length - 1]; // first (most recent) < last
+    last3hrv[0] < last3hrv[last3hrv.length - 1];
 
-  // Compute recovery trend
   const last3rec = history.slice(0, 3).map(d => d.recovery_pct).filter(Boolean);
   const recRising = last3rec.length >= 2 &&
-    last3rec[0] > last3rec[last3rec.length - 1]; // recent higher than prior
+    last3rec[0] > last3rec[last3rec.length - 1];
 
-  // ── RED STATE 01 — Something is running underneath ──
-  // Low recovery + adequate sleep + low strain + sleep stress
+  // RED STATE 01 — Something is running underneath
   if (
     rec_z !== null && rec_z < -0.8 &&
     sleep_suff !== null && sleep_suff >= 0.85 &&
@@ -87,8 +71,7 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'red_psych', confidence: 'high' };
   }
 
-  // ── RED STATE 02 — This has been building ──
-  // Multi-day HRV decline without physical cause
+  // RED STATE 02 — This has been building
   if (
     hrvDeclining &&
     hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) &&
@@ -97,8 +80,7 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'red_trend', confidence: 'high' };
   }
 
-  // ── RED STATE 03 — Your body logged something ──
-  // High strain + no workout + elevated non-activity stress
+  // RED STATE 03 — Your body logged something
   if (
     strain_z !== null && strain_z > 1.0 &&
     !workout_logged &&
@@ -107,7 +89,7 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'red_strain', confidence: 'high' };
   }
 
-  // Softer RED states — medium confidence
+  // Softer RED states
   if (rec_z !== null && rec_z < -0.8 && sleep_suff >= 0.85) {
     return { state: 'red_psych', confidence: 'medium' };
   }
@@ -115,8 +97,7 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'red_trend', confidence: 'medium' };
   }
 
-  // ── GREEN STATE 04 — Something is working ──
-  // High recovery + HRV at/above baseline + system at rest
+  // GREEN STATE 04 — Something is working
   if (
     rec_z !== null && rec_z > 0.5 &&
     hrv_z !== null && hrv_z >= 0.0 &&
@@ -125,8 +106,7 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'grn_thriving', confidence: 'high' };
   }
 
-  // ── GREEN STATE 05 — Something shifted ──
-  // Recovery rising after prior below-baseline days
+  // GREEN STATE 05 — Something shifted
   if (
     rec_z !== null && rec_z > 0.3 &&
     recRising &&
@@ -136,8 +116,7 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'grn_bounce', confidence: 'high' };
   }
 
-  // ── GREEN STATE 06 — This is your code ──
-  // 3+ consecutive strong recovery days
+  // GREEN STATE 06 — This is your code
   const consecutiveGreen = last3rec.filter(r => r >= 67).length;
   if (consecutiveGreen >= 3) {
     return { state: 'grn_streak', confidence: 'high' };
@@ -148,12 +127,10 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
 
-  // No clear state — informational
   return { state: null, confidence: 'low' };
 }
 
-// ── EXPLORATION SCORE ─────────────────────────────────
-// Continuous weighted score — confirmed from three independent sources
+// ── EXPLORATION SCORE ─────────────────────────────────────────────
 
 function computeExplorationScore(today, baselines, history) {
   let score = 0;
@@ -163,16 +140,9 @@ function computeExplorationScore(today, baselines, history) {
   const hrv3dMean = mean(last3hrv);
   const hrvDeclining = last3hrv.length >= 2 && last3hrv[0] < last3hrv[last3hrv.length - 1];
 
-  // Pattern A — psychological load
   if (rec_z < -0.8 && sleep_suff >= 0.85 && strain_z < 0.3) score += 3;
-
-  // Pattern B — sustained HRV decline
   if (hrvDeclining && hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) && strain_z < 0.5) score += 2;
-
-  // Pattern C — trigger event (high strain, no workout, non-activity stress)
   if (strain_z > 1.0 && !workout_logged && nas_z > 1.0) score += 3;
-
-  // Amplifiers (all available via WHOOP public API)
   if (sleep_stress === 'poor') score += 1;
   if (sleep_debt_7d > 1.5) score += 1;
   if (nas_z !== null && nas_z > 1.5) score += 1;
@@ -181,7 +151,7 @@ function computeExplorationScore(today, baselines, history) {
   return score;
 }
 
-// ── MAIN HANDLER ─────────────────────────────────────
+// ── MAIN HANDLER ──────────────────────────────────────────────────
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -203,90 +173,80 @@ export default async function handler(req) {
   }
 
   try {
-    // ── 1. FETCH 28 DAYS OF WHOOP DATA ──────────────────
-    // v2 API structure:
-    // - /v2/recovery        → recovery_score, hrv_rmssd_milli, resting_heart_rate
-    // - /v2/cycle           → strain only (NOT recovery data)
-    // - /v2/activity/sleep  → sleep duration, performance, respiratory_rate
-    // - /v2/activity/workout → workout presence per day
-
+    // 1. FETCH 28 DAYS OF WHOOP DATA
+    const endDate   = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 28);
-    const startStr = startDate.toISOString();
-    const endStr   = new Date().toISOString();
 
-    // Fetch recovery, cycles, sleep, workouts in parallel
-    const [recoveryRes, cyclesRes, sleepRes, workoutsRes] = await Promise.all([
-      whoopGet(`/recovery?start=${startStr}&end=${endStr}&limit=25`, access_token),
-      whoopGet(`/cycle?start=${startStr}&end=${endStr}&limit=25`, access_token),
-      whoopGet(`/activity/sleep?start=${startStr}&end=${endStr}&limit=25`, access_token),
-      whoopGet(`/activity/workout?start=${startStr}&end=${endStr}&limit=25`, access_token),
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr   = endDate.toISOString().split('T')[0];
+
+    const [cyclesRes, sleepRes, workoutsRes] = await Promise.all([
+      whoopGet(`/cycle?start=${startStr}&end=${endStr}&limit=30`, access_token),
+      whoopGet(`/activity/sleep?start=${startStr}&end=${endStr}&limit=30`, access_token),
+      whoopGet(`/activity/workout?start=${startStr}&end=${endStr}&limit=30`, access_token),
     ]);
 
-    const recoveries = recoveryRes.records  || [];
-    const cycles     = cyclesRes.records    || [];
-    const sleeps     = sleepRes.records     || [];
-    const workouts   = workoutsRes.records  || [];
+    const cycles   = cyclesRes.records   || [];
+    const sleeps   = sleepRes.records    || [];
+    const workouts = workoutsRes.records || [];
 
-    if (!recoveries.length) {
-      return new Response(JSON.stringify({ error: 'No WHOOP recovery data available yet' }), {
+    if (!cycles.length) {
+      return new Response(JSON.stringify({ error: 'No WHOOP data available yet' }), {
         status: 404, headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // ── 2. BUILD DAILY RECORDS ───────────────────────────
-    // Recovery records are the primary source — they contain the key metrics
-    // Each recovery has a cycle_id linking to cycle (for strain)
-
-    // Index cycles by id for fast lookup
-    const cycleById = {};
-    cycles.forEach(c => { cycleById[c.id] = c; });
-
-    // Index workouts by date
+    // 2. BUILD DAILY RECORDS
     const workoutDates = new Set(
       workouts.map(w => w.start?.split('T')[0]).filter(Boolean)
     );
 
-    const daily = recoveries.map(rec => {
-      const recScore  = rec.score || {};
-      const date      = rec.created_at?.split('T')[0];
-      const cycle     = cycleById[rec.cycle_id] || {};
-      const cycleScore = cycle.score || {};
+    // Last workout days ago
+    const workoutDatesSorted = workouts
+      .map(w => w.start?.split('T')[0])
+      .filter(Boolean)
+      .sort()
+      .reverse();
+    const lastWorkoutDate = workoutDatesSorted[0] || null;
+    const lastWorkoutDaysAgo = lastWorkoutDate
+      ? Math.round((new Date(endStr) - new Date(lastWorkoutDate)) / 86400000)
+      : null;
 
-      // Find matching sleep by cycle_id — exclude naps
-      const sleep = sleeps.find(s => s.cycle_id === rec.cycle_id && !s.nap)
-                 || sleeps.find(s => s.cycle_id === rec.cycle_id); // fallback to any
+    const daily = cycles.map(cycle => {
+      const date = cycle.start?.split('T')[0];
+      const score = cycle.score || {};
+
+      const sleep = sleeps.find(s => s.start?.split('T')[0] === date);
       const sleepScore = sleep?.score || {};
 
       const hoursSlept = sleepScore.stage_summary?.total_in_bed_time_milli
         ? sleepScore.stage_summary.total_in_bed_time_milli / 3600000 : null;
       const sleepNeed  = sleepScore.sleep_needed?.baseline_milli
         ? sleepScore.sleep_needed.baseline_milli / 3600000 : null;
+
       const sleepStress = sleepScore.respiratory_rate
-        ? (sleepScore.respiratory_rate > 17 ? 'poor'
-          : sleepScore.respiratory_rate > 15 ? 'sufficient' : 'optimal')
+        ? (sleepScore.respiratory_rate > 17 ? 'poor' : sleepScore.respiratory_rate > 15 ? 'sufficient' : 'optimal')
         : null;
 
       return {
         date,
-        // Recovery metrics — from /v2/recovery
-        recovery_pct:      recScore.recovery_score ?? null,
-        hrv_ms:            recScore.hrv_rmssd_milli ?? null,
-        rhr_bpm:           recScore.resting_heart_rate ?? null,
-        // Strain — from /v2/cycle
-        day_strain:        cycleScore.strain ?? null,
-        // Sleep — from /v2/activity/sleep
-        sleep_hours:       hoursSlept,
-        sleep_need_hours:  sleepNeed,
-        sleep_perf_pct:    sleepScore.sleep_performance_percentage ?? null,
-        sleep_stress:      sleepStress,
-        respiratory_rate:  sleepScore.respiratory_rate ?? null,
-        // Workout
-        workout_logged:    workoutDates.has(date),
-        sleep_suff:        hoursSlept && sleepNeed ? hoursSlept / sleepNeed : null,
+        recovery_pct:        score.recovery_score ?? null,
+        hrv_ms:              score.hrv_rmssd_milli ?? null,
+        rhr_bpm:             score.resting_heart_rate ?? null,
+        respiratory_rate:    score.spo2_percentage ?? sleepScore.respiratory_rate ?? null,
+        sleep_hours:         hoursSlept,
+        sleep_need_hours:    sleepNeed,
+        sleep_perf_pct:      sleepScore.sleep_performance_percentage ?? null,
+        sleep_stress:        sleepStress,
+        day_strain:          cycle.score?.strain ?? null,
+        non_activity_stress: cycle.score?.strain && workoutDates.has(date)
+          ? null
+          : cycle.score?.strain ?? null,
+        workout_logged: workoutDates.has(date),
+        sleep_suff: hoursSlept && sleepNeed ? hoursSlept / sleepNeed : null,
       };
-    }).filter(d => d.date && d.recovery_pct !== null)
-      .sort((a, b) => b.date.localeCompare(a.date));
+    }).filter(d => d.date).sort((a, b) => b.date.localeCompare(a.date));
 
     if (!daily.length) {
       return new Response(JSON.stringify({ error: 'Could not parse WHOOP data' }), {
@@ -294,9 +254,8 @@ export default async function handler(req) {
       });
     }
 
-    // ── 3. COMPUTE BASELINES (28-day) ───────────────────
-
-    const historicalDays = daily.slice(1); // exclude today for baseline
+    // 3. COMPUTE BASELINES (28-day)
+    const historicalDays = daily.slice(1);
 
     const baselines = {
       recovery_mean: mean(historicalDays.map(d => d.recovery_pct).filter(Boolean)),
@@ -311,8 +270,7 @@ export default async function handler(req) {
       nas_sd:        sd(historicalDays.map(d => d.non_activity_stress).filter(Boolean)),
     };
 
-    // ── 4. COMPUTE Z-SCORES FOR TODAY ───────────────────
-
+    // 4. COMPUTE Z-SCORES FOR TODAY
     const today = daily[0];
     const sleep_debt_7d = daily.slice(0, 7).reduce((acc, d) => {
       if (d.sleep_need_hours && d.sleep_hours) {
@@ -331,21 +289,17 @@ export default async function handler(req) {
       sleep_debt_7d,
     };
 
-    // Add z-scores to history for trend analysis
     const history = daily.slice(1).map(d => ({
       ...d,
       rec_z: zScore(d.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
       hrv_z: zScore(d.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
     }));
 
-    // ── 5. SCORE THE SIGNAL STATE ────────────────────────
-
+    // 5. SCORE THE SIGNAL STATE
     const { state, confidence } = scoreSignalState(todayScored, baselines, history);
     const exploration_score = computeExplorationScore(todayScored, baselines, history);
 
-    // ── 6. BUILD RESPONSE ────────────────────────────────
-    // Same shape as the simulated getWhoopData() — drop-in replacement
-
+    // 6. BUILD RESPONSE
     const response = {
       // Today's values
       recovery:    today.recovery_pct,
@@ -357,6 +311,7 @@ export default async function handler(req) {
       sleep_need:  today.sleep_need_hours ? parseFloat(today.sleep_need_hours.toFixed(1)) : null,
       sleep_stress: today.sleep_stress,
       workout_logged: today.workout_logged,
+      last_workout_days_ago: lastWorkoutDaysAgo,
 
       // Baselines
       hrv_baseline:      parseFloat(baselines.hrv_mean.toFixed(1)),
@@ -374,7 +329,7 @@ export default async function handler(req) {
       signal_state: state,
       signal_confidence: confidence,
 
-      // Trend data (for display in UI)
+      // Trend data
       days_trend: daily.slice(0, 7).map(d => d.hrv_ms).filter(Boolean),
       recovery_trend: daily.slice(0, 7).map(d => d.recovery_pct).filter(Boolean),
 
@@ -384,9 +339,7 @@ export default async function handler(req) {
       days_of_history: historicalDays.length,
     };
 
-    // ── 7. SAVE TO daily_state ───────────────────────────
-    // Fire and forget — don't block the response
-
+    // 7. SAVE TO daily_state (fire and forget)
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
       const supaBody = {
         date:                today.date,
@@ -417,8 +370,6 @@ export default async function handler(req) {
         }),
       };
 
-      // Note: user_id must be set server-side — requires auth verification
-      // For now saves without user_id; update after Supabase auth integration
       fetch(`${process.env.SUPABASE_URL}/rest/v1/daily_state`, {
         method: 'POST',
         headers: {
