@@ -50,11 +50,7 @@
     <p class="error-msg" id="error"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
-
     function fail(msg) {
       document.getElementById('spinner').style.display = 'none';
       document.getElementById('heading').textContent = 'Something went wrong';
@@ -74,33 +70,31 @@
 
     (async function() {
       try {
-        // Check for error in URL (OAuth failure)
         const params = new URLSearchParams(window.location.search);
-        const error = params.get('error');
+        const error  = params.get('error');
+        const mid    = params.get('mid');
+
         if (error) {
           fail('WHOOP connection failed: ' + error);
           return;
         }
 
-        // Token is stored server-side in Supabase whoop_connections
-        // We just need to fetch it from there using the authenticated session
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const { data: { session } } = await sb.auth.getSession();
-
-        if (!session) {
-          fail('Not signed in. Please sign in first.');
+        if (!mid) {
+          fail('No connection ID received.');
           return;
         }
 
-        // Fetch the stored token from whoop_connections
-        const { data: conn, error: connErr } = await sb
-          .from('whoop_connections')
-          .select('access_token, refresh_token, expires_at')
-          .eq('user_id', session.user.id)
-          .single();
+        // Fetch the token from our server-side API using the member ID
+        // The actual token never touches the URL
+        const res = await fetch(`/api/whoop-auth?action=fetch&mid=${encodeURIComponent(mid)}`);
+        if (!res.ok) {
+          fail('Could not retrieve WHOOP credentials.');
+          return;
+        }
 
-        if (connErr || !conn) {
-          fail('Could not retrieve WHOOP connection.');
+        const conn = await res.json();
+        if (!conn.access_token) {
+          fail('Invalid connection data received.');
           return;
         }
 
@@ -112,6 +106,7 @@
         localStorage.setItem('whoop_access_token',  conn.access_token);
         localStorage.setItem('whoop_refresh_token', conn.refresh_token || '');
         localStorage.setItem('whoop_token_expiry',  expiresAt);
+        localStorage.setItem('whoop_member_id',     mid);
 
         succeed();
       } catch(e) {
