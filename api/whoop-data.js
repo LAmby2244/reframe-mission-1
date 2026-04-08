@@ -62,11 +62,20 @@ module.exports = async (req, res) => {
       return res.status(503).json({ error: 'Token refreshed — please retry', data_source: 'retry' });
     }
 
+    // Safe JSON parsing — WHOOP sometimes returns text errors
+    const safeJson = async (res) => {
+      const text = await res.text();
+      try { return JSON.parse(text); } 
+      catch (_) { 
+        console.error('WHOOP API non-JSON response:', res.url, res.status, text.substring(0, 100));
+        return { records: [] }; 
+      }
+    };
     const [recoveryData, cycleData, sleepData, workoutData] = await Promise.all([
-      recoveryRes.json(),
-      cycleRes.json(),
-      sleepRes.json(),
-      workoutRes.json()
+      safeJson(recoveryRes),
+      safeJson(cycleRes),
+      safeJson(sleepRes),
+      safeJson(workoutRes)
     ]);
 
     const recoveries = recoveryData.records || [];
