@@ -52,10 +52,10 @@ module.exports = async (req, res) => {
     const headers = { Authorization: `Bearer ${access_token}` };
 
     const [recoveryRes, cycleRes, sleepRes, workoutRes] = await Promise.all([
-      fetch(`${WHOOP_API_BASE}/recovery?start=${startStr}&end=${endStr}&limit=28`, { headers }),
-      fetch(`${WHOOP_API_BASE}/cycle?start=${startStr}&end=${endStr}&limit=28`, { headers }),
-      fetch(`${WHOOP_API_BASE}/activity/sleep?start=${startStr}&end=${endStr}&limit=28`, { headers }),
-      fetch(`${WHOOP_API_BASE}/activity/workout?start=${startStr}&end=${endStr}&limit=10`, { headers })
+      fetch(`${WHOOP_API_BASE}/recovery?limit=28`, { headers }),
+      fetch(`${WHOOP_API_BASE}/cycle?limit=28`, { headers }),
+      fetch(`${WHOOP_API_BASE}/activity/sleep?limit=28`, { headers }),
+      fetch(`${WHOOP_API_BASE}/activity/workout?limit=10`, { headers })
     ]);
 
     // If WHOOP returns 401, token is actually expired — refresh and retry
