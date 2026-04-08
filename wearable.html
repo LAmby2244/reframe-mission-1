@@ -1367,7 +1367,7 @@ async function getWhoopData() {
       const res = await fetch('/api/whoop-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mid: localStorage.getItem('whoop_member_id') })
+        body: JSON.stringify({ access_token: localStorage.getItem('whoop_access_token'), mid: localStorage.getItem('whoop_member_id') })
       }));
 
       if (res.ok) {
