@@ -1861,34 +1861,74 @@ async function init() {
   renderLumenOpening();
 }
 
-function renderLumenOpening(data, pattern) {
-  const el = document.getElementById('lumen-opening');
-  if (!el) return;
+function renderLumenOpening() {
+  // Remove any existing opening
+  const existing = document.getElementById('lumen-opening');
+  if (existing) existing.remove();
 
-  // If no data yet, show nothing
-  if (!data) { el.innerHTML = ''; return; }
+  const d = currentData;
+  const mode = currentMode;
+  if (!d) return;
 
-  // Show loading state
-  el.innerHTML = '<em style="opacity:0.5">Lumen is reading your signal...</em>';
+  const container = document.getElementById('data-section');
+  const ctaEl = container?.querySelector('.signal-cta');
+  if (!ctaEl) return;
 
-  const direction = (data.rec_z || 0) > 0 ? 'above' : 'below';
-  const hrvDir = (data.hrv_z || 0) > 0 ? 'above' : 'below';
-  const trendArr = data.days_trend || [];
+  // Create the element with loading state
+  const div = document.createElement('div');
+  div.id = 'lumen-opening';
+  div.style.cssText = `
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(255,190,25,0.07);
+    border: 1px solid rgba(255,190,25,0.15);
+    border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 20px; margin-top: 4px;
+  `;
+  div.innerHTML = `
+    <div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div>
+    <div id="lumen-opening-text" style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;opacity:0.5;">Lumen is reading your signal...</div>
+  `;
+  ctaEl.parentNode.insertBefore(div, ctaEl);
+
+  // Static fallback based on signal state
+  const direction = (d.rec_z || 0) > 0 ? 'above' : 'below';
+  const hrvDir = (d.hrv_z || 0) > 0 ? 'above' : 'below';
+  let fallback = '';
+  if (mode === 'red') {
+    if ((d.hrv_z || 0) < -0.8 && (d.sleep_suff || 0) >= 0.85) {
+      fallback = `Your HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
+    } else {
+      fallback = `Your body registered significant load. Something has been accumulating — worth naming what.`;
+    }
+  } else if (mode === 'amber') {
+    fallback = `Recovery is in the middle range. Something is asking for attention before it becomes a pattern.`;
+  } else {
+    if (d.hrv < d.hrv_baseline) {
+      fallback = `Recovery is strong but HRV is still ${(d.hrv_baseline - d.hrv).toFixed(1)}ms below your baseline. Something is working — but the nervous system hasn't fully let go yet.`;
+    } else {
+      fallback = `Several consecutive days of strong recovery. There's a thread running through this. Let's name it before it becomes unconscious again.`;
+    }
+  }
+
+  // Build rich context for Lumen
+  const trendArr = d.days_trend || [];
   const trendDesc = trendArr.length >= 3
-    ? (trendArr[trendArr.length-1] > trendArr[0] ? 'been declining over recent days' : 'been stable or rising recently')
+    ? (trendArr[trendArr.length - 1] < trendArr[0] ? 'declining over recent days' : 'stable or rising recently')
     : 'limited history so far';
 
-  const systemExtra = `You are writing the opening observation for the Body Signal tool — 2-3 sentences maximum.
+  const systemExtra = `You are writing the opening observation for the Body Signal tool.
 
-The person\'s WHOOP data today:
-- Recovery: ${data.recovery}% (${direction} their ${data.recovery_baseline}% personal baseline)
-- HRV: ${data.hrv}ms (${hrvDir} their ${data.hrv_baseline}ms baseline)
-- Strain: ${data.strain} — workout ${data.workout_logged ? 'logged today' : 'not logged today'}
-- Sleep: ${data.sleep_score}% performance, ${data.sleep_hours}h slept of ${data.sleep_need}h needed
-- HRV has ${trendDesc}
-- Signal: ${pattern ? pattern.title : data.signal_state} (exploration score: ${data.exploration_score}/10)
+The person's WHOOP data today:
+- Recovery: ${d.recovery}% (${direction} their ${d.recovery_baseline}% baseline)
+- HRV: ${d.hrv}ms (${hrvDir} their ${d.hrv_baseline}ms baseline, trend: ${trendDesc})
+- Strain: ${d.strain} — workout ${d.workout_logged ? 'logged today' : 'not logged today'}${d.last_workout_days_ago > 1 ? ', last workout ' + d.last_workout_days_ago + ' days ago' : ''}
+- Sleep: ${d.sleep_score}% performance, ${d.sleep_hours}h of ${d.sleep_need}h needed
+- 7-day sleep debt: ${d.sleep_debt_7d}h
+- Signal: ${mode} mode, exploration score ${d.exploration_score}/10
 
-Write as Lumen. Be specific — name the real numbers where meaningful. Notice any nuance or tension (e.g. good recovery but declining HRV, or high strain without a workout). End with one warm sentence that opens the door to the questions below without asking one yourself. Under 60 words. No preamble.`;
+Write 2-3 sentences as Lumen. Be specific — name the real numbers where meaningful. Notice any nuance or tension in the data. End with one warm sentence that opens the door to the questions below without asking one yourself. Under 60 words total. No preamble.`;
 
   const authData = JSON.parse(localStorage.getItem('sb-aoqjfqmlcccsosddqnws-auth-token') || '{}');
   const token = authData?.access_token || '';
@@ -1902,12 +1942,16 @@ Write as Lumen. Be specific — name the real numbers where meaningful. Notice a
     })
   })
   .then(r => r.json())
-  .then(d => {
-    if (d.reply) el.innerHTML = `<em>${d.reply}</em>`;
-    else el.innerHTML = `<em>${pattern?.lumenOpening || 'Something worth exploring today.'}</em>`;
+  .then(data => {
+    const el = document.getElementById('lumen-opening-text');
+    if (el) {
+      el.style.opacity = '1';
+      el.innerHTML = data.reply || fallback;
+    }
   })
   .catch(() => {
-    el.innerHTML = `<em>${pattern?.lumenOpening || 'Something worth exploring today.'}</em>`;
+    const el = document.getElementById('lumen-opening-text');
+    if (el) { el.style.opacity = '1'; el.innerHTML = fallback; }
   });
 }
 
