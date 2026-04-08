@@ -10,26 +10,32 @@ module.exports = async (req, res) => {
 
   try {
     // ── Get member_id from request body ─────────────────────────────────
-    const { mid } = req.body || {};
+    const { mid, access_token: clientToken } = req.body || {};
     if (!mid) return res.status(400).json({ error: 'Missing mid', data_source: 'error' });
 
-    // ── Look up WHOOP connection from Supabase by member_id ─────────────
-    const connRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at,user_id&limit=1`,
-      { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, apikey: SUPABASE_SERVICE_KEY } }
-    );
-    const connections = await connRes.json();
-    if (!connections.length) {
-      return res.status(404).json({ error: 'No WHOOP connection found — please reconnect', data_source: 'error' });
-    }
+    let access_token = clientToken || null;
+    let user_id = null;
 
-    let { access_token, refresh_token, expires_at, user_id } = connections[0];
+    // If no client token, look up from Supabase
+    if (!access_token) {
+      const connRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at,user_id&limit=1`,
+        { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, apikey: SUPABASE_SERVICE_KEY } }
+      );
+      const connections = await connRes.json();
+      if (!connections.length) {
+        return res.status(404).json({ error: 'No WHOOP connection found — please reconnect', data_source: 'error' });
+      }
+      const conn = connections[0];
+      access_token = conn.access_token;
+      user_id = conn.user_id;
 
-    // ── Refresh token if expired ─────────────────────────────────────────
-    if (new Date(expires_at) <= new Date()) {
-      const refreshed = await refreshWhoopToken(refresh_token, mid, user_id);
-      if (!refreshed) return res.status(401).json({ error: 'Token expired — please reconnect WHOOP', data_source: 'error' });
-      access_token = refreshed;
+      // Refresh if expired
+      if (new Date(conn.expires_at) <= new Date()) {
+        const refreshed = await refreshWhoopToken(conn.refresh_token, mid, conn.user_id);
+        if (!refreshed) return res.status(401).json({ error: 'Token expired — please reconnect WHOOP', data_source: 'error' });
+        access_token = refreshed;
+      }
     }
 
     // ── Fetch WHOOP data ─────────────────────────────────────────────────
