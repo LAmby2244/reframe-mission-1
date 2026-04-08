@@ -43,19 +43,19 @@ module.exports = async (req, res) => {
     // Add 1 day buffer to end date so today's recovery is included if scored
     const endDate = new Date(today);
     endDate.setDate(endDate.getDate() + 1);
-    const endStr = endDate.toISOString().split('T')[0];
+    const endStr = endDate.toISOString(); // Full ISO datetime required by WHOOP v2
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - 28);
-    const startStr = startDate.toISOString().split('T')[0];
+    const startStr = startDate.toISOString();
     const todayStr = today.toISOString().split('T')[0];
 
     const headers = { Authorization: `Bearer ${access_token}` };
 
     const [recoveryRes, cycleRes, sleepRes, workoutRes] = await Promise.all([
-      fetch(`${WHOOP_API_BASE}/recovery?limit=28`, { headers }),
-      fetch(`${WHOOP_API_BASE}/cycle?limit=28`, { headers }),
-      fetch(`${WHOOP_API_BASE}/activity/sleep?limit=28`, { headers }),
-      fetch(`${WHOOP_API_BASE}/activity/workout?limit=10`, { headers })
+      fetch(`${WHOOP_API_BASE}/recovery?limit=28&start=${startStr}&end=${endStr}`, { headers }),
+      fetch(`${WHOOP_API_BASE}/cycle?limit=28&start=${startStr}&end=${endStr}`, { headers }),
+      fetch(`${WHOOP_API_BASE}/activity/sleep?limit=28&start=${startStr}&end=${endStr}`, { headers }),
+      fetch(`${WHOOP_API_BASE}/activity/workout?limit=10&start=${startStr}&end=${endStr}`, { headers })
     ]);
 
     // If WHOOP returns 401, token is actually expired — refresh and retry
