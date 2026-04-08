@@ -1312,6 +1312,7 @@ const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
 let sb = null;
 let authToken = '';
+let currentUserId = '';
 
 async function initAuth() {
   try {
@@ -1319,6 +1320,7 @@ async function initAuth() {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.access_token) {
       authToken = session.access_token;
+      currentUserId = session.user.id; // store for scoped localStorage keys
       document.getElementById('user-bar').style.display = 'flex';
       document.getElementById('user-email').textContent = session.user.email;
     } else {
@@ -1367,7 +1369,7 @@ async function getWhoopData() {
       const res = await fetch('/api/whoop-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: localStorage.getItem('whoop_access_token'), mid: localStorage.getItem('whoop_member_id') })
+        body: JSON.stringify({ access_token: localStorage.getItem('whoop_access_token_' + currentUserId), mid: localStorage.getItem('whoop_member_id_' + currentUserId) })
       });
 
       if (res.ok) {
@@ -1377,13 +1379,6 @@ async function getWhoopData() {
             `<span style="color:var(--green)">● Live WHOOP data</span> · ${data.date} · ${data.days_of_history} days of history`;
           return data;
         }
-      }
-
-      // 401 = no WHOOP connected for this user — show connect prompt, no simulated data
-      if (res.status === 401) {
-        document.getElementById('data-source-note').innerHTML =
-          `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a>`;
-        return null;
       }
 
       // 404 = no WHOOP connection in Supabase yet

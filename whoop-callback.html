@@ -3,40 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Connecting WHOOP…</title>
+  <title>Connecting WHOOP...</title>
   <style>
-    body { 
-      font-family: 'Rubik', sans-serif;
-      background: #0A3228; color: #fff;
+    body { font-family: 'Rubik', sans-serif; background: #0A3228; color: #fff;
       display: flex; align-items: center; justify-content: center;
-      height: 100vh; margin: 0; flex-direction: column; gap: 16px;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-top-color: #FFBE19; border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
+      height: 100vh; margin: 0; flex-direction: column; gap: 16px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #FFBE19; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     p { color: rgba(255,255,255,0.7); font-size: 14px; margin: 0; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="spinner"></div>
-  <p>Connecting your WHOOP…</p>
+  <p>Connecting your WHOOP...</p>
   <script>
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+
     const params = new URLSearchParams(window.location.search);
     const mid = params.get('mid');
-    const at  = params.get('at');
-    const rt  = params.get('rt');
+    const at = params.get('at');
+    const rt = params.get('rt');
     const exp = params.get('exp');
 
-    if (mid) localStorage.setItem('whoop_member_id', mid);
-    if (at)  localStorage.setItem('whoop_access_token', at);
-    if (rt)  localStorage.setItem('whoop_refresh_token', rt);
-    if (exp) localStorage.setItem('whoop_token_expiry', exp);
+    async function storeAndRedirect() {
+      // Get the current Supabase user to scope localStorage keys
+      let userId = '';
+      try {
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { data: { session } } = await sb.auth.getSession();
+        userId = session?.user?.id || '';
+      } catch (_) {}
 
-    setTimeout(() => { window.location.href = '/wearable.html'; }, 800);
+      // Store scoped to userId so different users on same browser don't share data
+      const suffix = userId ? '_' + userId : '';
+      if (mid) localStorage.setItem('whoop_member_id' + suffix, mid);
+      if (at)  localStorage.setItem('whoop_access_token' + suffix, at);
+      if (rt)  localStorage.setItem('whoop_refresh_token' + suffix, rt);
+      if (exp) localStorage.setItem('whoop_token_expiry' + suffix, exp);
+
+      // Also clear any old unscoped keys to avoid stale data
+      localStorage.removeItem('whoop_member_id');
+      localStorage.removeItem('whoop_access_token');
+      localStorage.removeItem('whoop_refresh_token');
+      localStorage.removeItem('whoop_token_expiry');
+
+      setTimeout(() => { window.location.href = '/wearable.html'; }, 800);
+    }
+
+    storeAndRedirect();
   </script>
 </body>
 </html>
