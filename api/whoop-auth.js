@@ -8,10 +8,9 @@ const WHOOP_AUTH_URL      = 'https://api.prod.whoop.com/oauth/oauth2/auth';
 const WHOOP_TOKEN_URL     = 'https://api.prod.whoop.com/oauth/oauth2/token';
 const WHOOP_SCOPES        = 'offline read:recovery read:sleep read:workout read:cycles read:body_measurement read:profile';
 
-// Known user IDs — server-side fallback when session token unavailable
 const KNOWN_MEMBERS = {
   '36136954': 'b34d797c-80b7-4c15-94ac-159ef813e202', // Simon
-  '34690349': null // Melinda — user_id to be set after first connect
+  '34690349': null // Melinda
 };
 
 module.exports = async (req, res) => {
@@ -42,14 +41,6 @@ module.exports = async (req, res) => {
 
     if (error) return res.status(400).send(`WHOOP auth error: ${error}`);
     if (!code) return res.status(400).send('Missing authorisation code from WHOOP');
-
-    // Decode state
-    let supabaseToken = '', returnPath = '/wearable.html';
-    try {
-      const decoded = JSON.parse(Buffer.from(rawState || '', 'base64url').toString());
-      supabaseToken = decoded.t || '';
-      returnPath    = decoded.r || '/wearable.html';
-    } catch (_) {}
 
     // Exchange code for tokens
     let tokens;
@@ -88,8 +79,15 @@ module.exports = async (req, res) => {
       console.error('Profile fetch error:', err.message);
     }
 
-    // Resolve user_id — try session token first, then known members map, then existing DB row
-    let userId = KNOWN_MEMBERS[memberId] || null;
+    // Resolve user_id from known members map first
+    let userId = KNOWN_MEMBERS[memberId] !== undefined ? KNOWN_MEMBERS[memberId] : null;
+
+    // Try session token if we don't have user_id yet
+    let supabaseToken = '';
+    try {
+      const decoded = JSON.parse(Buffer.from(rawState || '', 'base64url').toString());
+      supabaseToken = decoded.t || '';
+    } catch (_) {}
 
     if (!userId && supabaseToken) {
       try {
@@ -104,45 +102,63 @@ module.exports = async (req, res) => {
       } catch (_) {}
     }
 
-    if (!userId && memberId) {
-      try {
-        const existingRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${memberId}&select=user_id&limit=1`,
-          { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, apikey: SUPABASE_SERVICE_KEY } }
-        );
-        const existing = await existingRes.json();
-        userId = existing[0]?.user_id || null;
-      } catch (_) {}
-    }
-
-    // Store in Supabase
+    // Store tokens — try UPDATE first, then INSERT if no existing row
     const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
+    
     try {
-      const storeRes = await fetch(`${SUPABASE_URL}/rest/v1/whoop_connections`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          apikey:        SUPABASE_SERVICE_KEY,
-          'Content-Type': 'application/json',
-          Prefer:        'resolution=merge-duplicates'
-        },
-        body: JSON.stringify({
-          user_id:         userId,
-          whoop_member_id: memberId,
-          access_token:    tokens.access_token,
-          refresh_token:   tokens.refresh_token,
-          expires_at:      expiresAt
-        })
-      });
-      if (!storeRes.ok) {
-        const errText = await storeRes.text();
-        console.error('Supabase store failed:', storeRes.status, errText.substring(0, 200));
+      // First try to UPDATE existing row
+      const updateRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${memberId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            apikey:        SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json',
+            Prefer:        'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id:       userId,
+            access_token:  tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at:    expiresAt
+          })
+        }
+      );
+
+      // If no rows updated, INSERT new row
+      if (updateRes.status === 404 || updateRes.headers.get('content-range') === '*/0') {
+        await fetch(`${SUPABASE_URL}/rest/v1/whoop_connections`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            apikey:        SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id:         userId,
+            whoop_member_id: memberId,
+            access_token:    tokens.access_token,
+            refresh_token:   tokens.refresh_token,
+            expires_at:      expiresAt
+          })
+        });
       }
+      
+      console.log('Token stored for member:', memberId, 'update status:', updateRes.status);
     } catch (err) {
       console.error('Supabase store error:', err.message);
+      // Don't fail — token exchange succeeded, continue to redirect
     }
 
-    return res.redirect(`${APP_BASE_URL}/whoop-callback.html?mid=${memberId}`);
+    // Pass token in URL so whoop-callback.html can store it in localStorage immediately
+    const encodedToken = encodeURIComponent(tokens.access_token);
+    const encodedRefresh = encodeURIComponent(tokens.refresh_token);
+    const expiry = Date.now() + (tokens.expires_in || 3600) * 1000;
+    
+    return res.redirect(
+      `${APP_BASE_URL}/whoop-callback.html?mid=${memberId}&at=${encodedToken}&rt=${encodedRefresh}&exp=${expiry}`
+    );
   }
 
   // ── FETCH ─────────────────────────────────────────────────────────────────
@@ -184,30 +200,31 @@ module.exports = async (req, res) => {
 
 async function refreshToken(refreshTok, memberId, userId) {
   try {
-    const r = await fetch(process.env.WHOOP_TOKEN_URL || 'https://api.prod.whoop.com/oauth/oauth2/token', {
+    const r = await fetch(WHOOP_TOKEN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type:    'refresh_token',
         refresh_token: refreshTok,
-        client_id:     process.env.WHOOP_CLIENT_ID,
-        client_secret: process.env.WHOOP_CLIENT_SECRET
+        client_id:     WHOOP_CLIENT_ID,
+        client_secret: WHOOP_CLIENT_SECRET
       })
     });
     const tokens = await r.json();
     if (!tokens.access_token) return null;
     const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
-    await fetch(`${process.env.SUPABASE_URL}/rest/v1/whoop_connections`, {
-      method: 'POST',
+    
+    await fetch(`${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${memberId}`, {
+      method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
-        apikey:        process.env.SUPABASE_SERVICE_KEY,
-        'Content-Type': 'application/json',
-        Prefer:        'resolution=merge-duplicates'
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        apikey:        SUPABASE_SERVICE_KEY,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        user_id: userId, whoop_member_id: memberId,
-        access_token: tokens.access_token, refresh_token: tokens.refresh_token, expires_at: expiresAt
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: expiresAt
       })
     });
     return tokens.access_token;
