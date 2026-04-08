@@ -1,5 +1,16 @@
+
+Copy
+
 {
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
   ]
 }
