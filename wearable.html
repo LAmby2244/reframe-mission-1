@@ -1345,74 +1345,28 @@ function getLumenHeaders() {
 // ══════════════════════════════════════════════════════════
 
 // WHOOP access token — set from localStorage after OAuth connect
-let whoopToken  = null;
-let whoopExpiry = 0;
-
 async function loadWhoopToken() {
-  // First load from localStorage as a starting point
-  whoopToken  = localStorage.getItem('whoop_access_token') || null;
-  whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
-
-  // If we have a member ID, always fetch the latest token from Supabase
-  // This ensures we get the auto-refreshed token from the webhook
-  const mid = localStorage.getItem('whoop_member_id');
-  if (mid) {
-    try {
-      const res = await fetch(`/api/whoop-auth?action=fetch&mid=${encodeURIComponent(mid)}`);
-      if (res.ok) {
-        const conn = await res.json();
-        if (conn.access_token) {
-          whoopToken = conn.access_token;
-          const expiresAt = conn.expires_at
-            ? new Date(conn.expires_at).getTime()
-            : Date.now() + 60 * 60 * 1000;
-          whoopExpiry = expiresAt;
-          // Update localStorage with fresh token
-          localStorage.setItem('whoop_access_token', conn.access_token);
-          localStorage.setItem('whoop_token_expiry', expiresAt.toString());
-          if (conn.refresh_token) localStorage.setItem('whoop_refresh_token', conn.refresh_token);
-        }
-      }
-    } catch(e) {
-      console.warn('Could not fetch fresh token from server, using localStorage:', e.message);
-    }
-  }
+  // Token is now managed server-side — nothing to load from localStorage
+  // wearable.html just uses the Supabase session to authenticate with /api/whoop-data
 }
 
 function isWhoopConnected() {
-  return whoopToken && Date.now() < whoopExpiry;
-}
-
-async function tryRefreshWhoopToken() {
-  const refreshToken = localStorage.getItem('whoop_refresh_token');
-  if (!refreshToken) return false;
-  try {
-    const res = await fetch(`/api/whoop-auth?action=refresh&refresh_token=${encodeURIComponent(refreshToken)}`);
-    if (!res.ok) return false;
-    const data = await res.json();
-    if (data.access_token) {
-      whoopToken = data.access_token;
-      const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString();
-      localStorage.setItem('whoop_access_token', data.access_token);
-      localStorage.setItem('whoop_token_expiry', expiresAt);
-      if (data.refresh_token) localStorage.setItem('whoop_refresh_token', data.refresh_token);
-      return true;
-    }
-  } catch(e) {
-    console.warn('Token refresh failed:', e.message);
-  }
-  return false;
+  // Connected if we have a Supabase session (authToken)
+  return !!authToken;
 }
 
 async function getWhoopData() {
-  // ── 1. Token valid — try live data ──────────────────────────────
-  if (isWhoopConnected()) {
+  // ── Connected — fetch live data using Supabase session ──────────
+  if (authToken) {
     try {
       const res = await fetch('/api/whoop-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: whoopToken })
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        }
       });
+
       if (res.ok) {
         const data = await res.json();
         if (data.recovery !== null && data.recovery !== undefined) {
@@ -1421,57 +1375,31 @@ async function getWhoopData() {
           return data;
         }
       }
-      // 401 means token actually expired despite localStorage saying otherwise
-      // Fall through to the refresh block below by clearing the expiry
-      if (res.status === 401) {
-        localStorage.setItem('whoop_token_expiry', '0');
-        whoopExpiry = 0;
-      } else {
-        // Other error — truly unreachable, show warning + simulated
+
+      // 404 = no WHOOP connection in Supabase yet
+      if (res.status === 404) {
         document.getElementById('data-source-note').innerHTML =
-          `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · <a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+          `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
+          `<span style="opacity:0.5">· Using simulated data for now</span>`;
         return simulatedData();
       }
+
+      // Other error
+      document.getElementById('data-source-note').innerHTML =
+        `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · ` +
+        `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+      return simulatedData();
+
     } catch(e) {
       console.warn('Live WHOOP fetch failed:', e.message);
       document.getElementById('data-source-note').innerHTML =
-        `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · <a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+        `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · ` +
+        `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
       return simulatedData();
     }
   }
 
-  // ── 2. Token expired — try refresh ──────────────────────────────
-  if (whoopToken && !isWhoopConnected()) {
-    document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--mid);font-style:italic;">Refreshing WHOOP connection...</span>`;
-    const refreshed = await tryRefreshWhoopToken();
-    if (refreshed) {
-      try {
-        const res = await fetch('/api/whoop-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: whoopToken })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.recovery !== null && data.recovery !== undefined) {
-            document.getElementById('data-source-note').innerHTML =
-              `<span style="color:var(--green)">● Live WHOOP data</span> · ${data.date} · ${data.days_of_history} days of history`;
-            return data;
-          }
-        }
-      } catch(e) {
-        console.warn('Retry after refresh failed:', e.message);
-      }
-    }
-    // Refresh failed — redirect to reconnect
-    document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--mid);font-style:italic;">Reconnecting to WHOOP...</span>`;
-    setTimeout(() => { window.location.href = '/api/whoop-auth?action=connect'; }, 800);
-    return null;
-  }
-
-  // ── 3. No token at all — connect prompt + simulated ─────────────
+  // ── No session — simulated only ─────────────────────────────────
   document.getElementById('data-source-note').innerHTML =
     `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
     `<span style="opacity:0.5">· Using simulated data for now</span>`;
