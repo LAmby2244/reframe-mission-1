@@ -1427,15 +1427,22 @@ async function getWhoopData() {
       }
     }
     // Refresh failed — auto-reconnect, no simulated fallback
-    window.location.href = '/api/whoop-auth?action=connect';
+    document.getElementById('data-source-note').innerHTML =
+      `<span style="color:var(--mid);font-style:italic;">Reconnecting to WHOOP...</span>`;
+    setTimeout(() => { window.location.href = '/api/whoop-auth?action=connect'; }, 500);
     return null;
   }
 
-  // Not connected at all — show connect prompt
+  // Not connected at all — show connect prompt and use simulated
   if (!whoopToken) {
     document.getElementById('data-source-note').innerHTML =
       `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
       `<span style="opacity:0.5">· Using simulated data for now</span>`;
+  } else {
+    // Has token but something else went wrong with live fetch — show reconnect
+    document.getElementById('data-source-note').innerHTML =
+      `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Reconnect WHOOP →</a>`;
+    return null;
   }
 
   // Simulated fallback — same scenarios as before
