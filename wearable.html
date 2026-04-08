@@ -1379,6 +1379,13 @@ async function getWhoopData() {
         }
       }
 
+      // 401 = no WHOOP connected for this user — show connect prompt, no simulated data
+      if (res.status === 401) {
+        document.getElementById('data-source-note').innerHTML =
+          `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a>`;
+        return null;
+      }
+
       // 404 = no WHOOP connection in Supabase yet
       if (res.status === 404) {
         document.getElementById('data-source-note').innerHTML =
@@ -1862,16 +1869,46 @@ async function init() {
 }
 
 function renderLumenOpening() {
+  // Remove any existing opening
   const existing = document.getElementById('lumen-opening');
   if (existing) existing.remove();
 
   const d = currentData;
   const mode = currentMode;
-  if (!d) return;
+
+  // Build a contextual observation based on the signal
+  let obs = '';
+
+  if (mode === 'red') {
+    if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
+      obs = `Your HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
+    } else if (d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1])) {
+      obs = `HRV has been declining for several days without a change in training load. Something has been accumulating.`;
+    } else {
+      obs = `Your body registered significant load today with no workout to explain it. Worth naming what happened.`;
+    }
+  } else if (mode === 'amber') {
+    obs = `Recovery is in the middle range - something is asking for attention before it becomes a pattern.`;
+  } else {
+    // Green - the nuanced read
+    const noWorkout = !d.workout_logged;
+    const lastWo = d.last_workout_days_ago;
+    const hrvBelowBaseline = d.hrv < d.hrv_baseline;
+
+    if (noWorkout && lastWo > 3) {
+      obs = `Recovery is holding well - but no workout in ${lastWo} days. The body is restoring, not being challenged. What's the thread, and is rest itself the pattern?`;
+    } else if (hrvBelowBaseline) {
+      obs = `Recovery is strong but HRV is still below your baseline. Something is working - but the nervous system hasn't fully let go yet. What's still being held?`;
+    } else {
+      obs = `Several consecutive days of strong recovery. There's a thread running through this. Let's name it before it becomes unconscious again.`;
+    }
+  }
+
+  // Only show if we have something useful to say
+  if (!obs) return;
 
   const container = document.getElementById('data-section');
-  const ctaEl = container?.querySelector('.signal-cta');
-  if (!ctaEl) return;
+  const ctaEl = container.querySelector('.signal-cta');
 
   const div = document.createElement('div');
   div.id = 'lumen-opening';
@@ -1886,66 +1923,10 @@ function renderLumenOpening() {
     <div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);
       display:flex;align-items:center;justify-content:center;
       font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div>
-    <div id="lumen-opening-text" style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;opacity:0.5;">...</div>
+    <div style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">${obs}</div>
   `;
+
   ctaEl.parentNode.insertBefore(div, ctaEl);
-
-  // Analyse the trend arc
-  const recTrend = d.recovery_trend || [];
-  const todayRec = recTrend[0] || d.recovery;
-  const prevDays = recTrend.slice(1);
-  const prevLow = prevDays.length ? Math.min(...prevDays) : null;
-  const prevHigh = prevDays.length ? Math.max(...prevDays) : null;
-  const daysBelowBaseline = prevDays.filter(r => r < (d.recovery_baseline || 50)).length;
-  const turnedCorner = prevDays.length >= 2 && daysBelowBaseline >= 1 && todayRec > (d.recovery_baseline || 50);
-  const trendStr = recTrend.length > 1
-    ? recTrend.map((r, i) => `Day -${i}: ${r}%`).join(', ')
-    : `Today: ${d.recovery}%`;
-
-  // Static fallback
-  let fallback = '';
-  if (turnedCorner) {
-    fallback = `You've come back from ${daysBelowBaseline} day${daysBelowBaseline > 1 ? 's' : ''} below baseline to ${d.recovery}% today. Something shifted. The questions below will help you name what that was before it slips back into the background.`;
-  } else if (mode === 'red') {
-    fallback = `Your body slept but didn't recover. That gap usually means something non-physical was running. The questions below will help you name it.`;
-  } else if (mode === 'amber') {
-    fallback = `Your body is in the middle — not crisis, but something is asking for attention. A small thing noticed now is easier to work with than a pattern later.`;
-  } else {
-    fallback = `Several strong days running. Your body is telling you something is working. The questions below will help you make it conscious before it slips back.`;
-  }
-
-  // Build Lumen prompt with explicit arc framing
-  const systemExtra = `You are writing the opening observation for the Body Signal tool.
-
-Recovery trend (most recent first): ${trendStr}
-Personal baseline: ${d.recovery_baseline}%
-Today: ${d.recovery}% recovery, ${d.hrv}ms HRV (baseline ${d.hrv_baseline}ms)
-Strain: ${d.strain}${d.workout_logged ? ', workout logged' : ''}
-Signal: ${mode}
-${turnedCorner ? `IMPORTANT: This person turned a corner today — they had ${daysBelowBaseline} day(s) below baseline (low of ${prevLow}%) and have come back to ${todayRec}% today. This is the most important thing to name.` : ''}
-
-Your job: Read the trend arc, not just today in isolation. What does the journey from low to today suggest about what changed? Write 2-3 sentences that name the arc specifically, offer one observation about what it might mean beneath the surface, then end with a direct invitation to tap the button below — something like "The questions below will help you name what shifted" or "Tap below and let's find out what moved." Make it feel like the natural next step, not an afterthought. Warm, grounded, direct. Under 65 words. No preamble. Never clinical.`;
-
-  const authData = JSON.parse(localStorage.getItem('sb-aoqjfqmlcccsosddqnws-auth-token') || '{}');
-  const token = authData?.access_token || '';
-
-  fetch('/api/lumen', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({
-      systemExtra,
-      messages: [{ role: 'user', content: 'Write the opening observation.' }]
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
-    const el = document.getElementById('lumen-opening-text');
-    if (el) { el.style.opacity = '1'; el.innerHTML = data.reply || fallback; }
-  })
-  .catch(() => {
-    const el = document.getElementById('lumen-opening-text');
-    if (el) { el.style.opacity = '1'; el.innerHTML = fallback; }
-  });
 }
 
 // ══════════════════════════════════════════════════════════
