@@ -1861,154 +1861,58 @@ async function init() {
   renderLumenOpening();
 }
 
-function renderLumenOpening() {
-  // Remove any existing opening
-  const existing = document.getElementById('lumen-opening');
-  if (existing) existing.remove();
+function renderLumenOpening(data, pattern) {
+  const el = document.getElementById('lumen-opening');
+  if (!el || !data) return;
 
-  const d = currentData;
-  const mode = currentMode;
+  // Show loading state
+  el.innerHTML = '<em style="opacity:0.5">Lumen is reading your signal...</em>';
 
-  // Build a contextual observation based on the signal
-  let obs = '';
+  // Build a rich context for Lumen using the actual data
+  const direction = data.rec_z > 0 ? 'above' : 'below';
+  const hrvDir = data.hrv_z > 0 ? 'above' : 'below';
+  const trend = data.days_trend && data.days_trend.length >= 3
+    ? (data.days_trend[data.days_trend.length-1] > data.days_trend[0] ? 'declining' : 'stable or rising')
+    : 'insufficient history';
 
-  if (mode === 'red') {
-    if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
-      obs = `Your HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
-    } else if (d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1])) {
-      obs = `HRV has been declining for several days without a change in training load. Something has been accumulating.`;
-    } else {
-      obs = `Your body registered significant load today with no workout to explain it. Worth naming what happened.`;
+  const systemExtra = `You are writing the opening observation for the Body Signal tool.
+
+The user's WHOOP data today:
+- Recovery: ${data.recovery}% (${direction} their ${data.recovery_baseline}% baseline, z-score ${data.rec_z?.toFixed(1)})
+- HRV: ${data.hrv}ms (${hrvDir} their ${data.hrv_baseline}ms baseline, z-score ${data.hrv_z?.toFixed(1)})
+- Strain: ${data.strain} (baseline ${data.strain_baseline}, workout ${data.workout_logged ? 'logged' : 'not logged'})
+- Sleep: ${data.sleep_score}% performance, ${data.sleep_hours}h of ${data.sleep_need}h needed
+- 7-day sleep debt: ${data.sleep_debt_7d}h
+- HRV 7-day trend: ${trend}
+- Signal state: ${pattern?.title || data.signal_state} (confidence: ${data.signal_confidence})
+- Exploration score: ${data.exploration_score}/10
+- Days of history: ${data.days_of_history}
+
+Write 2-3 sentences as Lumen's opening observation. Be specific about what the data actually shows — name the real numbers where they're meaningful. Notice any nuance or tension in the data (e.g. good recovery but high strain, or HRV above baseline but declining trend). Then end with one warm sentence that invites them to explore using the questions below. Do not ask the question yourself — just open the door. Keep it under 60 words total. No preamble, no "your data shows", just speak directly.`;
+
+  // Get auth token
+  const authData = JSON.parse(localStorage.getItem('sb-aoqjfqmlcccsosddqnws-auth-token') || '{}');
+  const token = authData?.access_token || '';
+
+  fetch('/api/lumen', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({
+      systemExtra,
+      messages: [{ role: 'user', content: 'Write the opening observation for this person based on their data.' }]
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.reply) {
+      el.innerHTML = `<em>${d.reply}</em>`;
     }
-  } else if (mode === 'amber') {
-    obs = `Recovery is in the middle range - something is asking for attention before it becomes a pattern.`;
-  } else {
-    // Green - the nuanced read
-    const noWorkout = !d.workout_logged;
-    const lastWo = d.last_workout_days_ago;
-    const hrvBelowBaseline = d.hrv < d.hrv_baseline;
-
-    if (noWorkout && lastWo > 3) {
-      obs = `Recovery is holding well - but no workout in ${lastWo} days. The body is restoring, not being challenged. What's the thread, and is rest itself the pattern?`;
-    } else if (hrvBelowBaseline) {
-      obs = `Recovery is strong but HRV is still below your baseline. Something is working - but the nervous system hasn't fully let go yet. What's still being held?`;
-    } else {
-      obs = `Several consecutive days of strong recovery. There's a thread running through this. Let's name it before it becomes unconscious again.`;
-    }
-  }
-
-  // Only show if we have something useful to say
-  if (!obs) return;
-
-  const container = document.getElementById('data-section');
-  const ctaEl = container.querySelector('.signal-cta');
-
-  const div = document.createElement('div');
-  div.id = 'lumen-opening';
-  div.style.cssText = `
-    display: flex; align-items: flex-start; gap: 12px;
-    background: rgba(255,190,25,0.07);
-    border: 1px solid rgba(255,190,25,0.15);
-    border-radius: 12px; padding: 14px 16px;
-    margin-bottom: 20px; margin-top: 4px;
-  `;
-  div.innerHTML = `
-    <div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);
-      display:flex;align-items:center;justify-content:center;
-      font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div>
-    <div style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">${obs}</div>
-  `;
-
-  ctaEl.parentNode.insertBefore(div, ctaEl);
+  })
+  .catch(() => {
+    // Fallback to static observation if Lumen unavailable
+    el.innerHTML = `<em>${pattern?.lumenOpening || 'Something in your data is worth exploring today.'}</em>`;
+  });
 }
-
-// ══════════════════════════════════════════════════════════
-// QUESTIONS
-// ══════════════════════════════════════════════════════════
-
-function beginQuestions() {
-  currentQ = 0;
-  answers = {};
-  buildQuestionPanels();
-  showScreen('questions');
-  updateQProgress();
-}
-
-function buildQuestionPanels() {
-  const qs = currentPattern.questions;
-  const isRed = currentMode === 'red';
-
-  // Header
-  document.getElementById('q-header').className = 'q-header ' + (currentMode === 'red' ? 'red-header' : currentMode === 'amber' ? 'amber-header' : 'green-header');
-  document.getElementById('q-mode-label').textContent = currentPattern.mode_label;
-  document.getElementById('q-header-title').innerHTML = currentPattern.qHeader;
-  document.getElementById('q-header-sub').textContent = currentPattern.qSub;
-
-  // Dots
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('dot-' + i);
-    dot.className = 'q-dot' + (i === 0 ? (' ' + (currentMode === 'red' ? 'active-red' : currentMode === 'amber' ? 'active-amber' : 'active-green')) : '');
-  }
-
-  // Build panels
-  const container = document.getElementById('q-panels');
-  const btnClass = currentMode === 'red' ? 'btn-next-red' : currentMode === 'amber' ? 'btn-next-amber' : 'btn-next-green';
-  container.innerHTML = qs.map((q, i) => `
-    <div class="q-panel${i === 0 ? ' active' : ''}" id="qp-${i}">
-      <div class="q-label">Question ${i+1}</div>
-      <div class="q-text">${q.q}</div>
-      <div class="q-sub">${q.sub}</div>
-      <textarea id="qa-${i}" placeholder="Write here..." rows="4"
-        oninput="updateWC(${i})"></textarea>
-      <div class="wc" id="wc-${i}">0 words</div>
-      <div class="q-nav">
-        ${i > 0 ? `<button class="btn-prev-q" onclick="prevQ(${i})">←</button>` : ''}
-        <button class="btn-next-q ${btnClass}"
-          onclick="${i < qs.length - 1 ? `nextQ(${i})` : 'submitEntry()'}">
-          ${i < qs.length - 1 ? 'Next →' : 'See what Lumen notices →'}
-        </button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function updateWC(i) {
-  const el = document.getElementById('qa-' + i);
-  const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
-  document.getElementById('wc-' + i).textContent = w + ' word' + (w !== 1 ? 's' : '');
-}
-
-function nextQ(i) {
-  const el = document.getElementById('qa-' + i);
-  answers[i] = el ? el.value.trim() : '';
-  document.getElementById('qp-' + i).classList.remove('active');
-  currentQ = i + 1;
-  document.getElementById('qp-' + currentQ).classList.add('active');
-  updateQProgress();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function prevQ(i) {
-  document.getElementById('qp-' + i).classList.remove('active');
-  currentQ = i - 1;
-  document.getElementById('qp-' + currentQ).classList.add('active');
-  updateQProgress();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function updateQProgress() {
-  const total = currentPattern.questions.length;
-  const isRed = currentMode === 'red';
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('dot-' + i);
-    if (i < currentQ) dot.className = 'q-dot done';
-    else if (i === currentQ) dot.className = 'q-dot ' + (isRed ? 'active-red' : 'active-green');
-    else dot.className = 'q-dot';
-  }
-  document.getElementById('q-progress-label').textContent =
-    `Question ${currentQ + 1} of ${total}`;
-}
-
 async function submitEntry() {
   // Collect last answer
   const lastEl = document.getElementById('qa-' + currentQ);
