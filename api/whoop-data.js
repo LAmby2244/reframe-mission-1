@@ -100,15 +100,36 @@ export default async function handler(req) {
   // Accept access_token directly OR look up from Supabase using mid
   let { access_token, mid } = body;
 
-  // If no access_token but we have mid, fetch from Supabase
-  if (!access_token && mid && process.env.SUPABASE_URL) {
+  // Get user_id from Supabase JWT in Authorization header — most reliable source of identity
+  let userId = null;
+  const authHeader = req.headers.get('Authorization');
+  if (authHeader) {
     try {
-      const connRes = await fetch(
-        `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at&limit=1`,
+      const jwt = authHeader.replace('Bearer ', '');
+      const payload = JSON.parse(atob(jwt.split('.')[1]));
+      userId = payload.sub || null;
+    } catch (_) {}
+  }
+
+  // Look up WHOOP connection by user_id first (most reliable), then fall back to mid
+  if (!access_token && process.env.SUPABASE_URL) {
+    const lookup = userId
+      ? `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?user_id=eq.${userId}&select=access_token,refresh_token,expires_at,whoop_member_id&limit=1`
+      : mid
+        ? `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at,whoop_member_id&limit=1`
+        : null;
+    if (!lookup) {
+      return new Response(JSON.stringify({ error: 'No WHOOP connection found — please connect your WHOOP', data_source: 'error' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    try {
+      const connRes = await fetch(lookup,
         { headers: { Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`, apikey: process.env.SUPABASE_SERVICE_KEY } }
       );
       const rows = await connRes.json();
       if (rows.length) {
+        mid = rows[0].whoop_member_id || mid;
         access_token = rows[0].access_token;
         // Refresh if expired
         if (new Date(rows[0].expires_at) <= new Date()) {
