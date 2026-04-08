@@ -40,10 +40,14 @@ module.exports = async (req, res) => {
 
     // ── Fetch WHOOP data ─────────────────────────────────────────────────
     const today = new Date();
-    const endStr = today.toISOString().split('T')[0];
+    // Add 1 day buffer to end date so today's recovery is included if scored
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 1);
+    const endStr = endDate.toISOString().split('T')[0];
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - 28);
     const startStr = startDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
 
     const headers = { Authorization: `Bearer ${access_token}` };
 
@@ -86,6 +90,7 @@ module.exports = async (req, res) => {
     if (!recoveries.length) {
       return res.status(404).json({ error: 'No recovery data yet today', data_source: 'error' });
     }
+    // Use most recent recovery record regardless of date
 
     // ── Today's metrics ──────────────────────────────────────────────────
     const latest = recoveries[0];
@@ -107,7 +112,7 @@ module.exports = async (req, res) => {
     // ── Last workout ─────────────────────────────────────────────────────
     const workoutDates = workouts.map(w => w.start?.split('T')[0]).filter(Boolean).sort().reverse();
     const lastWorkoutDate = workoutDates[0] || null;
-    const todayStr = endStr;
+
     const lastWorkoutDaysAgo = lastWorkoutDate
       ? Math.round((new Date(todayStr) - new Date(lastWorkoutDate)) / 86400000)
       : null;
