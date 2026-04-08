@@ -50,9 +50,10 @@
     <p class="error-msg" id="error"></p>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // This page receives the WHOOP token via query params from whoop-auth.js
-    // Stores it in localStorage and redirects to wearable.html
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
 
     function fail(msg) {
       document.getElementById('spinner').style.display = 'none';
@@ -71,24 +72,46 @@
       setTimeout(() => { window.location.href = '/wearable.html'; }, 1200);
     }
 
-    (function() {
+    (async function() {
       try {
+        // Check for error in URL (OAuth failure)
         const params = new URLSearchParams(window.location.search);
-        const token   = params.get('wt');
-        const refresh = params.get('wr');
-        const member  = params.get('wm');
-
-        if (!token) {
-          fail('No token received from WHOOP.');
+        const error = params.get('error');
+        if (error) {
+          fail('WHOOP connection failed: ' + error);
           return;
         }
 
-        // Store with 24-hour expiry
-        const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString();
-        localStorage.setItem('whoop_access_token',  token);
-        localStorage.setItem('whoop_refresh_token', refresh || '');
+        // Token is stored server-side in Supabase whoop_connections
+        // We just need to fetch it from there using the authenticated session
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { data: { session } } = await sb.auth.getSession();
+
+        if (!session) {
+          fail('Not signed in. Please sign in first.');
+          return;
+        }
+
+        // Fetch the stored token from whoop_connections
+        const { data: conn, error: connErr } = await sb
+          .from('whoop_connections')
+          .select('access_token, refresh_token, expires_at')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (connErr || !conn) {
+          fail('Could not retrieve WHOOP connection.');
+          return;
+        }
+
+        // Store in localStorage for use by wearable.html
+        const expiresAt = conn.expires_at
+          ? new Date(conn.expires_at).getTime().toString()
+          : (Date.now() + 24 * 60 * 60 * 1000).toString();
+
+        localStorage.setItem('whoop_access_token',  conn.access_token);
+        localStorage.setItem('whoop_refresh_token', conn.refresh_token || '');
         localStorage.setItem('whoop_token_expiry',  expiresAt);
-        localStorage.setItem('whoop_member_id',     member || '');
 
         succeed();
       } catch(e) {
