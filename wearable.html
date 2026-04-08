@@ -1351,8 +1351,13 @@ async function loadWhoopToken() {
 }
 
 function isWhoopConnected() {
-  // Connected if we have a Supabase session (authToken)
   return !!authToken;
+}
+
+function connectWhoop() {
+  // Pass Supabase session token so we can link user_id on callback
+  const token = encodeURIComponent(authToken || '');
+  window.location.href = `/api/whoop-auth?action=connect&token=${token}`;
 }
 
 async function getWhoopData() {
@@ -1379,7 +1384,7 @@ async function getWhoopData() {
       // 404 = no WHOOP connection in Supabase yet
       if (res.status === 404) {
         document.getElementById('data-source-note').innerHTML =
-          `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
+          `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
           `<span style="opacity:0.5">· Using simulated data for now</span>`;
         return simulatedData();
       }
@@ -1387,21 +1392,21 @@ async function getWhoopData() {
       // Other error
       document.getElementById('data-source-note').innerHTML =
         `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · ` +
-        `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+        `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange)">Reconnect →</a>`;
       return simulatedData();
 
     } catch(e) {
       console.warn('Live WHOOP fetch failed:', e.message);
       document.getElementById('data-source-note').innerHTML =
         `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · ` +
-        `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+        `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange)">Reconnect →</a>`;
       return simulatedData();
     }
   }
 
   // ── No session — simulated only ─────────────────────────────────
   document.getElementById('data-source-note').innerHTML =
-    `<a href="/api/whoop-auth?action=connect" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
+    `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
     `<span style="opacity:0.5">· Using simulated data for now</span>`;
   return simulatedData();
 }
