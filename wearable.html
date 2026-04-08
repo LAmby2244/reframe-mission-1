@@ -1348,9 +1348,35 @@ function getLumenHeaders() {
 let whoopToken  = null;
 let whoopExpiry = 0;
 
-function loadWhoopToken() {
+async function loadWhoopToken() {
+  // First load from localStorage as a starting point
   whoopToken  = localStorage.getItem('whoop_access_token') || null;
   whoopExpiry = parseInt(localStorage.getItem('whoop_token_expiry') || '0');
+
+  // If we have a member ID, always fetch the latest token from Supabase
+  // This ensures we get the auto-refreshed token from the webhook
+  const mid = localStorage.getItem('whoop_member_id');
+  if (mid) {
+    try {
+      const res = await fetch(`/api/whoop-auth?action=fetch&mid=${encodeURIComponent(mid)}`);
+      if (res.ok) {
+        const conn = await res.json();
+        if (conn.access_token) {
+          whoopToken = conn.access_token;
+          const expiresAt = conn.expires_at
+            ? new Date(conn.expires_at).getTime()
+            : Date.now() + 60 * 60 * 1000;
+          whoopExpiry = expiresAt;
+          // Update localStorage with fresh token
+          localStorage.setItem('whoop_access_token', conn.access_token);
+          localStorage.setItem('whoop_token_expiry', expiresAt.toString());
+          if (conn.refresh_token) localStorage.setItem('whoop_refresh_token', conn.refresh_token);
+        }
+      }
+    } catch(e) {
+      console.warn('Could not fetch fresh token from server, using localStorage:', e.message);
+    }
+  }
 }
 
 function isWhoopConnected() {
@@ -1395,13 +1421,23 @@ async function getWhoopData() {
           return data;
         }
       }
+      // 401 means token actually expired despite localStorage saying otherwise
+      // Fall through to the refresh block below by clearing the expiry
+      if (res.status === 401) {
+        localStorage.setItem('whoop_token_expiry', '0');
+        whoopExpiry = 0;
+      } else {
+        // Other error — truly unreachable, show warning + simulated
+        document.getElementById('data-source-note').innerHTML =
+          `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · <a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+        return simulatedData();
+      }
     } catch(e) {
       console.warn('Live WHOOP fetch failed:', e.message);
+      document.getElementById('data-source-note').innerHTML =
+        `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · <a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
+      return simulatedData();
     }
-    // Token valid but API call failed — show warning, use simulated
-    document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · <a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
-    return simulatedData();
   }
 
   // ── 2. Token expired — try refresh ──────────────────────────────
@@ -2301,8 +2337,7 @@ function initIntroState() {
 // ══════════════════════════════════════════════════════════
 initAuth().then(async () => {
   if (!authToken) return;
-  loadWhoopToken();       // read fresh from localStorage
-  handleWhoopCallback();
+  await loadWhoopToken();  // fetch fresh token from Supabase
   await loadEntries();
   initIntroState();
   await init();
