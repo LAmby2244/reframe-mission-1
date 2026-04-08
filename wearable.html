@@ -1863,34 +1863,33 @@ async function init() {
 
 function renderLumenOpening(data, pattern) {
   const el = document.getElementById('lumen-opening');
-  if (!el || !data) return;
+  if (!el) return;
+
+  // If no data yet, show nothing
+  if (!data) { el.innerHTML = ''; return; }
 
   // Show loading state
   el.innerHTML = '<em style="opacity:0.5">Lumen is reading your signal...</em>';
 
-  // Build a rich context for Lumen using the actual data
-  const direction = data.rec_z > 0 ? 'above' : 'below';
-  const hrvDir = data.hrv_z > 0 ? 'above' : 'below';
-  const trend = data.days_trend && data.days_trend.length >= 3
-    ? (data.days_trend[data.days_trend.length-1] > data.days_trend[0] ? 'declining' : 'stable or rising')
-    : 'insufficient history';
+  const direction = (data.rec_z || 0) > 0 ? 'above' : 'below';
+  const hrvDir = (data.hrv_z || 0) > 0 ? 'above' : 'below';
+  const trendArr = data.days_trend || [];
+  const trendDesc = trendArr.length >= 3
+    ? (trendArr[trendArr.length-1] > trendArr[0] ? 'been declining over recent days' : 'been stable or rising recently')
+    : 'limited history so far';
 
-  const systemExtra = `You are writing the opening observation for the Body Signal tool.
+  const systemExtra = `You are writing the opening observation for the Body Signal tool — 2-3 sentences maximum.
 
-The user's WHOOP data today:
-- Recovery: ${data.recovery}% (${direction} their ${data.recovery_baseline}% baseline, z-score ${data.rec_z?.toFixed(1)})
-- HRV: ${data.hrv}ms (${hrvDir} their ${data.hrv_baseline}ms baseline, z-score ${data.hrv_z?.toFixed(1)})
-- Strain: ${data.strain} (baseline ${data.strain_baseline}, workout ${data.workout_logged ? 'logged' : 'not logged'})
-- Sleep: ${data.sleep_score}% performance, ${data.sleep_hours}h of ${data.sleep_need}h needed
-- 7-day sleep debt: ${data.sleep_debt_7d}h
-- HRV 7-day trend: ${trend}
-- Signal state: ${pattern?.title || data.signal_state} (confidence: ${data.signal_confidence})
-- Exploration score: ${data.exploration_score}/10
-- Days of history: ${data.days_of_history}
+The person\'s WHOOP data today:
+- Recovery: ${data.recovery}% (${direction} their ${data.recovery_baseline}% personal baseline)
+- HRV: ${data.hrv}ms (${hrvDir} their ${data.hrv_baseline}ms baseline)
+- Strain: ${data.strain} — workout ${data.workout_logged ? 'logged today' : 'not logged today'}
+- Sleep: ${data.sleep_score}% performance, ${data.sleep_hours}h slept of ${data.sleep_need}h needed
+- HRV has ${trendDesc}
+- Signal: ${pattern ? pattern.title : data.signal_state} (exploration score: ${data.exploration_score}/10)
 
-Write 2-3 sentences as Lumen's opening observation. Be specific about what the data actually shows — name the real numbers where they're meaningful. Notice any nuance or tension in the data (e.g. good recovery but high strain, or HRV above baseline but declining trend). Then end with one warm sentence that invites them to explore using the questions below. Do not ask the question yourself — just open the door. Keep it under 60 words total. No preamble, no "your data shows", just speak directly.`;
+Write as Lumen. Be specific — name the real numbers where meaningful. Notice any nuance or tension (e.g. good recovery but declining HRV, or high strain without a workout). End with one warm sentence that opens the door to the questions below without asking one yourself. Under 60 words. No preamble.`;
 
-  // Get auth token
   const authData = JSON.parse(localStorage.getItem('sb-aoqjfqmlcccsosddqnws-auth-token') || '{}');
   const token = authData?.access_token || '';
 
@@ -1899,20 +1898,106 @@ Write 2-3 sentences as Lumen's opening observation. Be specific about what the d
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify({
       systemExtra,
-      messages: [{ role: 'user', content: 'Write the opening observation for this person based on their data.' }]
+      messages: [{ role: 'user', content: 'Write the opening observation.' }]
     })
   })
   .then(r => r.json())
   .then(d => {
-    if (d.reply) {
-      el.innerHTML = `<em>${d.reply}</em>`;
-    }
+    if (d.reply) el.innerHTML = `<em>${d.reply}</em>`;
+    else el.innerHTML = `<em>${pattern?.lumenOpening || 'Something worth exploring today.'}</em>`;
   })
   .catch(() => {
-    // Fallback to static observation if Lumen unavailable
-    el.innerHTML = `<em>${pattern?.lumenOpening || 'Something in your data is worth exploring today.'}</em>`;
+    el.innerHTML = `<em>${pattern?.lumenOpening || 'Something worth exploring today.'}</em>`;
   });
 }
+
+// ══════════════════════════════════════════════════════════
+// QUESTIONS
+// ══════════════════════════════════════════════════════════
+
+function beginQuestions() {
+  currentQ = 0;
+  answers = {};
+  buildQuestionPanels();
+  showScreen('questions');
+  updateQProgress();
+}
+
+function buildQuestionPanels() {
+  const qs = currentPattern.questions;
+  const isRed = currentMode === 'red';
+
+  // Header
+  document.getElementById('q-header').className = 'q-header ' + (currentMode === 'red' ? 'red-header' : currentMode === 'amber' ? 'amber-header' : 'green-header');
+  document.getElementById('q-mode-label').textContent = currentPattern.mode_label;
+  document.getElementById('q-header-title').innerHTML = currentPattern.qHeader;
+  document.getElementById('q-header-sub').textContent = currentPattern.qSub;
+
+  // Dots
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'q-dot' + (i === 0 ? (' ' + (currentMode === 'red' ? 'active-red' : currentMode === 'amber' ? 'active-amber' : 'active-green')) : '');
+  }
+
+  // Build panels
+  const container = document.getElementById('q-panels');
+  const btnClass = currentMode === 'red' ? 'btn-next-red' : currentMode === 'amber' ? 'btn-next-amber' : 'btn-next-green';
+  container.innerHTML = qs.map((q, i) => `
+    <div class="q-panel${i === 0 ? ' active' : ''}" id="qp-${i}">
+      <div class="q-label">Question ${i+1}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="q-sub">${q.sub}</div>
+      <textarea id="qa-${i}" placeholder="Write here..." rows="4"
+        oninput="updateWC(${i})"></textarea>
+      <div class="wc" id="wc-${i}">0 words</div>
+      <div class="q-nav">
+        ${i > 0 ? `<button class="btn-prev-q" onclick="prevQ(${i})">←</button>` : ''}
+        <button class="btn-next-q ${btnClass}"
+          onclick="${i < qs.length - 1 ? `nextQ(${i})` : 'submitEntry()'}">
+          ${i < qs.length - 1 ? 'Next →' : 'See what Lumen notices →'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateWC(i) {
+  const el = document.getElementById('qa-' + i);
+  const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+  document.getElementById('wc-' + i).textContent = w + ' word' + (w !== 1 ? 's' : '');
+}
+
+function nextQ(i) {
+  const el = document.getElementById('qa-' + i);
+  answers[i] = el ? el.value.trim() : '';
+  document.getElementById('qp-' + i).classList.remove('active');
+  currentQ = i + 1;
+  document.getElementById('qp-' + currentQ).classList.add('active');
+  updateQProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prevQ(i) {
+  document.getElementById('qp-' + i).classList.remove('active');
+  currentQ = i - 1;
+  document.getElementById('qp-' + currentQ).classList.add('active');
+  updateQProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateQProgress() {
+  const total = currentPattern.questions.length;
+  const isRed = currentMode === 'red';
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    if (i < currentQ) dot.className = 'q-dot done';
+    else if (i === currentQ) dot.className = 'q-dot ' + (isRed ? 'active-red' : 'active-green');
+    else dot.className = 'q-dot';
+  }
+  document.getElementById('q-progress-label').textContent =
+    `Question ${currentQ + 1} of ${total}`;
+}
+
 async function submitEntry() {
   // Collect last answer
   const lastEl = document.getElementById('qa-' + currentQ);
