@@ -1193,7 +1193,6 @@
     <!-- CTA -->
     <div class="signal-cta">
       <button class="btn-primary-signal" id="btn-begin" onclick="beginQuestions()">—</button>
-      <button class="btn-skip" onclick="showHistory()">See past entries instead →</button>
     </div>
 
     <p class="signal-intro" style="margin-top:28px; margin-bottom:0; font-size:13px;">
@@ -1358,6 +1357,27 @@ function isWhoopConnected() {
   return whoopToken && Date.now() < whoopExpiry;
 }
 
+async function tryRefreshWhoopToken() {
+  const refreshToken = localStorage.getItem('whoop_refresh_token');
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`/api/whoop-auth?action=refresh&refresh_token=${encodeURIComponent(refreshToken)}`);
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (data.access_token) {
+      whoopToken = data.access_token;
+      const expiresAt = (Date.now() + 24 * 60 * 60 * 1000).toString();
+      localStorage.setItem('whoop_access_token', data.access_token);
+      localStorage.setItem('whoop_token_expiry', expiresAt);
+      if (data.refresh_token) localStorage.setItem('whoop_refresh_token', data.refresh_token);
+      return true;
+    }
+  } catch(e) {
+    console.warn('Token refresh failed:', e.message);
+  }
+  return false;
+}
+
 async function getWhoopData() {
   // Try live WHOOP data first
   if (isWhoopConnected()) {
@@ -1377,7 +1397,34 @@ async function getWhoopData() {
         }
       }
     } catch(e) {
-      console.warn('Live WHOOP fetch failed, using simulated:', e.message);
+      console.warn('Live WHOOP fetch failed:', e.message);
+    }
+  }
+
+  // Token expired — try auto-refresh before giving up
+  if (whoopToken && !isWhoopConnected()) {
+    document.getElementById('data-source-note').innerHTML =
+      `<span style="color:var(--mid);font-style:italic;">Refreshing your WHOOP connection...</span>`;
+    const refreshed = await tryRefreshWhoopToken();
+    if (refreshed) {
+      // Retry with fresh token
+      try {
+        const res = await fetch('/api/whoop-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: whoopToken })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.recovery !== null && data.recovery !== undefined) {
+            document.getElementById('data-source-note').innerHTML =
+              `<span style="color:var(--green)">● Live WHOOP data</span> · ${data.date} · ${data.days_of_history} days of history`;
+            return data;
+          }
+        }
+      } catch(e) {
+        console.warn('Retry after refresh failed:', e.message);
+      }
     }
   }
 
@@ -1388,7 +1435,7 @@ async function getWhoopData() {
       `<span style="opacity:0.5">· Using simulated data for now</span>`;
   } else {
     document.getElementById('data-source-note').innerHTML =
-      `<span style="color:var(--yellow)">⚠ WHOOP session expired</span> · ` +
+      `<span style="color:var(--yellow)">⚠ Could not refresh WHOOP</span> · ` +
       `<a href="/api/whoop-auth?action=connect" style="color:var(--orange)">Reconnect →</a>`;
   }
 
@@ -1770,22 +1817,25 @@ async function init() {
 
   const hrvEl = document.getElementById('m-hrv');
   hrvEl.textContent = currentData.hrv;
-  const hrv_ok = currentData.hrv >= currentData.hrv_baseline * 0.9;
+  const hrv_ok = currentData.hrv_baseline
+    ? currentData.hrv >= currentData.hrv_baseline * 0.9
+    : true;
   hrvEl.className = 'metric-value ' + (hrv_ok ? 'val-green' : 'val-red');
 
   const strainEl = document.getElementById('m-strain');
-  strainEl.textContent = currentData.strain.toFixed(1);
+  strainEl.textContent = currentData.strain != null ? currentData.strain.toFixed(1) : '—';
   strainEl.className = 'metric-value val-amber';
 
   // Trends
-  const lastTrend = currentData.days_trend[currentData.days_trend.length - 1];
+  const daysTrend = currentData.days_trend || [];
+  const lastTrend = daysTrend.length ? daysTrend[daysTrend.length - 1] : 0;
   document.getElementById('t-recovery').innerHTML = lastTrend > 0
     ? '<span class="trend-up">↑ vs yesterday</span>'
     : lastTrend < 0
     ? '<span class="trend-down">↓ vs yesterday</span>'
     : '<span class="trend-flat">— steady</span>';
 
-  document.getElementById('t-hrv').innerHTML = currentData.hrv >= currentData.hrv_baseline
+  document.getElementById('t-hrv').innerHTML = (!currentData.hrv_baseline || currentData.hrv >= currentData.hrv_baseline)
     ? '<span class="trend-up">↑ above baseline</span>'
     : '<span class="trend-down">↓ below baseline</span>';
 
