@@ -907,6 +907,72 @@
       background: none; border: none; cursor: pointer;
       font-family: 'Rubik', sans-serif;
     }
+
+    /* ── FEEDBACK CARD ── */
+    .feedback-card {
+      margin: 0 40px 32px;
+      max-width: 600px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      display: none;
+    }
+    .feedback-card.visible { display: block; }
+    .feedback-q {
+      font-size: 15px; font-weight: 500;
+      color: var(--dark); margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .feedback-scale {
+      display: flex; gap: 8px; margin-bottom: 8px;
+    }
+    .feedback-btn {
+      flex: 1; padding: 12px 4px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px; background: none;
+      font-family: 'Rubik', sans-serif;
+      font-size: 15px; font-weight: 500;
+      color: var(--mid); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .feedback-btn:hover { border-color: var(--orange); color: var(--dark); }
+    .feedback-btn.selected { background: var(--dark); color: white; border-color: var(--dark); }
+    .feedback-scale-labels {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--mid);
+      margin-bottom: 16px; padding: 0 2px;
+    }
+    .feedback-text-wrap { margin-bottom: 14px; }
+    .feedback-text-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--mid); margin-bottom: 8px;
+    }
+    .feedback-textarea {
+      width: 100%; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      font-family: 'Rubik', sans-serif;
+      font-size: 14px; font-weight: 300;
+      color: var(--dark); background: white;
+      resize: none; min-height: 80px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .feedback-textarea:focus { border-color: var(--orange); }
+    .feedback-submit {
+      width: 100%; padding: 13px;
+      background: var(--dark); color: white;
+      border: none; border-radius: 10px;
+      font-family: 'Rubik', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .feedback-submit:hover { background: var(--mid); }
+    .feedback-done {
+      text-align: center; font-size: 14px; font-weight: 300;
+      color: var(--mid); padding: 8px 0; display: none;
+    }
+    @media (max-width: 600px) { .feedback-card { margin: 0 20px 32px; } }
   </style>
 </head>
 <body>
@@ -1260,6 +1326,26 @@
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToLumen();}"></textarea>
     <button class="lumen-send" onclick="sendToLumen()">Send →</button>
   </div>
+
+  <!-- FEEDBACK CARD - Study outcome measure -->
+  <div class="feedback-card" id="feedback-card">
+    <div class="feedback-q">Did this process surface something useful?</div>
+    <div class="feedback-scale" id="feedback-scale">
+      <button class="feedback-btn" onclick="selectFeedback(1)">1</button>
+      <button class="feedback-btn" onclick="selectFeedback(2)">2</button>
+      <button class="feedback-btn" onclick="selectFeedback(3)">3</button>
+      <button class="feedback-btn" onclick="selectFeedback(4)">4</button>
+      <button class="feedback-btn" onclick="selectFeedback(5)">5</button>
+    </div>
+    <div class="feedback-scale-labels"><span>Not really</span><span>Significantly</span></div>
+    <div class="feedback-text-wrap">
+      <div class="feedback-text-label">If so, what?</div>
+      <textarea class="feedback-textarea" id="feedback-text" placeholder="Optional — what came up for you?" rows="3"></textarea>
+    </div>
+    <button class="feedback-submit" id="feedback-submit-btn" onclick="submitFeedback()">Save →</button>
+    <div class="feedback-done" id="feedback-done">Saved. See you tomorrow.</div>
+  </div>
+
 
 </div>
 
@@ -2122,6 +2208,7 @@ RULES:
 
     // Save Lumen reply to Supabase + localStorage
     await updateEntryLumenReply(entries[0], reply);
+    showFeedbackCard();
 
   } catch(e) {
     removeThinking();
@@ -2186,6 +2273,54 @@ function removeThinking() {
 }
 
 // ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+// FEEDBACK — Study outcome measure
+// ══════════════════════════════════════════════════════════
+
+let feedbackScore = null;
+
+function showFeedbackCard() {
+  const card = document.getElementById('feedback-card');
+  if (card) {
+    card.classList.add('visible');
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function selectFeedback(score) {
+  feedbackScore = score;
+  document.querySelectorAll('.feedback-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i + 1 === score);
+  });
+}
+
+async function submitFeedback() {
+  if (!feedbackScore) {
+    const scale = document.getElementById('feedback-scale');
+    scale.style.outline = '2px solid var(--orange)';
+    scale.style.borderRadius = '10px';
+    setTimeout(() => { scale.style.outline = ''; }, 1500);
+    return;
+  }
+  const text = document.getElementById('feedback-text').value.trim();
+  const entry = entries[0];
+  if (entry) {
+    entry.feedbackScore = feedbackScore;
+    entry.feedbackText = text;
+    localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+  }
+  if (sb && entry?.supabaseId) {
+    try {
+      await sb.from('wearable_entries')
+        .update({ feedback_score: feedbackScore, feedback_text: text || null })
+        .eq('id', entry.supabaseId);
+    } catch(e) { console.warn('Feedback save failed:', e.message); }
+  }
+  document.getElementById('feedback-submit-btn').style.display = 'none';
+  document.getElementById('feedback-done').style.display = 'block';
+}
+
 // HISTORY SCREEN
 // ══════════════════════════════════════════════════════════
 
