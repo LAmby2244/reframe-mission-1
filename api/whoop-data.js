@@ -32,6 +32,122 @@ function zScore(value, baseline_mean, baseline_sd) {
   return (value - baseline_mean) / baseline_sd;
 }
 
+
+// ── COMPOSITE LOAD INDEX ──────────────────────────────────────────
+// Weights: HRV 40% / Recovery 25% / Sleep consistency 20% / RR 15%
+// Per WHOOP AI validation, April 2026
+function computeCompositeLoad(todayScored, baselines, history) {
+  const { hrv_z, rec_z, rr_bpm, recovery_pct } = todayScored;
+
+  // HRV component (40%) — z-score below baseline = load
+  let hrv_score = 0;
+  if (hrv_z !== null) {
+    if (hrv_z < -1.0) hrv_score = 1.0;
+    else if (hrv_z < -0.5) hrv_score = 0.6;
+    else if (hrv_z < 0) hrv_score = 0.3;
+  }
+
+  // Recovery component (25%) — below 67% = load
+  let rec_score = 0;
+  if (rec_z !== null) {
+    if (rec_z < -1.0) rec_score = 1.0;
+    else if (rec_z < -0.5) rec_score = 0.6;
+    else if (rec_z < 0) rec_score = 0.3;
+  }
+
+  // Sleep consistency component (20%)
+  // >60 min SD in sleep onset over 3+ days = meaningful signal
+  const onsetHours = history.slice(0, 6)
+    .map(d => d.sleep_onset_hour)
+    .filter(h => h !== null && h !== undefined);
+  let consistency_score = 0;
+  if (onsetHours.length >= 3) {
+    const m = onsetHours.reduce((a, b) => a + b, 0) / onsetHours.length;
+    const variance = onsetHours.reduce((a, b) => a + Math.pow(b - m, 2), 0) / onsetHours.length;
+    const sd_hours = Math.sqrt(variance);
+    const sd_minutes = sd_hours * 60;
+    if (sd_minutes > 90) consistency_score = 1.0;
+    else if (sd_minutes > 60) consistency_score = 0.7;
+    else if (sd_minutes > 45) consistency_score = 0.4;
+  }
+
+  // RR component (15%)
+  // >1.0 breaths/min above baseline sustained 2+ nights = meaningful
+  let rr_score = 0;
+  const last2rr = history.slice(0, 2).map(d => d.rr_bpm).filter(Boolean);
+  const rr_baseline = history.slice(2, 14).map(d => d.rr_bpm).filter(Boolean);
+  if (rr_bpm && rr_baseline.length >= 3) {
+    const rr_mean = rr_baseline.reduce((a, b) => a + b, 0) / rr_baseline.length;
+    const rr_elevation = rr_bpm - rr_mean;
+    const prev_elevated = last2rr.length >= 1 && last2rr.every(r => r > rr_mean + 0.8);
+    if (rr_elevation > 1.5 && prev_elevated) rr_score = 1.0;
+    else if (rr_elevation > 1.0 && prev_elevated) rr_score = 0.7;
+    else if (rr_elevation > 1.0) rr_score = 0.4;
+  }
+
+  // Weighted composite (0–1 scale)
+  const composite = (hrv_score * 0.40) + (rec_score * 0.25) +
+                    (consistency_score * 0.20) + (rr_score * 0.15);
+
+  // Count how many signals are impaired (≥0.5 threshold per signal)
+  const impaired_count = [hrv_score, rec_score, consistency_score, rr_score]
+    .filter(s => s >= 0.5).length;
+
+  return {
+    composite,
+    impaired_count,
+    hrv_score,
+    rec_score,
+    consistency_score,
+    rr_score,
+    sleep_consistency_sd_mins: (() => {
+      if (onsetHours.length < 3) return null;
+      const m = onsetHours.reduce((a, b) => a + b, 0) / onsetHours.length;
+      const variance = onsetHours.reduce((a, b) => a + Math.pow(b - m, 2), 0) / onsetHours.length;
+      return parseFloat((Math.sqrt(variance) * 60).toFixed(1));
+    })()
+  };
+}
+
+// ── STATE ESCALATION ──────────────────────────────────────────────
+// Per WHOOP AI: 2+ signals impaired → escalate one level
+// Sleep consistency alone does NOT override green guardrail
+// Exception: chronic poor consistency (5+ days) + borderline signal → allow amber
+function applyStateEscalation(state, confidence, compositeLoad, todayScored, history) {
+  const { impaired_count, consistency_score, composite } = compositeLoad;
+  const { recovery_pct, hrv_z } = todayScored;
+
+  // If already red, no escalation needed
+  if (state && state.startsWith('red_')) return { state, confidence };
+
+  // 2+ signals impaired → escalate amber to red, null to amber
+  if (impaired_count >= 2) {
+    if (state && state.startsWith('amb_')) {
+      // Amber → red_psych (most likely psychological load pattern)
+      return { state: 'red_psych', confidence: 'medium' };
+    }
+    if (!state || state === null) {
+      return { state: 'amb_load', confidence: 'medium' };
+    }
+  }
+
+  // Sleep consistency exception: chronic poor consistency (5+ days) + borderline
+  // CAN push through green guardrail to amber_preload
+  if (consistency_score >= 0.7) {
+    const chronicDays = history.slice(0, 5)
+      .filter(d => {
+        if (!d.sleep_onset_hour) return false;
+        return true; // if we have 5 days of data with onset hours, chronic is possible
+      }).length;
+    const borderlineSignal = hrv_z !== null && hrv_z < -0.2;
+    if (chronicDays >= 5 && borderlineSignal && state && state.startsWith('grn_')) {
+      return { state: 'amb_load', confidence: 'low' };
+    }
+  }
+
+  return { state, confidence };
+}
+
 function scoreSignalState(today, baselines, history) {
   const {
     rec_z, hrv_z, rhr_z, strain_z, nas_z,
@@ -309,6 +425,14 @@ export default async function handler(req) {
         sleep_need_hours: sleepNeed,
         sleep_perf_pct: sleepScore.sleep_performance_percentage ?? null,
         sleep_stress: sleepStress,
+        rr_bpm: sleepScore.respiratory_rate ?? null,
+        sleep_onset_hour: (() => {
+          // Extract sleep onset hour from sleep start time
+          const startTime = sleep?.start;
+          if (!startTime) return null;
+          const d = new Date(startTime);
+          return d.getHours() + d.getMinutes() / 60;
+        })(),
         workout_logged: workoutDates.has(date),
         sleep_suff: hoursSlept && sleepNeed ? hoursSlept / sleepNeed : null,
         last_workout_days_ago: null,
@@ -365,7 +489,9 @@ export default async function handler(req) {
       hrv_z: zScore(d.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
     }));
 
-    const { state, confidence } = scoreSignalState(todayScored, baselines, history);
+    const { state: baseState, confidence: baseConfidence } = scoreSignalState(todayScored, baselines, history);
+    const compositeLoad = computeCompositeLoad(todayScored, baselines, history);
+    const { state, confidence } = applyStateEscalation(baseState, baseConfidence, compositeLoad, todayScored, history);
     const exploration_score = computeExplorationScore(todayScored, baselines, history);
 
     const response = {
@@ -394,6 +520,10 @@ export default async function handler(req) {
       date:              today.date,
       data_source:       'whoop_live',
       days_of_history:   historicalDays.length,
+      composite_load:    parseFloat(compositeLoad.composite.toFixed(2)),
+      impaired_signals:  compositeLoad.impaired_count,
+      sleep_consistency_sd_mins: compositeLoad.sleep_consistency_sd_mins,
+      rr_score:          parseFloat(compositeLoad.rr_score.toFixed(2)),
     };
 
     return new Response(JSON.stringify(response), {
