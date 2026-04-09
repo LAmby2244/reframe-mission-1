@@ -1,7 +1,6 @@
 /**
  * /api/whoop-data.js
  * Vercel Edge Function — WHOOP Data + Scoring Engine
- * Restored to working version (commit 247cca7)
  */
 export const config = { runtime: 'edge' };
 
@@ -33,41 +32,101 @@ function zScore(value, baseline_mean, baseline_sd) {
 }
 
 function scoreSignalState(today, baselines, history) {
-  const { rec_z, hrv_z, rhr_z, strain_z, nas_z, sleep_suff, sleep_debt_7d, sleep_stress, workout_logged, recovery_pct, hrv_ms, strain } = today;
+  const {
+    rec_z, hrv_z, rhr_z, strain_z, nas_z,
+    sleep_suff, sleep_debt_7d, sleep_stress,
+    workout_logged, recovery_pct, hrv_ms, strain
+  } = today;
+
   const last3hrv = history.slice(0, 3).map(d => d.hrv_ms).filter(Boolean);
   const hrv3dMean = mean(last3hrv);
   const hrvDeclining = last3hrv.length >= 2 && last3hrv[0] < last3hrv[last3hrv.length - 1];
+
   const last3rec = history.slice(0, 3).map(d => d.recovery_pct).filter(Boolean);
   const recRising = last3rec.length >= 2 && last3rec[0] > last3rec[last3rec.length - 1];
 
-  if (rec_z !== null && rec_z < -0.8 && sleep_suff !== null && sleep_suff >= 0.85 && strain_z !== null && strain_z < 0.3 && (sleep_stress === 'poor' || (hrv_z !== null && hrv_z < -0.5))) {
+  // ── RED: psychological depletion ──────────────────────────────────────────
+  // red_psych: low recovery despite good sleep and low strain
+  if (
+    rec_z !== null && rec_z < -0.8 &&
+    sleep_suff !== null && sleep_suff >= 0.85 &&
+    strain_z !== null && strain_z < 0.3 &&
+    (sleep_stress === 'poor' || (hrv_z !== null && hrv_z < -0.5))
+  ) {
     return { state: 'red_psych', confidence: 'high' };
   }
-  if (hrvDeclining && hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) && strain_z !== null && strain_z < 0.5) {
-    return { state: 'red_trend', confidence: 'high' };
+
+  // red_trend: HRV declining multi-day, not physical
+  // GUARDS (per WHOOP AI validation):
+  //   1. Require ≥7 days of history — 3-4 days is within normal variance
+  //   2. Block if recovery ≥ 67% — high recovery overrides HRV trend concern
+  //      (downgrade to amb_trend instead)
+  if (
+    hrvDeclining &&
+    hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) &&
+    strain_z !== null && strain_z < 0.5
+  ) {
+    const hasEnoughHistory = history.length >= 7;
+    const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
+    if (hasEnoughHistory && recoveryIsLow) {
+      return { state: 'red_trend', confidence: 'high' };
+    }
+    // Not enough history or recovery is green/amber — downgrade to amber watch
+    return { state: 'amb_trend', confidence: 'medium' };
   }
-  if (strain_z !== null && strain_z > 1.0 && !workout_logged && (nas_z !== null && nas_z > 1.0)) {
+
+  // red_strain: high strain with no workout logged
+  if (
+    strain_z !== null && strain_z > 1.0 &&
+    !workout_logged &&
+    (nas_z !== null && nas_z > 1.0)
+  ) {
     return { state: 'red_strain', confidence: 'high' };
   }
+
+  // ── RED medium confidence ─────────────────────────────────────────────────
   if (rec_z !== null && rec_z < -0.8 && sleep_suff >= 0.85) {
     return { state: 'red_psych', confidence: 'medium' };
   }
+
+  // red_trend medium: only if recovery is below green AND enough history
   if (hrvDeclining && strain_z < 0.5) {
-    return { state: 'red_trend', confidence: 'medium' };
+    const hasEnoughHistory = history.length >= 7;
+    const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
+    if (hasEnoughHistory && recoveryIsLow) {
+      return { state: 'red_trend', confidence: 'medium' };
+    }
+    // Downgrade — not enough evidence for red
+    return { state: 'amb_trend', confidence: 'low' };
   }
-  if (rec_z !== null && rec_z > 0.5 && hrv_z !== null && hrv_z >= 0.0 && rhr_z !== null && rhr_z < 0.0) {
+
+  // ── GREEN ─────────────────────────────────────────────────────────────────
+  if (
+    rec_z !== null && rec_z > 0.5 &&
+    hrv_z !== null && hrv_z >= 0.0 &&
+    rhr_z !== null && rhr_z < 0.0
+  ) {
     return { state: 'grn_thriving', confidence: 'high' };
   }
-  if (rec_z !== null && rec_z > 0.3 && recRising && history.length >= 2 && history[1].rec_z < -0.3) {
+
+  if (
+    rec_z !== null && rec_z > 0.3 &&
+    recRising &&
+    history.length >= 2 &&
+    history[1].rec_z < -0.3
+  ) {
     return { state: 'grn_bounce', confidence: 'high' };
   }
+
   const consecutiveGreen = last3rec.filter(r => r >= 67).length;
   if (consecutiveGreen >= 3) {
     return { state: 'grn_streak', confidence: 'high' };
   }
+
   if (rec_z !== null && rec_z > 0.5) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
+
   return { state: null, confidence: 'low' };
 }
 
@@ -93,14 +152,15 @@ export default async function handler(req) {
   }
 
   let body;
-  try { body = await req.json(); } catch {
+  try {
+    body = await req.json();
+  } catch {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  // Accept access_token directly OR look up from Supabase using mid
   let { access_token, mid } = body;
 
-  // Get user_id from Supabase JWT in Authorization header — most reliable source of identity
+  // Get user_id from Supabase JWT in Authorization header
   let userId = null;
   const authHeader = req.headers.get('Authorization');
   if (authHeader) {
@@ -111,26 +171,32 @@ export default async function handler(req) {
     } catch (_) {}
   }
 
-  // Look up WHOOP connection by user_id first (most reliable), then fall back to mid
+  // Look up WHOOP connection by user_id first, then fall back to mid
   if (!access_token && process.env.SUPABASE_URL) {
     const lookup = userId
       ? `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?user_id=eq.${userId}&select=access_token,refresh_token,expires_at,whoop_member_id&limit=1`
       : mid
-        ? `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at,whoop_member_id&limit=1`
-        : null;
+      ? `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at,whoop_member_id&limit=1`
+      : null;
+
     if (!lookup) {
       return new Response(JSON.stringify({ error: 'No WHOOP connection found — please connect your WHOOP', data_source: 'error' }), {
         status: 401, headers: { 'Content-Type': 'application/json' }
       });
     }
+
     try {
-      const connRes = await fetch(lookup,
-        { headers: { Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`, apikey: process.env.SUPABASE_SERVICE_KEY } }
-      );
+      const connRes = await fetch(lookup, {
+        headers: {
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+          apikey: process.env.SUPABASE_SERVICE_KEY
+        }
+      });
       const rows = await connRes.json();
       if (rows.length) {
         mid = rows[0].whoop_member_id || mid;
         access_token = rows[0].access_token;
+
         // Refresh if expired
         if (new Date(rows[0].expires_at) <= new Date()) {
           const refreshRes = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
@@ -146,17 +212,26 @@ export default async function handler(req) {
           const refreshed = await refreshRes.json();
           if (refreshed.access_token) {
             access_token = refreshed.access_token;
-            // Update Supabase
             const expiresAt = new Date(Date.now() + (refreshed.expires_in || 3600) * 1000).toISOString();
             await fetch(`${process.env.SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}`, {
               method: 'PATCH',
-              headers: { Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`, apikey: process.env.SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ access_token: refreshed.access_token, refresh_token: refreshed.refresh_token, expires_at: expiresAt })
+              headers: {
+                Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+                apikey: process.env.SUPABASE_SERVICE_KEY,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                access_token: refreshed.access_token,
+                refresh_token: refreshed.refresh_token,
+                expires_at: expiresAt
+              })
             });
           }
         }
       }
-    } catch (e) { console.error('Supabase lookup error:', e.message); }
+    } catch (e) {
+      console.error('Supabase lookup error:', e.message);
+    }
   }
 
   if (!access_token) {
@@ -191,6 +266,7 @@ export default async function handler(req) {
 
     const cycleById = {};
     cycles.forEach(c => { cycleById[c.id] = c; });
+
     const workoutDates = new Set(workouts.map(w => w.start?.split('T')[0]).filter(Boolean));
 
     const daily = recoveries.map(rec => {
@@ -200,9 +276,14 @@ export default async function handler(req) {
       const cycleScore = cycle.score || {};
       const sleep = sleeps.find(s => s.cycle_id === rec.cycle_id && !s.nap) || sleeps.find(s => s.cycle_id === rec.cycle_id);
       const sleepScore = sleep?.score || {};
-      const hoursSlept = sleepScore.stage_summary?.total_in_bed_time_milli ? sleepScore.stage_summary.total_in_bed_time_milli / 3600000 : null;
-      const sleepNeed = sleepScore.sleep_needed?.baseline_milli ? sleepScore.sleep_needed.baseline_milli / 3600000 : null;
-      const sleepStress = sleepScore.respiratory_rate ? (sleepScore.respiratory_rate > 17 ? 'poor' : sleepScore.respiratory_rate > 15 ? 'sufficient' : 'optimal') : null;
+      const hoursSlept = sleepScore.stage_summary?.total_in_bed_time_milli
+        ? sleepScore.stage_summary.total_in_bed_time_milli / 3600000 : null;
+      const sleepNeed = sleepScore.sleep_needed?.baseline_milli
+        ? sleepScore.sleep_needed.baseline_milli / 3600000 : null;
+      const sleepStress = sleepScore.respiratory_rate
+        ? (sleepScore.respiratory_rate > 17 ? 'poor' : sleepScore.respiratory_rate > 15 ? 'sufficient' : 'optimal')
+        : null;
+
       return {
         date,
         recovery_pct: recScore.recovery_score ?? null,
@@ -226,23 +307,25 @@ export default async function handler(req) {
       });
     }
 
-    // Last workout days ago
     const sortedWorkoutDates = [...workoutDates].sort().reverse();
     const lastWorkoutDate = sortedWorkoutDates[0] || null;
     const todayStr = new Date().toISOString().split('T')[0];
-    const lastWorkoutDaysAgo = lastWorkoutDate ? Math.round((new Date(todayStr) - new Date(lastWorkoutDate)) / 86400000) : null;
+    const lastWorkoutDaysAgo = lastWorkoutDate
+      ? Math.round((new Date(todayStr) - new Date(lastWorkoutDate)) / 86400000)
+      : null;
 
     const historicalDays = daily.slice(1);
     const baselines = {
       recovery_mean: mean(historicalDays.map(d => d.recovery_pct).filter(Boolean)),
-      recovery_sd: sd(historicalDays.map(d => d.recovery_pct).filter(Boolean)),
-      hrv_mean: mean(historicalDays.map(d => d.hrv_ms).filter(Boolean)),
-      hrv_sd: sd(historicalDays.map(d => d.hrv_ms).filter(Boolean)),
-      rhr_mean: mean(historicalDays.map(d => d.rhr_bpm).filter(Boolean)),
-      rhr_sd: sd(historicalDays.map(d => d.rhr_bpm).filter(Boolean)),
-      strain_mean: mean(historicalDays.map(d => d.day_strain).filter(Boolean)),
-      strain_sd: sd(historicalDays.map(d => d.day_strain).filter(Boolean)),
-      nas_mean: 0, nas_sd: 1,
+      recovery_sd:   sd(historicalDays.map(d => d.recovery_pct).filter(Boolean)),
+      hrv_mean:      mean(historicalDays.map(d => d.hrv_ms).filter(Boolean)),
+      hrv_sd:        sd(historicalDays.map(d => d.hrv_ms).filter(Boolean)),
+      rhr_mean:      mean(historicalDays.map(d => d.rhr_bpm).filter(Boolean)),
+      rhr_sd:        sd(historicalDays.map(d => d.rhr_bpm).filter(Boolean)),
+      strain_mean:   mean(historicalDays.map(d => d.day_strain).filter(Boolean)),
+      strain_sd:     sd(historicalDays.map(d => d.day_strain).filter(Boolean)),
+      nas_mean: 0,
+      nas_sd: 1,
     };
 
     const today = daily[0];
@@ -253,9 +336,9 @@ export default async function handler(req) {
 
     const todayScored = {
       ...today,
-      rec_z: zScore(today.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
-      hrv_z: zScore(today.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
-      rhr_z: zScore(today.rhr_bpm, baselines.rhr_mean, baselines.rhr_sd),
+      rec_z:    zScore(today.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
+      hrv_z:    zScore(today.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
+      rhr_z:    zScore(today.rhr_bpm, baselines.rhr_mean, baselines.rhr_sd),
       strain_z: zScore(today.day_strain, baselines.strain_mean, baselines.strain_sd),
       nas_z: null,
       sleep_debt_7d,
@@ -271,31 +354,31 @@ export default async function handler(req) {
     const exploration_score = computeExplorationScore(todayScored, baselines, history);
 
     const response = {
-      recovery: today.recovery_pct,
-      hrv: today.hrv_ms ? parseFloat(today.hrv_ms.toFixed(1)) : null,
-      strain: today.day_strain ? parseFloat(today.day_strain.toFixed(1)) : null,
-      rhr: today.rhr_bpm,
-      sleep_score: today.sleep_perf_pct,
-      sleep_hours: today.sleep_hours ? parseFloat(today.sleep_hours.toFixed(1)) : null,
-      sleep_need: today.sleep_need_hours ? parseFloat(today.sleep_need_hours.toFixed(1)) : null,
-      sleep_stress: today.sleep_stress,
-      workout_logged: today.workout_logged,
+      recovery:          today.recovery_pct,
+      hrv:               today.hrv_ms ? parseFloat(today.hrv_ms.toFixed(1)) : null,
+      strain:            today.day_strain ? parseFloat(today.day_strain.toFixed(1)) : null,
+      rhr:               today.rhr_bpm,
+      sleep_score:       today.sleep_perf_pct,
+      sleep_hours:       today.sleep_hours ? parseFloat(today.sleep_hours.toFixed(1)) : null,
+      sleep_need:        today.sleep_need_hours ? parseFloat(today.sleep_need_hours.toFixed(1)) : null,
+      sleep_stress:      today.sleep_stress,
+      workout_logged:    today.workout_logged,
       last_workout_days_ago: lastWorkoutDaysAgo,
-      hrv_baseline: parseFloat(baselines.hrv_mean.toFixed(1)),
+      hrv_baseline:      parseFloat(baselines.hrv_mean.toFixed(1)),
       recovery_baseline: parseFloat(baselines.recovery_mean.toFixed(1)),
-      strain_baseline: parseFloat(baselines.strain_mean.toFixed(1)),
-      rec_z: todayScored.rec_z ? parseFloat(todayScored.rec_z.toFixed(2)) : null,
-      hrv_z: todayScored.hrv_z ? parseFloat(todayScored.hrv_z.toFixed(2)) : null,
-      strain_z: todayScored.strain_z ? parseFloat(todayScored.strain_z.toFixed(2)) : null,
-      sleep_debt_7d: parseFloat(sleep_debt_7d.toFixed(1)),
+      strain_baseline:   parseFloat(baselines.strain_mean.toFixed(1)),
+      rec_z:             todayScored.rec_z ? parseFloat(todayScored.rec_z.toFixed(2)) : null,
+      hrv_z:             todayScored.hrv_z ? parseFloat(todayScored.hrv_z.toFixed(2)) : null,
+      strain_z:          todayScored.strain_z ? parseFloat(todayScored.strain_z.toFixed(2)) : null,
+      sleep_debt_7d:     parseFloat(sleep_debt_7d.toFixed(1)),
       exploration_score,
-      signal_state: state,
+      signal_state:      state,
       signal_confidence: confidence,
-      days_trend: daily.slice(0, 7).map(d => d.hrv_ms).filter(Boolean),
-      recovery_trend: daily.slice(0, 7).map(d => d.recovery_pct).filter(Boolean),
-      date: today.date,
-      data_source: 'whoop_live',
-      days_of_history: historicalDays.length,
+      days_trend:        daily.slice(0, 7).map(d => d.hrv_ms).filter(Boolean),
+      recovery_trend:    daily.slice(0, 7).map(d => d.recovery_pct).filter(Boolean),
+      date:              today.date,
+      data_source:       'whoop_live',
+      days_of_history:   historicalDays.length,
     };
 
     return new Response(JSON.stringify(response), {
