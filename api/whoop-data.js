@@ -1,6 +1,7 @@
 /**
  * /api/whoop-data.js
  * Vercel Edge Function — WHOOP Data + Scoring Engine
+ * Validated against WHOOP AI and HRV research literature
  */
 export const config = { runtime: 'edge' };
 
@@ -45,6 +46,16 @@ function scoreSignalState(today, baselines, history) {
   const last3rec = history.slice(0, 3).map(d => d.recovery_pct).filter(Boolean);
   const recRising = last3rec.length >= 2 && last3rec[0] > last3rec[last3rec.length - 1];
 
+  // ── SCIENTIFIC GUARDRAIL (WHOOP AI + HRV literature validated) ───────────
+  // If recovery ≥ 67% AND HRV ≥ baseline AND strain is low-moderate:
+  // the system is physiologically well-resourced. Block all amber/red trend
+  // states — score green instead. (Elevated HRV = parasympathetic dominance
+  // = positive adaptation signal, regardless of short-term drift.)
+  const hrvAtOrAboveBaseline = hrv_z !== null && hrv_z >= 0;
+  const recoveryIsGreen = recovery_pct !== null && recovery_pct >= 67;
+  const strainIsLowMod = strain_z === null || strain_z < 1.0;
+  const physiologicallyWell = recoveryIsGreen && hrvAtOrAboveBaseline && strainIsLowMod;
+
   // ── RED: psychological depletion ──────────────────────────────────────────
   // red_psych: low recovery despite good sleep and low strain
   if (
@@ -57,22 +68,26 @@ function scoreSignalState(today, baselines, history) {
   }
 
   // red_trend: HRV declining multi-day, not physical
-  // GUARDS (per WHOOP AI validation):
-  //   1. Require ≥7 days of history — 3-4 days is within normal variance
-  //   2. Block if recovery ≥ 67% — high recovery overrides HRV trend concern
-  //      (downgrade to amb_trend instead)
+  // GUARDS:
+  //   1. Block if physiologically well (recovery green + HRV ≥ baseline + low strain)
+  //   2. Require ≥7 days of history (< 7 days = within normal HRV variance)
+  //   3. Block if recovery ≥ 67% (high recovery overrides HRV trend concern)
   if (
     hrvDeclining &&
     hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) &&
     strain_z !== null && strain_z < 0.5
   ) {
-    const hasEnoughHistory = history.length >= 7;
-    const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
-    if (hasEnoughHistory && recoveryIsLow) {
-      return { state: 'red_trend', confidence: 'high' };
+    if (physiologicallyWell) {
+      // System is well — route to green, not amber
+      // (falls through to green scoring below)
+    } else {
+      const hasEnoughHistory = history.length >= 7;
+      const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
+      if (hasEnoughHistory && recoveryIsLow) {
+        return { state: 'red_trend', confidence: 'high' };
+      }
+      return { state: 'amb_trend', confidence: 'medium' };
     }
-    // Not enough history or recovery is green/amber — downgrade to amber watch
-    return { state: 'amb_trend', confidence: 'medium' };
   }
 
   // red_strain: high strain with no workout logged
@@ -89,14 +104,12 @@ function scoreSignalState(today, baselines, history) {
     return { state: 'red_psych', confidence: 'medium' };
   }
 
-  // red_trend medium: only if recovery is below green AND enough history
-  if (hrvDeclining && strain_z < 0.5) {
+  if (hrvDeclining && strain_z < 0.5 && !physiologicallyWell) {
     const hasEnoughHistory = history.length >= 7;
     const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
     if (hasEnoughHistory && recoveryIsLow) {
       return { state: 'red_trend', confidence: 'medium' };
     }
-    // Downgrade — not enough evidence for red
     return { state: 'amb_trend', confidence: 'low' };
   }
 
@@ -121,6 +134,11 @@ function scoreSignalState(today, baselines, history) {
   const consecutiveGreen = last3rec.filter(r => r >= 67).length;
   if (consecutiveGreen >= 3) {
     return { state: 'grn_streak', confidence: 'high' };
+  }
+
+  // Physiologically well but not strongly green — still score green
+  if (physiologicallyWell) {
+    return { state: 'grn_thriving', confidence: 'medium' };
   }
 
   if (rec_z !== null && rec_z > 0.5) {
@@ -160,7 +178,6 @@ export default async function handler(req) {
 
   let { access_token, mid } = body;
 
-  // Get user_id from Supabase JWT in Authorization header
   let userId = null;
   const authHeader = req.headers.get('Authorization');
   if (authHeader) {
@@ -171,7 +188,6 @@ export default async function handler(req) {
     } catch (_) {}
   }
 
-  // Look up WHOOP connection by user_id first, then fall back to mid
   if (!access_token && process.env.SUPABASE_URL) {
     const lookup = userId
       ? `${process.env.SUPABASE_URL}/rest/v1/whoop_connections?user_id=eq.${userId}&select=access_token,refresh_token,expires_at,whoop_member_id&limit=1`
@@ -197,7 +213,6 @@ export default async function handler(req) {
         mid = rows[0].whoop_member_id || mid;
         access_token = rows[0].access_token;
 
-        // Refresh if expired
         if (new Date(rows[0].expires_at) <= new Date()) {
           const refreshRes = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
             method: 'POST',
