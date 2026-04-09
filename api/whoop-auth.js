@@ -13,8 +13,8 @@ module.exports = async (req, res) => {
 
   // ── CONNECT ────────────────────────────────────────────────────────────────
   if (action === 'connect') {
-    const authHeader = req.headers.authorization || '';
-    const supabaseToken = authHeader.replace('Bearer ', '').trim();
+    const supabaseToken = ((req.headers.authorization || '').replace('Bearer ', '').trim())
+      || req.query.token || '';
     const state = Buffer.from(JSON.stringify({
       t: supabaseToken || '',
       r: req.query.next || '/wearable.html'
