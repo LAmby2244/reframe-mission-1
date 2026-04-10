@@ -693,7 +693,7 @@
 
 <script>
 const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk4MTM4NTcsImV4cCI6MjAyNTM4OTg1N30.xt2dyFJqsOJBnmHpIqrQN_8kkYHALxDfwxqKC2JLTNI';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let authToken = null;
@@ -1273,17 +1273,29 @@ function closeModalById(id) {
 }
 
 // ── INIT ──
-// Auth guard — redirect to sign in if no session
-(async () => {
+window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = '/signin.html?next=/rewrite.html';
-    return;
+  if (session) {
+    authToken = session.access_token;
+    userId = session.user.id;
+    await loadAll();
+  } else {
+    // Listen for auth state change (handles magic link / OAuth)
+    const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        authToken = session.access_token;
+        userId = session.user.id;
+        subscription.unsubscribe();
+        await loadAll();
+      }
+    });
+    // Redirect to sign in after short delay if still no session
+    setTimeout(async () => {
+      const { data: { session: s } } = await sb.auth.getSession();
+      if (!s) window.location.href = '/signin.html?next=/rewrite.html';
+    }, 1500);
   }
-  authToken = session.access_token;
-  userId = session.user.id;
-  await loadAll();
-})();
+});
 </script>
 </body>
 </html>
