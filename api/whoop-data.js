@@ -27,6 +27,51 @@ function sd(arr) {
   return Math.max(Math.sqrt(variance), 0.1);
 }
 
+// ── HRV VOLATILITY (COEFFICIENT OF VARIATION) ────────────────────
+// Measures night-to-night instability in HRV, independent of absolute level or trend.
+// CV = SD / mean × 100. Normalises instability relative to the person's own baseline.
+// Requires minimum 5 days of HRV data to fire.
+//
+// Thresholds (per HRV literature):
+//   CV < 10%  = very stable (no flag)
+//   CV 10–20% = normal variation (no flag)
+//   CV 20–30% = moderate instability → hrv_volatility_flag: true (green preserved)
+//   CV > 30%, 5+ days sustained → amb_volatile state
+//
+// Per WHOOP AI validation: volatility alone cannot trigger red — needs a second signal.
+function computeHRVVolatility(history) {
+  const hrvValues = history.slice(0, 7).map(d => d.hrv_ms).filter(Boolean);
+
+  if (hrvValues.length < 5) {
+    return { cv_pct: null, volatility_score: 0, volatile: false, volatile_high: false };
+  }
+
+  const m = mean(hrvValues);
+  if (m === 0) return { cv_pct: null, volatility_score: 0, volatile: false, volatile_high: false };
+
+  const s = sd(hrvValues);
+  const cv_pct = (s / m) * 100;
+
+  // Score on 0–1 scale for composite use
+  let volatility_score = 0;
+  if (cv_pct > 30) volatility_score = 1.0;
+  else if (cv_pct > 20) volatility_score = 0.6;
+  else if (cv_pct > 10) volatility_score = 0.2;
+
+  // moderate: flag only (green preserved)
+  const volatile = cv_pct > 20;
+
+  // high + sustained over 5+ days of data: can trigger amb_volatile
+  const volatile_high = cv_pct > 30 && hrvValues.length >= 5;
+
+  return {
+    cv_pct: parseFloat(cv_pct.toFixed(1)),
+    volatility_score: parseFloat(volatility_score.toFixed(2)),
+    volatile,
+    volatile_high
+  };
+}
+
 function zScore(value, baseline_mean, baseline_sd) {
   if (value === null || value === undefined) return null;
   return (value - baseline_mean) / baseline_sd;
@@ -148,7 +193,7 @@ function applyStateEscalation(state, confidence, compositeLoad, todayScored, his
   return { state, confidence };
 }
 
-function scoreSignalState(today, baselines, history) {
+function scoreSignalState(today, baselines, history, hrvVolatility) {
   const {
     rec_z, hrv_z, rhr_z, strain_z, nas_z,
     sleep_suff, sleep_debt_7d, sleep_stress,
@@ -259,6 +304,13 @@ function scoreSignalState(today, baselines, history) {
 
   if (rec_z !== null && rec_z > 0.5) {
     return { state: 'grn_thriving', confidence: 'medium' };
+  }
+
+  // ── AMBER: HRV volatility (sustained high CV, no stronger signal) ─────────
+  // CV >30% over 5+ days with no green/amber/red state already firing.
+  // Green states are handled via hrv_volatility_flag instead (state preserved).
+  if (hrvVolatility && hrvVolatility.volatile_high) {
+    return { state: 'amb_volatile', confidence: 'medium' };
   }
 
   return { state: null, confidence: 'low' };
@@ -489,10 +541,16 @@ export default async function handler(req) {
       hrv_z: zScore(d.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
     }));
 
-    const { state: baseState, confidence: baseConfidence } = scoreSignalState(todayScored, baselines, history);
+    const hrvVolatility = computeHRVVolatility(history);
+    const { state: baseState, confidence: baseConfidence } = scoreSignalState(todayScored, baselines, history, hrvVolatility);
     const compositeLoad = computeCompositeLoad(todayScored, baselines, history);
     const { state, confidence } = applyStateEscalation(baseState, baseConfidence, compositeLoad, todayScored, history);
     const exploration_score = computeExplorationScore(todayScored, baselines, history);
+
+    // hrv_volatility_flag: moderate instability (CV 20–30%) while state is green.
+    // State is preserved — Lumen adds a secondary observation rather than leading with it.
+    const isGreen = state && state.startsWith('grn_');
+    const hrv_volatility_flag = isGreen && hrvVolatility.volatile && !hrvVolatility.volatile_high;
 
     const response = {
       recovery:          today.recovery_pct,
@@ -524,6 +582,9 @@ export default async function handler(req) {
       impaired_signals:  compositeLoad.impaired_count,
       sleep_consistency_sd_mins: compositeLoad.sleep_consistency_sd_mins,
       rr_score:          parseFloat(compositeLoad.rr_score.toFixed(2)),
+      hrv_cv:            hrvVolatility.cv_pct,
+      hrv_volatility_score: hrvVolatility.volatility_score,
+      hrv_volatility_flag,
     };
 
     return new Response(JSON.stringify(response), {
