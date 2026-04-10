@@ -9,19 +9,15 @@ const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-export const config = { runtime: 'edge' };
-
-export default async function handler(req) {
-  // Verify this is a legitimate cron call (Vercel adds this header)
-  const authHeader = req.headers.get('authorization');
+module.exports = async function handler(req, res) {
+  const authHeader = req.headers['authorization'];
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response('Unauthorized', { status: 401 });
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
-    // Fetch all tokens expiring within the next 60 minutes
     const cutoff = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    const res = await fetch(
+    const response = await fetch(
       `${SUPABASE_URL}/rest/v1/whoop_connections?expires_at=lt.${cutoff}&select=whoop_member_id,refresh_token,expires_at`,
       {
         headers: {
@@ -31,16 +27,13 @@ export default async function handler(req) {
       }
     );
 
-    const rows = await res.json();
+    const rows = await response.json();
     console.log(`Token refresh cron: found ${rows.length} tokens to refresh`);
 
     if (!rows.length) {
-      return new Response(JSON.stringify({ refreshed: 0, message: 'No tokens need refreshing' }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return res.status(200).json({ refreshed: 0, message: 'No tokens need refreshing' });
     }
 
-    // Refresh each token
     const results = await Promise.allSettled(
       rows.map(row => refreshToken(row.whoop_member_id, row.refresh_token))
     );
@@ -49,23 +42,13 @@ export default async function handler(req) {
     const failed = results.length - succeeded;
 
     console.log(`Token refresh cron: ${succeeded} succeeded, ${failed} failed`);
-
-    return new Response(JSON.stringify({
-      refreshed: succeeded,
-      failed,
-      total: rows.length
-    }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return res.status(200).json({ refreshed: succeeded, failed, total: rows.length });
 
   } catch (err) {
     console.error('Token refresh cron error:', err.message);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return res.status(500).json({ error: err.message });
   }
-}
+};
 
 async function refreshToken(memberId, refreshTok) {
   try {
