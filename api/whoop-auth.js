@@ -11,7 +11,7 @@ const WHOOP_SCOPES = 'offline read:recovery read:sleep read:workout read:cycles 
 module.exports = async (req, res) => {
   const action = req.query.action;
 
-  // ── CONNECT ────────────────────────────────────────────────────────────────
+  // -- CONNECT --------------------------------------------------------------
   if (action === 'connect') {
     const supabaseToken = ((req.headers.authorization || '').replace('Bearer ', '').trim())
       || req.query.token || '';
@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     return res.redirect(`${WHOOP_AUTH_URL}?${params}`);
   }
 
-  // ── CALLBACK ───────────────────────────────────────────────────────────────
+  // -- CALLBACK --------------------------------------------------------------
   if (action === 'callback') {
     const { code, state: rawState, error } = req.query;
     if (error) return res.status(400).send(`WHOOP auth error: ${error}`);
@@ -73,6 +73,7 @@ module.exports = async (req, res) => {
     }
 
     // Resolve user_id from Supabase JWT in state
+    // Use SUPABASE_SERVICE_KEY (not anon key) to verify the JWT
     let userId = null;
     let supabaseToken = '';
     try {
@@ -85,42 +86,84 @@ module.exports = async (req, res) => {
         const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
           headers: {
             Authorization: `Bearer ${supabaseToken}`,
-            apikey: process.env.SUPABASE_ANON_KEY
+            apikey: SUPABASE_SERVICE_KEY
           }
         });
         const userData = await userRes.json();
         userId = userData.id || null;
+        if (userId) console.log('Resolved user_id:', userId, 'for member:', memberId);
       } catch (_) {}
     }
 
     if (!userId) {
       console.error('Could not resolve user_id for member:', memberId);
-      // Continue anyway — token exchange succeeded, store what we have
     }
 
-    // Upsert token row — insert or update based on whoop_member_id
+    // Write token to Supabase
+    // If user_id resolved: use PATCH by whoop_member_id (update existing) or POST (first time)
+    // If user_id null: still PATCH by whoop_member_id to at least update tokens
     const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
+
     try {
-      const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/whoop_connections`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          apikey: SUPABASE_SERVICE_KEY,
-          'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates,return=minimal'
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          whoop_member_id: memberId,
+      // First check if row exists for this member_id
+      const checkRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${memberId}&select=user_id&limit=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            apikey: SUPABASE_SERVICE_KEY
+          }
+        }
+      );
+      const existing = await checkRes.json();
+
+      if (existing && existing.length > 0) {
+        // Row exists - PATCH to update tokens only
+        const patchBody = {
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           expires_at: expiresAt
-        })
-      });
-      console.log('Upsert status:', upsertRes.status, 'for member:', memberId, 'user:', userId);
+        };
+        // Only update user_id if we resolved one and the existing one is null
+        if (userId && !existing[0].user_id) {
+          patchBody.user_id = userId;
+        }
+        const patchRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${memberId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+              apikey: SUPABASE_SERVICE_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(patchBody)
+          }
+        );
+        console.log('PATCH status:', patchRes.status, 'for member:', memberId);
+      } else {
+        // No row - INSERT fresh
+        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/whoop_connections`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            apikey: SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            whoop_member_id: memberId,
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: expiresAt
+          })
+        });
+        console.log('INSERT status:', insertRes.status, 'for member:', memberId);
+      }
     } catch (err) {
-      console.error('Supabase upsert error:', err.message);
-      // Don't fail — proceed to redirect
+      console.error('Supabase write error:', err.message);
+      // Don't fail - proceed to redirect
     }
 
     // Pass token in URL so whoop-callback.html can store in localStorage
@@ -132,19 +175,14 @@ module.exports = async (req, res) => {
     );
   }
 
-  // ── FETCH ──────────────────────────────────────────────────────────────────
+  // -- FETCH -----------------------------------------------------------------
   if (action === 'fetch') {
     const { mid } = req.query;
     if (!mid) return res.status(400).json({ error: 'Missing mid' });
     try {
       const r = await fetch(
         `${SUPABASE_URL}/rest/v1/whoop_connections?whoop_member_id=eq.${mid}&select=access_token,refresh_token,expires_at,user_id&limit=1`,
-        {
-          headers: {
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-            apikey: SUPABASE_SERVICE_KEY
-          }
-        }
+        { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, apikey: SUPABASE_SERVICE_KEY } }
       );
       const rows = await r.json();
       if (!rows.length) return res.status(404).json({ error: 'No connection found' });
@@ -160,7 +198,7 @@ module.exports = async (req, res) => {
     }
   }
 
-  // ── REFRESH ────────────────────────────────────────────────────────────────
+  // -- REFRESH ---------------------------------------------------------------
   if (action === 'refresh') {
     const { refresh_token, mid } = req.body || {};
     if (!refresh_token) return res.status(400).json({ error: 'Missing refresh_token' });
