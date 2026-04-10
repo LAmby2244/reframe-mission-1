@@ -380,6 +380,11 @@
       <div class="top-nav-sub">The person you are choosing to become</div>
     </div>
   </div>
+  <nav style="display:flex;align-items:center;gap:4px;">
+    <a href="/dashboard.html" style="font-size:12px;font-weight:400;color:rgba(10,50,40,0.4);text-decoration:none;padding:5px 12px;border-radius:20px;transition:all 0.2s;">Learn It</a>
+    <a href="/wearable.html" style="font-size:12px;font-weight:400;color:rgba(10,50,40,0.4);text-decoration:none;padding:5px 12px;border-radius:20px;transition:all 0.2s;">Use It</a>
+    <a href="/rewrite.html" style="font-size:12px;font-weight:500;color:var(--dark);text-decoration:none;padding:5px 12px;border-radius:20px;background:rgba(10,50,40,0.08);">Rewrite It</a>
+  </nav>
   <div id="streak-count" style="font-size:12px;color:var(--mid);"></div>
 </nav>
 
@@ -1225,7 +1230,17 @@ function closeModalById(id) {
 }
 
 // ── INIT ──
-init();
+// Auth guard — redirect to sign in if no session
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '/signin.html?next=/rewrite.html';
+    return;
+  }
+  authToken = session.access_token;
+  userId = session.user.id;
+  await loadAll();
+})();
 </script>
 </body>
 </html>
