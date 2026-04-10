@@ -1680,8 +1680,23 @@ const AMBER = {
       { q: 'What need is being slowly met that wasn\'t before?', sub: 'Rest, connection, recognition, space, play, honesty. What is starting to get a little more attention?' },
       { q: 'What would help your system complete the recovery rather than interrupt it?', sub: 'Not a plan - just what you already know, if you let yourself know it.' }
     ]
+  },
+  AMBER_VOLATILE: {
+    id: 'amber_volatile', mode: 'amber',
+    title: 'Your HRV has been swinging night to night',
+    desc: 'Your recovery scores look reasonable - but underneath them, your HRV has been unusually erratic over the past week. Night-to-night instability like this suggests the autonomic system isn\'t fully settling, even when the surface numbers seem fine.',
+    badges: ['HRV instability', 'Variable nights', 'Worth noticing'],
+    icon: '<svg viewBox="0 0 48 48" fill="none"><polyline points="6,30 13,18 18,28 24,14 30,26 36,16 42,22" stroke="#FFBE19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="24" cy="14" r="3" fill="#FFBE19" opacity="0.7"/><line x1="6" y1="36" x2="42" y2="36" stroke="#FFBE19" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/></svg>',
+    qHeader: 'Something is shifting under the surface',
+    qSub: 'The numbers look okay - but your HRV has been swinging. Your nervous system is picking up something your recovery score isn\'t showing.',
+    mode_label: 'CHECK IN MODE',
+    questions: [
+      { q: 'Has anything been inconsistent in your life this week - even in small ways?', sub: 'Sleep times, meals, pace of days, how settled you\'ve felt. Erratic HRV often mirrors an erratic environment.' },
+      { q: 'What has your nervous system been navigating that doesn\'t show up as a big event?', sub: 'Low-level uncertainty, background tension, a relationship that\'s been slightly off. The quiet things that accumulate.' },
+      { q: 'When have you felt most settled this week - and when least?', sub: 'Not the best or worst moments - the quality of settled-ness. What conditions made the difference?' },
+      { q: 'What would help your system find a steadier rhythm?', sub: 'Not a solution - just what you already sense might help. What does consistency look like for you right now?' }
+    ]
   }
-};
 
 function scoreWhoopData(d) {
   // If the API already scored the state, use it directly
@@ -1696,8 +1711,16 @@ function scoreWhoopData(d) {
       'amb_load':     AMBER.AMBER_LOAD,
       'amb_trend':    AMBER.AMBER_TREND,
       'amb_recovery': AMBER.AMBER_RECOVERY,
+      'amb_volatile': AMBER.AMBER_VOLATILE,
     };
-    if (stateMap[d.signal_state]) return stateMap[d.signal_state];
+    if (stateMap[d.signal_state]) {
+      const pattern = stateMap[d.signal_state];
+      // If state is green but volatility flag is set, attach a secondary note for Lumen
+      if (d.hrv_volatility_flag && pattern.mode === 'green') {
+        return { ...pattern, volatility_flag: true, hrv_cv: d.hrv_cv };
+      }
+      return pattern;
+    }
 
     // Medium confidence red in the amber recovery range → amber
     if (d.signal_confidence === 'medium') {
@@ -2167,7 +2190,7 @@ async function triggerLumenReflection(entry) {
 
 ${modeContext}
 
-The person's WHOOP data today: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".
+The person's WHOOP data today: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nADDITIONAL SIGNAL: HRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green — do not lead with this. After your primary green observation, add ONE sentence noting that HRV has been unusually variable night to night, and invite them to notice if anything in their life might explain that inconsistency.` : ''}
 
 ${historyContext}
 
