@@ -4,8 +4,8 @@
   ],
   "crons": [
     {
-      "path": "/api/nudge-whatsapp",
-      "schedule": "* * * * *"
+      "path": "/api/whoop-refresh",
+      "schedule": "*/45 * * * *"
     }
   ]
 }
