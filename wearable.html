@@ -1801,9 +1801,9 @@ async function saveEntry(entry) {
         mode:          entry.mode,
         pattern_id:    entry.pattern,
         pattern_title: entry.patternTitle,
-        recovery:      entry.data.recovery,
-        hrv:           entry.data.hrv,
-        strain:        entry.data.strain,
+        recovery:      Math.round(entry.data.recovery),
+        hrv:           Math.round(entry.data.hrv),
+        strain:        Math.round(entry.data.strain * 10) / 10,
         answers:       entry.answers
       })
       .select('id')
@@ -1846,9 +1846,9 @@ async function syncPendingEntries() {
             mode:          entry.mode,
             pattern_id:    entry.pattern,
             pattern_title: entry.patternTitle,
-            recovery:      entry.data?.recovery,
-            hrv:           entry.data?.hrv,
-            strain:        entry.data?.strain,
+            recovery:      Math.round(entry.data?.recovery),
+            hrv:           Math.round(entry.data?.hrv),
+            strain:        Math.round(entry.data?.strain * 10) / 10,
             answers:       entry.answers,
             lumen_reply:   entry.lumenReply || null,
             feedback_score: entry.feedbackScore || null,
