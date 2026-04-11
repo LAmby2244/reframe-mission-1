@@ -1780,11 +1780,19 @@ async function saveEntry(entry) {
   localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
 
   // Save to Supabase if authenticated
-  if (!sb || !authToken) return entry;
+  if (!sb || !authToken) {
+    entry.pendingSync = true;
+    localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+    return entry;
+  }
 
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) return entry;
+    if (!session) {
+      entry.pendingSync = true;
+      localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+      return entry;
+    }
 
     const { data, error } = await sb
       .from('wearable_entries')
@@ -1824,7 +1832,7 @@ async function syncPendingEntries() {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
 
-    const pending = entries.filter(e => e.pendingSync && !e.supabaseId);
+    const pending = entries.filter(e => !e.supabaseId);
     if (!pending.length) return;
 
     console.log(`Syncing ${pending.length} pending entries to Supabase...`);
