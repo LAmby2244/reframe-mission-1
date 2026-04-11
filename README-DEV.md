@@ -152,7 +152,9 @@ All 5 rewrite tables have RLS enabled.
 12. **Supabase anon key** — use the March 2025 key matching `dashboard.html`. The old Feb 2024 key causes 401s. `SUPABASE_ANON_KEY` env var does NOT exist in Vercel — use `SUPABASE_SERVICE_KEY` for server-side user resolution.
 13. **Icons** — SVG stroke icons only. No emoji in UI. Bottom nav 20×20 SVG. Empty state 40×40 SVG.
 14. **wearable_entries columns** — `mode` not `signal_state`. `pattern_title` not `lumen_opening`. Always check column names before querying.
-15. **localStorage sync** — wearable.html saves to localStorage first then Supabase. `syncPendingEntries()` runs on init to retry failed saves. Entries missing from Supabase may be in localStorage on the user's device.
+15. **localStorage sync** — wearable.html saves to localStorage first then Supabase. `syncPendingEntries()` runs on init to retry any entry with no `supabaseId`. Entries missing from Supabase may be in localStorage on the user's device. Extract via Safari Web Inspector (Settings → Safari → Advanced → Web Inspector on device).
+16. **wearable_entries column types** — `recovery`, `hrv`, `strain` are `numeric` (not integer). Always `Math.round()` before insert. Constraint: `mode` must be one of `red`, `green`, `amber`.
+17. **Lumen 401 silent failure** — if Supabase session expires mid-conversation, Lumen returns 401 and wearable.html shows "Lumen is quiet. Keep going." This looks intentional but is an auth failure. Not yet fixed.
 
 ---
 
@@ -263,7 +265,7 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 ### Immediate
 - [ ] All 4 participants reconnect WHOOP once (cron now running, whoop-auth.js fixed)
 - [ ] Add Jackson to `study_participants` table
-- [ ] Retrieve Jackson's session from his localStorage (session from 10 Apr visible under Entries on his device)
+- [x] Jackson localStorage entries recovered and inserted manually — both sessions in Supabase
 - [ ] Set Twilio env vars to activate WhatsApp nudges
 - [ ] Simon enters first Rewrite It declaration + balcony entry to test end-to-end
 
@@ -289,7 +291,7 @@ File: `body-signal-research-paper.docx`
 Last updated: 10 Apr 2026
 Key additions: Cycle of Constructed Experience (Barrett 2017, McEwen, Porges), HALS concept, 9-state scoring, composite load index, HRV volatility, study design.
 
-**Case study:** `jackson-case-study.docx` — complete narrative arc from signal to identity shift. Eight sections. Includes the intergenerational HALS layer, the two-stage reframe ("I deserve to rest" → "Take time to rest to not burn yourself out"), and the structured Rewrite It output with declaration, from/toward shifts, practice, and measure. To be updated at 30 days with Jackson's physiological arc.
+**Case study:** `jackson-case-study.docx` — complete narrative arc from signal to identity shift. Eight sections. Includes the intergenerational HALS layer, the two-stage reframe ("I deserve to rest" → "Take time to rest to not burn yourself out"), and the structured Rewrite It output with declaration, from/toward shifts, practice, and measure. Updated 11 Apr: Section 3.4 Jackson arc added. Section 9 (two-day arc) in case study doc. To be updated at 30 days with full physiological arc.
 
 ---
 
@@ -373,8 +375,16 @@ This is the primary case study for the research paper. One participant, one morn
 - `red_psych` pattern recurrence rate declining
 - Signal state moving from red toward amber/green
 
-### Note on data
-Jackson's session entry did not save to Supabase on 10 Apr (token expired at time of session). wearable.html now has `syncPendingEntries()` — runs on load, retries any localStorage entry that failed to write to Supabase. His next session will save correctly.
+### Data — confirmed in Supabase
+Both sessions now in Supabase (inserted manually — save bugs now fixed):
+- 10 Apr: red_psych, recovery 23%, HRV 42ms
+- 11 Apr: green_high, recovery 72%, HRV 52ms
+
+### The Two-Day Arc
+Body confirmed the identity shift in fewer than 24 hours. 23% → 72% recovery. The green session went deeper than red could — second HALS surfaced: self-compassion feels threatening, kindness feels like a compliment, compliments feel unsafe. "I know it is not true at my core." Case study Section 9 added: "The Second Day: What Green Reveals."
+
+**Extended arc:**
+Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Body Confirms → Deeper Layer Surfaces → Work Continues
 
 
 ---
@@ -387,6 +397,7 @@ Jackson's session entry did not save to Supabase on 10 Apr (token expired at tim
 | 9 Apr 2026 | Scoring engine WHOOP AI validated. Guardrails added. Composite load index built. Feedback measure deployed. Research paper updated. Rewrite It conceived + mocked up. |
 | 10 Apr 2026 AM | rewrite.html built (4 screens, SVG icons, 5 Supabase tables with RLS). HRV volatility + AMBER_VOLATILE added. Jackson (4th participant) connected. CRON_SECRET added. |
 | 10 Apr 2026 PM | WHOOP token expiry fixed (whoop-auth.js — SUPABASE_SERVICE_KEY for user resolution, PATCH not upsert). whoop-refresh.js Node.js runtime confirmed working. localStorage→Supabase sync added to wearable.html. Three-tab nav across all pages. start.html — Rewrite It replaces Deepen It. Auth bug fixed in rewrite.html (wrong anon key). Jackson case study written — complete arc from signal to identity shift including intergenerational HALS layer. README-DEV established as cross-session context. |
+| 11 Apr 2026 | Three bugs fixed: (1) float type — recovery/hrv/strain columns altered to numeric, Math.round() in saveEntry. (2) pendingSync not set on auth failure — fixed, syncPendingEntries now retries any entry with no supabaseId. (3) amber missing from mode constraint — fixed. Jackson 2 sessions in Supabase: 10 Apr red_psych 23% → 11 Apr green_high 72%. Body confirmed identity shift overnight. Second HALS surfaced in green session (self-compassion feels threatening). Jackson case study Section 9 added. Research paper Section 3.4 Jackson arc added. Research paper prose hyphen cleanup. |
 
 ---
 *Update this file at the end of every session. It is the memory between chats.*
