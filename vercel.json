@@ -6,6 +6,10 @@
     {
       "path": "/api/whoop-refresh",
       "schedule": "*/45 * * * *"
+    },
+    {
+      "path": "/api/nudge-whatsapp",
+      "schedule": "* * * * *"
     }
   ]
 }
