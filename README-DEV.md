@@ -46,6 +46,8 @@
 | Melinda | a64f2289-f8d9-409c-9807-c58996c13b20 | 34690349 | 17 Mar 2026 |
 | Jackson | ce31c087-3517-409f-a266-b4c46f978c23 | 23042959 | 10 Apr 2026 |
 
+All 4 participants now in `study_participants` table (added 12 Apr 2026).
+
 ---
 
 ## Site Navigation
@@ -60,20 +62,18 @@ index.html (public landing)
 privacy.html (required for WHOOP developer registration)
 ```
 
-**Three-tab nav** (added 10 Apr 2026) — consistent across dashboard.html, wearable.html, rewrite.html:
-- Learn It → `/dashboard.html` (active on dashboard)
-- Use It → `/wearable.html` (active on wearable)
-- Rewrite It → `/rewrite.html` (active on rewrite)
-
-`start.html` — Path 3 is now **Rewrite It** (dark card, yellow accents). "Deepen It / Coming Soon" removed entirely.
+**Three-tab nav** — consistent across dashboard.html, wearable.html, rewrite.html:
+- Learn It → `/dashboard.html`
+- Use It → `/wearable.html`
+- Rewrite It → `/rewrite.html`
 
 ---
 
 ## Key Files
 | File | Purpose | Notes |
 |---|---|---|
-| `wearable.html` | Body Signal main page | Passes `Authorization: Bearer [authToken]` to `/api/whoop-data`. Has localStorage→Supabase sync (syncPendingEntries) added 10 Apr PM. |
-| `rewrite.html` | Rewrite It — 4 screens | Tree / Balcony / Practices / History. Auth guard → `/signin.html`. SVG icons only. March 2025 Supabase anon key. |
+| `wearable.html` | Body Signal main page | Passes `Authorization: Bearer [authToken]` to `/api/whoop-data`. Has localStorage→Supabase sync (syncPendingEntries). |
+| `rewrite.html` | Rewrite It — 4 screens | Tree / Balcony / Practices / History. Loads saved nudge settings on page load (added 12 Apr). |
 | `dashboard.html` | Learn It — missions | 14 missions, three-tab nav |
 | `start.html` | Platform entry page | Three paths: Learn It / Use It / Rewrite It |
 | `whoop-callback.html` | WHOOP OAuth callback | Stores tokens in localStorage after redirect |
@@ -81,15 +81,15 @@ privacy.html (required for WHOOP developer registration)
 | `study-dashboard.html` | Researcher view | All participant data, PRR charts, Lumen stages |
 | `privacy.html` | Privacy policy | Required for WHOOP dev registration |
 | `api/whoop-data.js` | WHOOP fetch + scoring engine | **Edge function.** Composite load index, guardrails, 9 states |
-| `api/whoop-auth.js` | WHOOP OAuth flow | Fixed 10 Apr PM — uses SUPABASE_SERVICE_KEY (not anon key) to resolve user_id. Check-then-PATCH-or-INSERT pattern. No upsert. |
-| `api/whoop-refresh.js` | Token refresh cron | **Node.js `module.exports`** — NOT Edge. Runs every 45 min. Fixed 10 Apr PM. |
-| `api/lumen.js` | Lumen AI companion | **UPDATED 12 Apr 2026** — full six-move methodology prompt. See Lumen Architecture section below. |
+| `api/whoop-auth.js` | WHOOP OAuth flow | Uses SUPABASE_SERVICE_KEY. Check-then-PATCH-or-INSERT. No upsert. |
+| `api/whoop-refresh.js` | Token refresh cron | **Node.js.** Runs every 45 min. Auth check removed 12 Apr (was causing 401 on every run). |
+| `api/lumen.js` | Lumen AI companion | **Edge. UPDATED 12 Apr 2026** — full six-move methodology prompt. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
-| `api/nudge-whatsapp.js` | WhatsApp nudge cron | Daily balcony reminder. Node.js. Twilio env vars not yet set. |
+| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Sends if nudge_time matches UTC minute. Only shows body signal data if from today (not stale). Links to wearable.html. |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
 | `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. |
 | `README-DEV.md` | This file | Update at end of every session before closing |
-| `transcripts/*.txt` | 65 coaching transcripts | Plain text versions added 12 Apr 2026. Fetchable via raw GitHub URL. Source of Lumen methodology. |
+| `transcripts/*.txt` | 65 coaching transcripts | Plain text. Fetchable via raw GitHub URL. Source of Lumen methodology. |
 
 ---
 
@@ -102,7 +102,7 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 |---|---|
 | `whoop_connections` | WHOOP OAuth tokens per user. Has `expires_at` column. PATCH not upsert. |
 | `wearable_entries` | Body Signal sessions — see column list above |
-| `daily_state` | Raw scored WHOOP metrics per user per day |
+| `daily_state` | Raw scored WHOOP metrics per user per day — currently empty, not being populated |
 | `answers` | Reframe mission answers (RLS enabled) |
 | `entries` | Reframe mission entries |
 | `lumen_instructions` | Per-user Lumen system context |
@@ -110,12 +110,12 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 | `pattern_recurrence_rate` | Primary study metric |
 | `wearable_pattern_summary` | View — pattern frequency per user |
 | `weekly_study_summary` | Weekly aggregation |
-| `study_participants` | Study cohort record |
+| `study_participants` | Study cohort record — all 4 participants added 12 Apr 2026 |
 | `rewrite_trees` | Rewrite It — declaration + identity shift per user (one active per user) |
 | `rewrite_beliefs` | Rewrite It — belief/value from→toward pairs |
 | `rewrite_practices` | Rewrite It — practices (what/when/where/how/who/HALS/measure) |
 | `rewrite_diary` | Rewrite It — daily balcony entries + practice check-ins |
-| `rewrite_nudge_settings` | Rewrite It — WhatsApp nudge number + time |
+| `rewrite_nudge_settings` | Rewrite It — WhatsApp nudge number + time (UTC). Simon set to 18:00 UTC. |
 All 5 rewrite tables have RLS enabled.
 
 ---
@@ -125,14 +125,14 @@ All 5 rewrite tables have RLS enabled.
 |---|---|
 | `SUPABASE_URL` | `https://aoqjfqmlcccsosddqnws.supabase.co` |
 | `SUPABASE_SERVICE_KEY` | Service role key for server-side Supabase calls |
-| `SUPABASE_ANON_KEY` | **NOT SET** — do not use. Use SUPABASE_SERVICE_KEY for user resolution in whoop-auth.js |
+| `SUPABASE_ANON_KEY` | **NOT SET** — do not use. Use SUPABASE_SERVICE_KEY for user resolution. |
 | `WHOOP_CLIENT_ID` | WHOOP OAuth app client ID |
 | `WHOOP_CLIENT_SECRET` | WHOOP OAuth app client secret |
 | `ANTHROPIC_API_KEY` | Claude API key for Lumen |
-| `CRON_SECRET` | Secures cron endpoints — whoop-refresh + nudge-whatsapp |
-| `TWILIO_ACCOUNT_SID` | WhatsApp nudge — **NOT YET SET** |
-| `TWILIO_AUTH_TOKEN` | WhatsApp nudge — **NOT YET SET** |
-| `TWILIO_WHATSAPP_FROM` | e.g. `whatsapp:+14155238886` — **NOT YET SET** |
+| `CRON_SECRET` | Set but NOT used — auth check removed from both cron files |
+| `TWILIO_ACCOUNT_SID` | **SET 12 Apr 2026** — starts with AC |
+| `TWILIO_AUTH_TOKEN` | **SET 12 Apr 2026** |
+| `TWILIO_WHATSAPP_FROM` | `whatsapp:+14155238886` (Twilio sandbox) — **SET 12 Apr 2026** |
 
 ---
 
@@ -156,6 +156,12 @@ All 5 rewrite tables have RLS enabled.
 17. **Lumen 401 silent failure** — if Supabase session expires mid-conversation, Lumen returns 401 and shows "Lumen is quiet. Keep going." Looks intentional but is auth failure. Not yet fixed.
 18. **lumen.js is Edge runtime** — `export const config = { runtime: 'edge' }` must stay. Never add Node.js module.exports to it.
 19. **Transcripts are .txt in /transcripts folder** — fetchable via raw GitHub URL. Both .docx and .txt versions exist. Use .txt for reading.
+20. **Cron auth check removed** — both `whoop-refresh.js` and `nudge-whatsapp.js` had auth checks that caused 401 on every cron run. Removed 12 Apr. Do NOT re-add.
+21. **nudge_time is UTC** — stored as `time without time zone`. Cron compares `HH:MM` against UTC. UK participants must subtract 1hr (BST). UI now shows UTC label with hint.
+22. **nudge-whatsapp only shows today's body signal** — queries `wearable_entries` with `created_at >= today`. If no session done today, sends nudge without data line. Never shows stale data.
+23. **Vercel env var changes need a new deployment** — Redeploy via UI reuses the same build. Must push a GitHub commit to force a fresh build that picks up new env vars.
+24. **GitHub MCP server** — installed in Claude Desktop config (`npx @modelcontextprotocol/server-github`). Requires Node.js. PAT stored in config. Claude can now read/write files directly from GitHub without copy-paste.
+25. **systemExtra audit (open)** — `triggerLumenReflection()` in wearable.html passes rich context to Lumen for the first message. But `sendToLumen()` (continuation messages) rebuilds a blank 2-line system prompt — Lumen is blind after message 1. Fix not yet pushed.
 
 ---
 
@@ -177,7 +183,7 @@ All 5 rewrite tables have RLS enabled.
 
 ## Scoring Engine — 9 States
 **RED** — `red_psych` (rec_z < -0.8, sleep adequate, low strain) / `red_trend` (HRV declining 3+ days, no physical cause, >=7 days history) / `red_strain` (high strain, no workout)
-**AMBER** — `amb_load` / `amb_trend` / `amb_recovery` / `amb_volatile` (HRV CV, added 10 Apr)
+**AMBER** — `amb_load` / `amb_trend` / `amb_recovery` / `amb_volatile` (HRV CV)
 **GREEN** — `grn_thriving` / `grn_bounce` / `grn_streak`
 
 ### Scientific Guardrails (WHOOP AI validated 9 Apr 2026)
@@ -193,25 +199,19 @@ HRV 40% / Recovery 25% / Sleep consistency 20% / Respiratory rate 15%
 
 ## Lumen Architecture — UPDATED 12 Apr 2026
 
-### The Problem with the Old Prompt
-The previous Lumen prompt described values and voice but gave Lumen no methodology sequence — no destination. Lumen stayed in open-ended reflective questioning mode indefinitely, which felt like a coaching chatbot rather than a coaching methodology. The paradox move — the pivot point that makes reframing possible — was completely absent.
-
 ### The New Prompt — Six Moves
 `api/lumen.js` now contains a full methodology prompt extracted from 65 real coaching transcripts. The six moves:
 
 1. **SURFACE** — warmth first, find what is actually present. Stay here until the real thing emerges.
 2. **NAME THE CODE** — when the same fear/belief appears twice in different forms, name it precisely. "The code I'm hearing is..."
 3. **GIVE IT ITS PLACE** — never attack the code. It was adaptive once. "Where did that come from? When was it true?"
-4. **THE PARADOX** — the pivot point. Always: "Here's the irony... the way that code is working is creating the very thing you fear most." The protection overplayed becomes the threat. "You can't escape it." Do not rush past this. Let it land.
-5. **THE REFRAME** — only after the paradox lands. "Is it actually true?" Help them find the new belief — do not give it to them. Identity first, functional translation second.
-6. **THE PRACTICE** — specific, scheduled, embodied. Catch vagueness. "That doesn't sound like a real commitment. What would make it real?"
+4. **THE PARADOX** — the pivot point. Always: "Here's the irony... the way that code is working is creating the very thing you fear most." Do not rush past this. Let it land.
+5. **THE REFRAME** — only after the paradox lands. "Is it actually true?" Help them find the new belief — do not give it to them.
+6. **THE PRACTICE** — specific, scheduled, embodied. Catch vagueness.
 
 ### The Question / Offer Distinction
-The most important skill in the prompt. Questions when excavating. Offers when you've seen enough to name something.
-
-An offer: "Here's the irony..." / "The code I'm hearing is..." / "What I'm noticing is..."
-
-**If the offer is rejected — treat it as data.** Do not immediately re-offer. Ask one question: "What would you say instead?" or "What is it more like?" Their answer will either refine the offer or redirect you. A rejected offer that produces "no, it's more like..." is often the real belief stated more precisely than the original offer.
+Questions when excavating. Offers when you've seen enough to name something.
+If the offer is rejected — treat it as data. Ask: "What would you say instead?"
 
 ### The Balcony Close — always four questions in sequence
 1. "What are you taking away?"
@@ -219,26 +219,23 @@ An offer: "Here's the irony..." / "The code I'm hearing is..." / "What I'm notic
 3. "What do you need to integrate?"
 4. "And what are you going to do — specifically?"
 
-### Signal State Calibration
-- **RED** — full six moves, paradox usually accessible, do not skip it
-- **AMBER** — surface first, paradox may be reachable
-- **GREEN** — do not rush to paradox, deeper layers accessible from safety
+### Critical Open Issue — systemExtra in continuation messages
+`triggerLumenReflection()` passes rich context (WHOOP data, signal state, all 4 answers, history) for the FIRST Lumen message only. `sendToLumen()` rebuilds a blank 2-line system prompt for all subsequent messages — Lumen is completely blind after message 1. Fix ready but not yet pushed.
 
-### Critical Open Question — systemExtra
-Lumen receives `systemExtra` from `wearable.html` containing WHOOP context. This is what makes it specific rather than generic. Claude must verify what is actually being passed in systemExtra before assuming Lumen has the signal state, recovery numbers, and session history. Without rich systemExtra context, Lumen opens blind. Next session: audit what wearable.html actually passes.
+### Simon's Coaching Language — in Lumen prompt
+"Here's the irony..." / "Your code" / "The overplayed value always creates the opposite of the value" / "You can't escape it" / "Is it actually true?" / "That belief was built for a different chapter" / "Get on the balcony of this"
 
-### Simon's Coaching Language — extracted from transcripts
-These phrases are baked into the Lumen prompt verbatim:
-- "Here's the irony..." — paradox opener
-- "Your code" — the running belief/HALS
-- "The overplayed value always creates the opposite of the value"
-- "You can't escape it" — permission after the paradox
-- "Is it actually true?"
-- "That belief was built for a different chapter"
-- "Get on the balcony of this"
+---
 
-### Previous Lumen Prompt
-Preserved in GitHub commit history. Accessible at any previous commit on `api/lumen.js`. Can be restored in one git command if needed.
+## WhatsApp Nudge — LIVE 12 Apr 2026
+- Cron: every minute via `vercel.json`
+- Finds users where `nudge_time` (UTC) matches current UTC minute
+- Skips if balcony practice already completed today
+- Fetches today's `wearable_entries` — shows recovery/HRV/signal if session done today, otherwise sends without data
+- Message: "Time to get on the balcony." + body signal line (if available) + link to `wearable.html`
+- Twilio sandbox: `+14155238886`. Join keyword: `join suggest-obtain`
+- Simon opted in. Nudge confirmed working at 18:25 UTC 12 Apr 2026.
+- Other participants need to opt in to Twilio sandbox and set nudge time in Rewrite It → Practices
 
 ---
 
@@ -249,60 +246,20 @@ Preserved in GitHub commit history. Accessible at any previous commit on `api/lu
 Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Physiological Confirmation
 ```
 
-### Extended Arc (from Jackson two-day case)
-```
-Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Body Confirms → Deeper Layer Surfaces → Work Continues
-```
-
-### What the platform produces at the end of a session (Rewrite It output)
-1. **The Declaration** — "I am choosing to be someone who [identity claim]."
-2. **The Identity Shift** — From / Toward
-3. **The Belief Shift** — From / Toward
-4. **The HALS Being Revised** — including origin (intergenerational where relevant)
-5. **The Practice** — What / When / Where / Who / Why. Specific, embodied, scheduled.
-6. **The Measure** — "I will know it is working when..."
-
 ### Jackson's case (10 Apr 2026) — reference example
 - **Signal:** red_psych, recovery 23%, HRV declining, no physical cause
 - **Belief surfaced:** "If I stop, I am lazy"
 - **Origin:** Intergenerational — family history of working hard and being useful
 - **Declaration:** "I am choosing to be someone who deserves to rest."
-- **Identity from/toward:** conditional worth → leads from recovery
-- **Belief from/toward:** "If I stop I am lazy" → "I deserve to rest"
-- **Practice:** Hit golf balls at the range or throw darts, twice a week, in the diary
-- **Measure:** WHOOP recovery stops trending red without physical cause
 - **Two-day arc:** 23% recovery → 72% recovery in one night. Green session surfaced second HALS: self-compassion feels threatening.
 - **Full case study:** `jackson-case-study.docx` in project files
-
----
-
-## Coaching Transcripts — 12 Apr 2026
-65 transcripts from Simon's real coaching sessions added to `/transcripts/` folder as `.txt` files.
-Fetchable via: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/transcripts/[Name].txt`
-
-### Session Types identified across corpus
-| Type | Signal state | Arc | Examples |
-|---|---|---|---|
-| Personal HALS | red/amber | Full six moves | Jackson, Helen, Kara, Will Rayment, George |
-| Leadership/values | amber/green | Overplayed values framing | Marianne, Eugene, Georgina, Danielle |
-| Meaning/transition | varied | Integration not reframe | Brian, Raj, Rick |
-| First/orientation | any | Edge-finding, not yet at belief | Jason, Nick, Torkjel |
-
-The wearable surfaces Personal HALS sessions most often. That is where Lumen must be strongest.
 
 ---
 
 ## Rewrite It — Architecture
 **Five Supabase tables:** `rewrite_trees`, `rewrite_beliefs`, `rewrite_practices`, `rewrite_diary`, `rewrite_nudge_settings` — all with RLS.
 **Four screens:** Tree / Balcony / Practices / History
-**Commitment object:** what / when / where / how / who / HALS being revised / measure
-
-**Daily balcony practice (three questions):**
-1. Where did I act from the more whole version of myself today?
-2. What do I appreciate about how I showed up?
-3. One thing tomorrow I want to bring my declaration into
-
-**WhatsApp nudge:** Twilio Business API. Daily at person-set time. Skips if already done. Personalised with declaration. Twilio env vars not yet set.
+**Nudge settings UI:** pre-fills saved number + time on load. Shows "Nudge active" status badge. UTC label with BST hint.
 
 ---
 
@@ -315,38 +272,30 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 ## Outstanding Work
 
 ### Immediate
-- [ ] All 4 participants reconnect WHOOP once (cron running)
-- [ ] Add Jackson to `study_participants` table
-- [ ] Set Twilio env vars to activate WhatsApp nudges
-- [ ] Simon enters first Rewrite It declaration + balcony entry to test end-to-end
-- [ ] **Audit what `systemExtra` wearable.html passes to Lumen** — critical to ensure Lumen is not opening blind (no signal state = generic responses)
+- [ ] **Fix `sendToLumen()` in wearable.html** — continuation messages are blind (no systemExtra). Fix identified, not yet pushed.
 - [ ] Test new Lumen prompt with real session — does it feel like Simon or like a checklist?
-
-### Body Signal
-- [ ] HRV volatility (CV) — WHOOP AI validation session needed
-- [ ] Skin temperature — lower priority
+- [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens expired — needs OAuth reconnect from their devices)
+- [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
-- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda: most history)
+- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda: most history — due mid-April)
 - [ ] Jackson 30-day follow-up — does Body Signal confirm the identity shift?
+- [ ] Populate `daily_state` table — currently empty, not being written to
 
 ### Reframe workbook
 - [ ] Missions 3-5, 7-14 to build (1, 2, 6 live)
 
 ### Infrastructure
 - [ ] Submit Safe Browsing false positive: `safebrowsing.google.com/safebrowsing/report_error/`
+- [ ] Twilio sandbox → production WhatsApp Business API (when study scales)
 
 ---
 
 ## Research Paper
 File: `body-signal-research-paper.docx`
 Last updated: 10 Apr 2026
-Key additions: Cycle of Constructed Experience (Barrett 2017, McEwen, Porges), HALS concept, 9-state scoring, composite load index, HRV volatility, study design.
-
-**Case study:** `jackson-case-study.docx` — complete narrative arc from signal to identity shift.
-Nine sections including the intergenerational HALS layer, two-stage reframe, structured Rewrite It output, and the two-day arc (Section 9).
-To be updated at 30 days with full physiological arc.
+**Case study:** `jackson-case-study.docx` — to be updated at 30 days with full physiological arc.
 
 ---
 
@@ -397,7 +346,8 @@ for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f";
 | 10 Apr 2026 AM | rewrite.html built (4 screens, SVG icons, 5 Supabase tables with RLS). HRV volatility + AMBER_VOLATILE added. Jackson (4th participant) connected. CRON_SECRET added. |
 | 10 Apr 2026 PM | WHOOP token expiry fixed. whoop-refresh.js Node.js runtime confirmed. localStorage→Supabase sync added. Three-tab nav across all pages. Jackson case study written. README-DEV established. |
 | 11 Apr 2026 | Three bugs fixed: float types, pendingSync, amber mode constraint. Jackson 2 sessions in Supabase. Body confirmed identity shift overnight (23% → 72%). Second HALS surfaced in green session. Case study Section 9 added. Research paper Section 3.4 added. |
-| 12 Apr 2026 | 65 coaching transcripts converted to .txt and pushed to /transcripts/ on GitHub. Transcript corpus analysed — Simon's coaching methodology extracted (six moves, question/offer distinction, paradox move, balcony close, Simon's exact language). Lumen system prompt completely rewritten based on real transcripts. New prompt deployed to production. Critical open question identified: need to audit systemExtra context passed from wearable.html to Lumen — without rich context Lumen may open generically. |
+| 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed — continuation messages identified as blind (fix pending). |
+| 12 Apr 2026 PM | GitHub MCP server installed in Claude Desktop — Claude can now read/write repo directly. whoop-refresh cron fixed (auth check was 401ing every run). All 4 participants added to study_participants table. Twilio set up — TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM all set. nudge-whatsapp added to vercel.json cron. WhatsApp nudge confirmed working (Simon opted in, first nudge received 18:25 UTC). Nudge message updated: shows today's body signal only (not stale), links to wearable.html. rewrite.html updated: nudge settings pre-fill on load, UTC label with BST hint. |
 
 ---
 
