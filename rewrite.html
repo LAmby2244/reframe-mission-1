@@ -33,7 +33,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ── NAV ── */
+  /* -- NAV -- */
   .top-nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 200;
     background: rgba(245,230,205,0.97);
@@ -53,7 +53,7 @@
   .top-nav-title { font-size: 15px; font-weight: 500; color: var(--dark); }
   .top-nav-sub { font-size: 11px; color: var(--mid); }
 
-  /* ── BOTTOM NAV ── */
+  /* -- BOTTOM NAV -- */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(245,230,205,0.97);
@@ -76,12 +76,12 @@
   .bnav-btn:hover { background: rgba(10,50,40,0.06); }
   .bnav-btn.active { color: var(--dark); font-weight: 500; }
 
-  /* ── SCREENS ── */
+  /* -- SCREENS -- */
   .screen { display: none; padding-top: 56px; padding-bottom: 90px; min-height: 100vh; }
   .screen.active { display: block; }
   .hidden { display: none !important; }
 
-  /* ── HERO ── */
+  /* -- HERO -- */
   .hero {
     background: var(--dark);
     padding: 40px 24px 36px;
@@ -105,7 +105,7 @@
   .hero h1 em { font-style: italic; color: var(--yellow); }
   .hero-sub { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5; }
 
-  /* ── DECLARATION CARD ── */
+  /* -- DECLARATION CARD -- */
   .section { padding: 20px 20px 0; }
   .section-label {
     font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
@@ -131,7 +131,7 @@
   }
   .declaration-toward span { font-weight: 500; color: var(--teal); font-size: 10px; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
 
-  /* ── BELIEF CARDS ── */
+  /* -- BELIEF CARDS -- */
   .belief-card {
     background: var(--white);
     border-radius: 14px;
@@ -154,7 +154,7 @@
   .belief-from-box .belief-box-label { color: rgba(10,50,40,0.4); }
   .belief-toward-box .belief-box-label { color: var(--teal); }
 
-  /* ── PRACTICE PILLS ── */
+  /* -- PRACTICE PILLS -- */
   .practices-list { margin-top: 10px; }
   .practice-pill {
     display: flex; align-items: flex-start; gap: 10px;
@@ -177,7 +177,7 @@
   .practice-text { font-size: 13px; line-height: 1.4; color: var(--dark); }
   .practice-meta { font-size: 11px; color: var(--mid); margin-top: 2px; }
 
-  /* ── STREAK BAR ── */
+  /* -- STREAK BAR -- */
   .streak-bar {
     display: flex; gap: 4px; padding: 12px 20px 0;
   }
@@ -189,7 +189,7 @@
   .streak-day.done { background: var(--teal); }
   .streak-day.today { background: var(--yellow); }
 
-  /* ── BALCONY SECTION ── */
+  /* -- BALCONY SECTION -- */
   .balcony-card {
     background: var(--dark);
     border-radius: 16px;
@@ -226,7 +226,7 @@
   .balcony-q textarea::placeholder { color: rgba(255,255,255,0.3); }
   .balcony-q textarea:focus { outline: none; border-color: var(--yellow); }
 
-  /* ── LUMEN REPLY ── */
+  /* -- LUMEN REPLY -- */
   .lumen-reply {
     background: rgba(255,190,25,0.1);
     border: 0.5px solid rgba(255,190,25,0.2);
@@ -245,7 +245,7 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .lumen-reply p { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.6; }
 
-  /* ── BUTTONS ── */
+  /* -- BUTTONS -- */
   .btn-primary {
     width: 100%; padding: 14px;
     background: var(--orange); color: white;
@@ -271,7 +271,7 @@
   .btn-small.teal { background: var(--teal-bg); color: var(--teal); }
   .btn-small.orange { background: var(--orange); color: white; }
 
-  /* ── FORM ── */
+  /* -- FORM -- */
   .form-field { margin-bottom: 16px; }
   .form-field label {
     font-size: 11px; font-weight: 500; color: var(--mid);
@@ -290,7 +290,7 @@
   }
   .form-field textarea { min-height: 64px; line-height: 1.5; }
 
-  /* ── MODAL ── */
+  /* -- MODAL -- */
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 500;
     background: rgba(10,50,40,0.5);
@@ -309,7 +309,7 @@
   .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
   .modal-sub { font-size: 13px; color: var(--mid); margin-bottom: 20px; }
 
-  /* ── HISTORY ── */
+  /* -- HISTORY -- */
   .history-card {
     background: var(--white); border-radius: 12px;
     border: 0.5px solid var(--border); padding: 16px;
@@ -327,7 +327,7 @@
   .signal-badge.amber { background: #FEF5EC; color: #E67E22; }
   .signal-badge.red { background: #FDF0EE; color: #C0392B; }
 
-  /* ── EMPTY STATE ── */
+  /* -- EMPTY STATE -- */
   .empty-state {
     text-align: center; padding: 48px 32px;
     color: var(--mid);
@@ -336,7 +336,7 @@
   .empty-state h3 { font-size: 16px; font-weight: 500; color: var(--dark); margin-bottom: 6px; }
   .empty-state p { font-size: 13px; line-height: 1.6; }
 
-  /* ── WHATSAPP SETUP ── */
+  /* -- WHATSAPP SETUP -- */
   .wa-card {
     background: var(--white); border-radius: 14px;
     border: 0.5px solid var(--border); padding: 16px;
@@ -351,14 +351,14 @@
   .wa-text h4 { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
   .wa-text p { font-size: 12px; color: var(--mid); line-height: 1.5; }
 
-  /* ── DIVIDER ── */
+  /* -- DIVIDER -- */
   .divider { height: 0.5px; background: var(--border); margin: 16px 0; }
 
-  /* ── FADE IN ── */
+  /* -- FADE IN -- */
   .fade-in { animation: fadeIn 0.3s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ── LOADING ── */
+  /* -- LOADING -- */
   .loading { text-align: center; padding: 40px; color: var(--mid); font-size: 13px; }
   .spinner {
     width: 24px; height: 24px; border: 2px solid var(--border);
@@ -389,7 +389,7 @@
 
 <!-- SCREENS -->
 
-<!-- ══ SCREEN: TREE ══ -->
+<!-- == SCREEN: TREE == -->
 <div class="screen active" id="screen-tree">
 
   <div class="hero">
@@ -437,7 +437,7 @@
   </div>
 </div>
 
-<!-- ══ SCREEN: BALCONY ══ -->
+<!-- == SCREEN: BALCONY == -->
 <div class="screen" id="screen-balcony">
 
   <div class="hero" style="padding-bottom:28px;">
@@ -496,7 +496,7 @@
   </div>
 </div>
 
-<!-- ══ SCREEN: PRACTICES ══ -->
+<!-- == SCREEN: PRACTICES == -->
 <div class="screen" id="screen-practices">
 
   <div style="padding:20px 20px 0;">
@@ -533,9 +533,12 @@
         <input type="tel" id="wa-number" placeholder="+44 7xxx" />
       </div>
       <div class="form-field" style="margin-bottom:0;">
-        <label>Daily time</label>
+        <label>Daily time (UTC &mdash; BST add 1hr)</label>
         <input type="time" id="wa-time" value="20:00" />
       </div>
+    </div>
+    <div style="font-size:11px;color:var(--mid);margin-top:6px;padding:0 2px;">
+      UK users: set 1 hour earlier than you want. e.g. for 7pm BST, enter 18:00.
     </div>
     <button class="btn-small teal" style="margin-top:10px;width:100%;padding:10px;" onclick="saveWaSettings()">
       Save nudge settings
@@ -543,7 +546,7 @@
   </div>
 </div>
 
-<!-- ══ SCREEN: HISTORY ══ -->
+<!-- == SCREEN: HISTORY == -->
 <div class="screen" id="screen-history">
   <div style="padding:20px 20px 0;">
     <div style="font-size:18px;font-weight:500;margin-bottom:4px;">Pattern over time</div>
@@ -589,7 +592,7 @@
   </button>
 </nav>
 
-<!-- ══ MODALS ══ -->
+<!-- == MODALS == -->
 
 <!-- Setup / Edit declaration -->
 <div class="modal-backdrop hidden" id="modal-setup" onclick="closeModal(event,'modal-setup')">
@@ -703,7 +706,7 @@ let beliefs = [];
 let practices = [];
 let diaryEntries = [];
 
-// ── AUTH ──
+// -- AUTH --
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -718,7 +721,6 @@ async function init() {
         await loadAll();
       }
     });
-    // Try magic link from URL hash
     const hash = window.location.hash;
     if (hash.includes('access_token')) {
       const { data: { session: s } } = await sb.auth.getSession();
@@ -743,7 +745,7 @@ async function loadAll() {
   renderStreak();
 }
 
-// ── DATA LOADING ──
+// -- DATA LOADING --
 async function loadTree() {
   if (!userId) return;
   const { data } = await sb.from('rewrite_trees')
@@ -772,9 +774,8 @@ async function loadDiary() {
   diaryEntries = data || [];
 }
 
-// ── RENDER TREE ──
+// -- RENDER TREE --
 function renderTree() {
-  // Hero declaration
   const decEl = document.getElementById('hero-declaration');
   if (currentTree) {
     decEl.innerHTML = currentTree.declaration || 'The person you are <em>choosing to become</em>';
@@ -782,18 +783,17 @@ function renderTree() {
     decEl.innerHTML = 'The person you are <em>choosing to become</em>';
   }
 
-  // Identity card
   const card = document.getElementById('identity-card');
   if (currentTree) {
     card.innerHTML = `
       <div class="declaration-from">
         <span>Running as</span>
-        ${currentTree.identity_from || '—'}
+        ${currentTree.identity_from || '-'}
       </div>
-      <div style="text-align:center;color:var(--mid);font-size:18px;padding:6px 0;">↓</div>
+      <div style="text-align:center;color:var(--mid);font-size:18px;padding:6px 0;">down</div>
       <div class="declaration-toward">
         <span>Becoming</span>
-        ${currentTree.identity_toward || '—'}
+        ${currentTree.identity_toward || '-'}
       </div>
     `;
   } else {
@@ -813,7 +813,6 @@ function renderTree() {
     `;
   }
 
-  // Beliefs
   const bl = document.getElementById('beliefs-list');
   if (!beliefs.length) {
     bl.innerHTML = `<div style="padding:12px 0;color:var(--mid);font-size:13px;">No beliefs or values added yet.</div>`;
@@ -838,13 +837,12 @@ function renderTree() {
     `).join('');
   }
 
-  // Today's practices
   renderTodaysPractices();
 }
 
 function renderBeliefPractices(beliefId) {
   const bps = practices.filter(p => p.belief_id === beliefId);
-  if (!bps.length) return '<div style="font-size:12px;color:var(--mid);padding:4px 0;">No practices yet — <a href="#" onclick="showModal(\'modal-add-practice\');return false;" style="color:var(--teal);">add one</a></div>';
+  if (!bps.length) return '<div style="font-size:12px;color:var(--mid);padding:4px 0;">No practices yet</div>';
   return bps.map(p => `
     <div class="practice-pill" onclick="showPracticeDetail('${p.id}')">
       <div class="practice-check">
@@ -884,7 +882,7 @@ function renderTodaysPractices() {
   }).join('');
 }
 
-// ── STREAK ──
+// -- STREAK --
 function renderStreak() {
   const bar = document.getElementById('streak-bar');
   const today = new Date().toISOString().split('T')[0];
@@ -899,7 +897,6 @@ function renderStreak() {
     return `<div class="streak-day ${hasEntry ? 'done' : ''} ${isToday && !hasEntry ? 'today' : ''}"></div>`;
   }).join('');
 
-  // Count streak
   let streak = 0;
   for (let i = 0; i < 30; i++) {
     const d = new Date(); d.setDate(d.getDate() - i);
@@ -910,7 +907,7 @@ function renderStreak() {
   document.getElementById('streak-count').textContent = streak > 0 ? `${streak} day streak` : '';
 }
 
-// ── BALCONY ──
+// -- BALCONY --
 function renderBalcony() {
   const today = new Date().toISOString().split('T')[0];
   const todayEntry = diaryEntries.find(e => e.created_at && e.created_at.startsWith(today) && e.looked_back);
@@ -922,11 +919,11 @@ function renderBalcony() {
     display.innerHTML = `
       <div class="history-card">
         <div class="history-q">Where I acted from my more whole self</div>
-        <div class="history-a">${todayEntry.looked_back || '—'}</div>
+        <div class="history-a">${todayEntry.looked_back || '-'}</div>
         <div class="history-q">What I appreciated</div>
-        <div class="history-a">${todayEntry.appreciated || '—'}</div>
+        <div class="history-a">${todayEntry.appreciated || '-'}</div>
         <div class="history-q">Looking forward</div>
-        <div class="history-a">${todayEntry.looked_forward || '—'}</div>
+        <div class="history-a">${todayEntry.looked_forward || '-'}</div>
         ${todayEntry.lumen_reply ? `
           <div class="lumen-reply" style="background:rgba(55,115,100,0.08);border-color:rgba(55,115,100,0.2);">
             <div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);"></div> Lumen</div>
@@ -938,7 +935,7 @@ function renderBalcony() {
   }
 }
 
-// ── SAVE BALCONY ──
+// -- SAVE BALCONY --
 async function saveBalcony() {
   const whole = document.getElementById('q-whole').value.trim();
   const appreciate = document.getElementById('q-appreciate').value.trim();
@@ -949,7 +946,6 @@ async function saveBalcony() {
   const btn = document.querySelector('#balcony-form .btn-primary');
   btn.textContent = 'Reflecting...'; btn.disabled = true;
 
-  // Get current body signal state
   let signalState = null;
   try {
     const { data } = await sb.from('wearable_entries').select('signal_state')
@@ -957,7 +953,6 @@ async function saveBalcony() {
     if (data && data.length) signalState = data[0].signal_state;
   } catch(e) {}
 
-  // Save to Supabase
   const { data: entry } = await sb.from('rewrite_diary').insert({
     user_id: userId,
     tree_id: currentTree?.id,
@@ -968,7 +963,6 @@ async function saveBalcony() {
     created_at: new Date().toISOString()
   }).select().single();
 
-  // Get Lumen reflection
   try {
     const recent = diaryEntries.slice(0, 5).map(e =>
       `[${e.created_at?.split('T')[0]}] ${e.looked_back || ''} / ${e.appreciated || ''}`
@@ -981,28 +975,7 @@ async function saveBalcony() {
         'Authorization': `Bearer ${authToken}`
       },
       body: JSON.stringify({
-        systemExtra: `You are Lumen — the AI mirror companion for the Reframe platform.
-
-This is a Balcony Practice entry — the person's daily return to a place of perspective, looking back and forward from the wider view of their identity shift.
-
-Their declaration: "${currentTree?.declaration || 'not yet set'}"
-Their identity shift: From "${currentTree?.identity_from || '—'}" → Toward "${currentTree?.identity_toward || '—'}"
-Current Body Signal state: ${signalState || 'unknown'}
-
-Recent entries (for pattern awareness):
-${recent || 'First entry.'}
-
-Today's entry:
-Where they acted from their more whole self: "${whole}"
-What they appreciated: "${appreciate}"
-Looking forward: "${forward}"
-
-RULES:
-- 2-3 sentences maximum
-- One observation about what you notice across their entries (if there are patterns)
-- One reflection that surfaces their own words back to them
-- No advice. No prescriptions. Mirror only.
-- If this is their first entry, reflect warmly on what they've named.`,
+        systemExtra: `You are Lumen - the AI mirror companion for the Reframe platform.\n\nThis is a Balcony Practice entry - the person's daily return to a place of perspective, looking back and forward from the wider view of their identity shift.\n\nTheir declaration: "${currentTree?.declaration || 'not yet set'}"\nTheir identity shift: From "${currentTree?.identity_from || '-'}" toward "${currentTree?.identity_toward || '-'}"\nCurrent Body Signal state: ${signalState || 'unknown'}\n\nRecent entries (for pattern awareness):\n${recent || 'First entry.'}\n\nToday's entry:\nWhere they acted from their more whole self: "${whole}"\nWhat they appreciated: "${appreciate}"\nLooking forward: "${forward}"\n\nRULES:\n- 2-3 sentences maximum\n- One observation about what you notice across their entries (if there are patterns)\n- One reflection that surfaces their own words back to them\n- No advice. No prescriptions. Mirror only.\n- If this is their first entry, reflect warmly on what they've named.`,
         messages: [{ role: 'user', content: 'Please reflect on what I have written.' }]
       })
     });
@@ -1014,7 +987,6 @@ RULES:
       document.getElementById('balcony-lumen').classList.remove('hidden');
       document.getElementById('lumen-balcony-text').textContent = reply;
 
-      // Show reply briefly before transitioning
       setTimeout(async () => {
         await loadDiary();
         renderBalcony();
@@ -1032,9 +1004,9 @@ RULES:
   }
 }
 
-// ── TOGGLE PRACTICE ──
+// -- TOGGLE PRACTICE --
 async function togglePractice(practiceId, isDone) {
-  if (isDone) return; // Can't uncheck
+  if (isDone) return;
   await sb.from('rewrite_diary').insert({
     user_id: userId,
     tree_id: currentTree?.id,
@@ -1046,7 +1018,7 @@ async function togglePractice(practiceId, isDone) {
   renderStreak();
 }
 
-// ── SAVE DECLARATION ──
+// -- SAVE DECLARATION --
 async function saveDeclaration() {
   const from = document.getElementById('setup-from').value.trim();
   const toward = document.getElementById('setup-toward').value.trim();
@@ -1068,7 +1040,7 @@ async function saveDeclaration() {
   closeModalById('modal-setup');
 }
 
-// ── SAVE BELIEF ──
+// -- SAVE BELIEF --
 async function saveBelief() {
   if (!currentTree) return;
   const type = document.getElementById('belief-type').value;
@@ -1088,7 +1060,7 @@ async function saveBelief() {
   document.getElementById('belief-toward').value = '';
 }
 
-// ── SAVE PRACTICE ──
+// -- SAVE PRACTICE --
 async function savePractice() {
   if (!currentTree) return;
   const what = document.getElementById('p-what').value.trim();
@@ -1114,7 +1086,7 @@ async function savePractice() {
   });
 }
 
-// ── RENDER PRACTICES ──
+// -- RENDER PRACTICES --
 function renderPractices() {
   const list = document.getElementById('all-practices-list');
   if (!practices.length) {
@@ -1133,13 +1105,13 @@ function renderPractices() {
   list.innerHTML = practices.map(p => `
     <div class="history-card fade-in" onclick="showPracticeDetail('${p.id}')">
       <div style="font-size:14px;font-weight:500;margin-bottom:6px;">${p.what}</div>
-      ${p.when_trigger ? `<div style="font-size:12px;color:var(--mid);margin-bottom:4px;">⏰ ${p.when_trigger}</div>` : ''}
+      ${p.when_trigger ? `<div style="font-size:12px;color:var(--mid);margin-bottom:4px;">${p.when_trigger}</div>` : ''}
       ${p.hals_being_revised ? `<div style="font-size:12px;color:var(--mid);">Revising: ${p.hals_being_revised.slice(0,80)}${p.hals_being_revised.length > 80 ? '...' : ''}</div>` : ''}
     </div>
   `).join('');
 }
 
-// ── PRACTICE DETAIL ──
+// -- PRACTICE DETAIL --
 function showPracticeDetail(id) {
   const p = practices.find(x => x.id === id);
   if (!p) return;
@@ -1162,7 +1134,7 @@ function showPracticeDetail(id) {
   showModal('modal-practice-detail');
 }
 
-// ── RENDER HISTORY ──
+// -- RENDER HISTORY --
 function renderHistory() {
   const list = document.getElementById('history-list');
   const balconyEntries = diaryEntries.filter(e => e.looked_back);
@@ -1189,7 +1161,7 @@ function renderHistory() {
         ${e.body_signal_state ? `<div class="signal-badge ${getSignalClass(e.body_signal_state)}">${formatState(e.body_signal_state)}</div>` : ''}
       </div>
       <div class="history-q">More whole self</div>
-      <div class="history-a">${e.looked_back || '—'}</div>
+      <div class="history-a">${e.looked_back || '-'}</div>
       ${e.appreciated ? `<div class="history-q">Appreciated</div><div class="history-a">${e.appreciated}</div>` : ''}
       ${e.lumen_reply ? `
         <div class="lumen-reply" style="background:rgba(55,115,100,0.06);border-color:rgba(55,115,100,0.15);">
@@ -1201,7 +1173,7 @@ function renderHistory() {
   `).join('');
 }
 
-// ── WHATSAPP SETTINGS ──
+// -- WHATSAPP SETTINGS --
 async function saveWaSettings() {
   const number = document.getElementById('wa-number').value.trim();
   const time = document.getElementById('wa-time').value;
@@ -1214,13 +1186,13 @@ async function saveWaSettings() {
     updated_at: new Date().toISOString()
   }, { onConflict: 'user_id' });
 
-  document.querySelector('[onclick="saveWaSettings()"]').textContent = '✓ Saved';
+  document.querySelector('[onclick="saveWaSettings()"]').textContent = 'Saved';
   setTimeout(() => {
     document.querySelector('[onclick="saveWaSettings()"]').textContent = 'Save nudge settings';
   }, 2000);
 }
 
-// ── HELPERS ──
+// -- HELPERS --
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -1246,7 +1218,7 @@ function formatState(state) {
   return map[state] || state;
 }
 
-// ── NAVIGATION ──
+// -- NAVIGATION --
 function showScreen(name, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
@@ -1256,7 +1228,6 @@ function showScreen(name, btn) {
 
 function showModal(id) {
   document.getElementById(id).classList.remove('hidden');
-  // Pre-fill setup modal if tree exists
   if (id === 'modal-setup' && currentTree) {
     document.getElementById('setup-from').value = currentTree.identity_from || '';
     document.getElementById('setup-toward').value = currentTree.identity_toward || '';
@@ -1272,7 +1243,7 @@ function closeModalById(id) {
   document.getElementById(id).classList.add('hidden');
 }
 
-// ── INIT ──
+// -- INIT --
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -1280,7 +1251,6 @@ window.addEventListener('load', async () => {
     userId = session.user.id;
     await loadAll();
   } else {
-    // Listen for auth state change (handles magic link / OAuth)
     const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         authToken = session.access_token;
@@ -1289,7 +1259,6 @@ window.addEventListener('load', async () => {
         await loadAll();
       }
     });
-    // Redirect to sign in after short delay if still no session
     setTimeout(async () => {
       const { data: { session: s } } = await sb.auth.getSession();
       if (!s) window.location.href = '/signin.html?next=/rewrite.html';
