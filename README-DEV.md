@@ -53,10 +53,10 @@
 index.html (public landing)
 -> signin.html (auth gate — single sign-in point for all pages)
 -> start.html (choice: Learn It / Use It / Rewrite It)
-  -> dashboard.html (Learn It — 14 missions, three-tab nav)
-  -> wearable.html (Body Signal — Use It)
-  -> study-dashboard.html (researcher view — all participant data)
-  -> rewrite.html (Rewrite It — declaration, balcony, practices, history)
+-> dashboard.html (Learn It — 14 missions, three-tab nav)
+-> wearable.html (Body Signal — Use It)
+-> study-dashboard.html (researcher view — all participant data)
+-> rewrite.html (Rewrite It — declaration, balcony, practices, history)
 privacy.html (required for WHOOP developer registration)
 ```
 
@@ -83,17 +83,17 @@ privacy.html (required for WHOOP developer registration)
 | `api/whoop-data.js` | WHOOP fetch + scoring engine | **Edge function.** Composite load index, guardrails, 9 states |
 | `api/whoop-auth.js` | WHOOP OAuth flow | Fixed 10 Apr PM — uses SUPABASE_SERVICE_KEY (not anon key) to resolve user_id. Check-then-PATCH-or-INSERT pattern. No upsert. |
 | `api/whoop-refresh.js` | Token refresh cron | **Node.js `module.exports`** — NOT Edge. Runs every 45 min. Fixed 10 Apr PM. |
-| `api/lumen.js` | Lumen AI companion | Proxies Anthropic API, requires Supabase JWT auth |
+| `api/lumen.js` | Lumen AI companion | **UPDATED 12 Apr 2026** — full six-move methodology prompt. See Lumen Architecture section below. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
 | `api/nudge-whatsapp.js` | WhatsApp nudge cron | Daily balcony reminder. Node.js. Twilio env vars not yet set. |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
 | `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. |
 | `README-DEV.md` | This file | Update at end of every session before closing |
+| `transcripts/*.txt` | 65 coaching transcripts | Plain text versions added 12 Apr 2026. Fetchable via raw GitHub URL. Source of Lumen methodology. |
 
 ---
 
 ## Supabase Tables (all 16, `public` schema)
-
 ### wearable_entries columns (actual — verified 10 Apr 2026)
 `id, user_id, created_at, mode, pattern_id, pattern_title, recovery, hrv, strain, sleep_score, answers (jsonb), lumen_reply, tags, feedback_score, feedback_text`
 Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_opening`.
@@ -116,7 +116,6 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 | `rewrite_practices` | Rewrite It — practices (what/when/where/how/who/HALS/measure) |
 | `rewrite_diary` | Rewrite It — daily balcony entries + practice check-ins |
 | `rewrite_nudge_settings` | Rewrite It — WhatsApp nudge number + time |
-
 All 5 rewrite tables have RLS enabled.
 
 ---
@@ -150,11 +149,13 @@ All 5 rewrite tables have RLS enabled.
 10. **Always verify JS syntax** — `node --check file.js` before presenting any JS file.
 11. **Watch for extra `)` on the `fetch('/api/whoop-data'` call in `wearable.html`** — introduced by patches twice before.
 12. **Supabase anon key** — use the March 2025 key matching `dashboard.html`. The old Feb 2024 key causes 401s. `SUPABASE_ANON_KEY` env var does NOT exist in Vercel — use `SUPABASE_SERVICE_KEY` for server-side user resolution.
-13. **Icons** — SVG stroke icons only. No emoji in UI. Bottom nav 20×20 SVG. Empty state 40×40 SVG.
+13. **Icons** — SVG stroke icons only. No emoji in UI. Bottom nav 20x20 SVG. Empty state 40x40 SVG.
 14. **wearable_entries columns** — `mode` not `signal_state`. `pattern_title` not `lumen_opening`. Always check column names before querying.
-15. **localStorage sync** — wearable.html saves to localStorage first then Supabase. `syncPendingEntries()` runs on init to retry any entry with no `supabaseId`. Entries missing from Supabase may be in localStorage on the user's device. Extract via Safari Web Inspector (Settings → Safari → Advanced → Web Inspector on device).
+15. **localStorage sync** — wearable.html saves to localStorage first then Supabase. `syncPendingEntries()` runs on init to retry any entry with no `supabaseId`.
 16. **wearable_entries column types** — `recovery`, `hrv`, `strain` are `numeric` (not integer). Always `Math.round()` before insert. Constraint: `mode` must be one of `red`, `green`, `amber`.
-17. **Lumen 401 silent failure** — if Supabase session expires mid-conversation, Lumen returns 401 and wearable.html shows "Lumen is quiet. Keep going." This looks intentional but is an auth failure. Not yet fixed.
+17. **Lumen 401 silent failure** — if Supabase session expires mid-conversation, Lumen returns 401 and shows "Lumen is quiet. Keep going." Looks intentional but is auth failure. Not yet fixed.
+18. **lumen.js is Edge runtime** — `export const config = { runtime: 'edge' }` must stay. Never add Node.js module.exports to it.
+19. **Transcripts are .txt in /transcripts folder** — fetchable via raw GitHub URL. Both .docx and .txt versions exist. Use .txt for reading.
 
 ---
 
@@ -167,22 +168,22 @@ All 5 rewrite tables have RLS enabled.
 6. Computes 28-day baselines + z-scores
 7. Runs composite load index + 9-state scoring engine
 8. Returns scored data + trend arrays
-9. `wearable.html` renders signal card → calls `/api/lumen` with arc as context
-10. Lumen reads arc, names turning point, invites exploration
+9. `wearable.html` renders signal card → calls `/api/lumen` with arc as `systemExtra` context
+10. Lumen reads arc, works through six-move methodology arc
 11. After conversation: feedback card ("Did this process surface something useful?" 1-5)
-12. Entry saved to localStorage immediately, then Supabase. If Supabase fails, marked `pendingSync: true` and retried on next load.
+12. Entry saved to localStorage immediately, then Supabase. If Supabase fails, retried on next load.
 
 ---
 
 ## Scoring Engine — 9 States
-**RED** — `red_psych` (rec_z < -0.8, sleep adequate, low strain) / `red_trend` (HRV declining 3+ days, no physical cause, ≥7 days history) / `red_strain` (high strain, no workout)
+**RED** — `red_psych` (rec_z < -0.8, sleep adequate, low strain) / `red_trend` (HRV declining 3+ days, no physical cause, >=7 days history) / `red_strain` (high strain, no workout)
 **AMBER** — `amb_load` / `amb_trend` / `amb_recovery` / `amb_volatile` (HRV CV, added 10 Apr)
 **GREEN** — `grn_thriving` / `grn_bounce` / `grn_streak`
 
 ### Scientific Guardrails (WHOOP AI validated 9 Apr 2026)
-1. Recovery ≥ 67% AND HRV ≥ baseline AND low strain → block all amber/red trend states
-2. `red_trend` requires ≥7 days history — under 7 downgrades to `amb_trend`
-3. Recovery ≥ 67% blocks `red_trend` regardless of HRV trend
+1. Recovery >= 67% AND HRV >= baseline AND low strain → block all amber/red trend states
+2. `red_trend` requires >=7 days history — under 7 downgrades to `amb_trend`
+3. Recovery >= 67% blocks `red_trend` regardless of HRV trend
 
 ### Composite Load Index
 HRV 40% / Recovery 25% / Sleep consistency 20% / Respiratory rate 15%
@@ -190,59 +191,110 @@ HRV 40% / Recovery 25% / Sleep consistency 20% / Respiratory rate 15%
 
 ---
 
-## The Full Methodology Loop — Signal to Identity Shift
+## Lumen Architecture — UPDATED 12 Apr 2026
 
-This is the core process the platform enables. Documented from Jackson's session (10 Apr 2026) as the first complete case study.
+### The Problem with the Old Prompt
+The previous Lumen prompt described values and voice but gave Lumen no methodology sequence — no destination. Lumen stayed in open-ended reflective questioning mode indefinitely, which felt like a coaching chatbot rather than a coaching methodology. The paradox move — the pivot point that makes reframing possible — was completely absent.
+
+### The New Prompt — Six Moves
+`api/lumen.js` now contains a full methodology prompt extracted from 65 real coaching transcripts. The six moves:
+
+1. **SURFACE** — warmth first, find what is actually present. Stay here until the real thing emerges.
+2. **NAME THE CODE** — when the same fear/belief appears twice in different forms, name it precisely. "The code I'm hearing is..."
+3. **GIVE IT ITS PLACE** — never attack the code. It was adaptive once. "Where did that come from? When was it true?"
+4. **THE PARADOX** — the pivot point. Always: "Here's the irony... the way that code is working is creating the very thing you fear most." The protection overplayed becomes the threat. "You can't escape it." Do not rush past this. Let it land.
+5. **THE REFRAME** — only after the paradox lands. "Is it actually true?" Help them find the new belief — do not give it to them. Identity first, functional translation second.
+6. **THE PRACTICE** — specific, scheduled, embodied. Catch vagueness. "That doesn't sound like a real commitment. What would make it real?"
+
+### The Question / Offer Distinction
+The most important skill in the prompt. Questions when excavating. Offers when you've seen enough to name something.
+
+An offer: "Here's the irony..." / "The code I'm hearing is..." / "What I'm noticing is..."
+
+**If the offer is rejected — treat it as data.** Do not immediately re-offer. Ask one question: "What would you say instead?" or "What is it more like?" Their answer will either refine the offer or redirect you. A rejected offer that produces "no, it's more like..." is often the real belief stated more precisely than the original offer.
+
+### The Balcony Close — always four questions in sequence
+1. "What are you taking away?"
+2. "What are you learning?"
+3. "What do you need to integrate?"
+4. "And what are you going to do — specifically?"
+
+### Signal State Calibration
+- **RED** — full six moves, paradox usually accessible, do not skip it
+- **AMBER** — surface first, paradox may be reachable
+- **GREEN** — do not rush to paradox, deeper layers accessible from safety
+
+### Critical Open Question — systemExtra
+Lumen receives `systemExtra` from `wearable.html` containing WHOOP context. This is what makes it specific rather than generic. Claude must verify what is actually being passed in systemExtra before assuming Lumen has the signal state, recovery numbers, and session history. Without rich systemExtra context, Lumen opens blind. Next session: audit what wearable.html actually passes.
+
+### Simon's Coaching Language — extracted from transcripts
+These phrases are baked into the Lumen prompt verbatim:
+- "Here's the irony..." — paradox opener
+- "Your code" — the running belief/HALS
+- "The overplayed value always creates the opposite of the value"
+- "You can't escape it" — permission after the paradox
+- "Is it actually true?"
+- "That belief was built for a different chapter"
+- "Get on the balcony of this"
+
+### Previous Lumen Prompt
+Preserved in GitHub commit history. Accessible at any previous commit on `api/lumen.js`. Can be restored in one git command if needed.
+
+---
+
+## The Full Methodology Loop — Signal to Identity Shift
 
 ### The Arc
 ```
 Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Physiological Confirmation
 ```
 
+### Extended Arc (from Jackson two-day case)
+```
+Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Body Confirms → Deeper Layer Surfaces → Work Continues
+```
+
 ### What the platform produces at the end of a session (Rewrite It output)
-
-**1. The Declaration**
-"I am choosing to be someone who [identity claim]."
-Identity-level, present tense, specific to the belief surfaced.
-
-**2. The Identity Shift — From / Toward**
-From: the HALS-driven identity that has been running
-Toward: the more adaptive identity being chosen
-
-**3. The Belief Shift — From / Toward**
-From: the exact belief as articulated in the session
-Toward: the new belief arrived at through the conversation (not imposed)
-
-**4. The HALS Being Revised**
-The Historic Adaptive Life Strategy named — including origin (intergenerational where relevant)
-
-**5. The Practice — What / When / Where / Who / Why**
-Specific, embodied, scheduled. A vote for the new identity cast repeatedly.
-
-**6. The Measure**
-"I will know it is working when..." — qualitative + physiological (Body Signal arc)
+1. **The Declaration** — "I am choosing to be someone who [identity claim]."
+2. **The Identity Shift** — From / Toward
+3. **The Belief Shift** — From / Toward
+4. **The HALS Being Revised** — including origin (intergenerational where relevant)
+5. **The Practice** — What / When / Where / Who / Why. Specific, embodied, scheduled.
+6. **The Measure** — "I will know it is working when..."
 
 ### Jackson's case (10 Apr 2026) — reference example
 - **Signal:** red_psych, recovery 23%, HRV declining, no physical cause
-- **Pattern questions:** red_psych set (4 questions)
 - **Belief surfaced:** "If I stop, I am lazy"
-- **Origin:** Intergenerational — family history of working hard and being useful. The HALS came before him.
+- **Origin:** Intergenerational — family history of working hard and being useful
 - **Declaration:** "I am choosing to be someone who deserves to rest."
-- **Identity from:** Someone whose worth is conditional on output
-- **Identity toward:** Someone who leads from recovery
-- **Belief from:** "If I stop, I am lazy"
-- **Belief toward:** "I deserve to rest" / "Rest is what makes everything else possible"
+- **Identity from/toward:** conditional worth → leads from recovery
+- **Belief from/toward:** "If I stop I am lazy" → "I deserve to rest"
 - **Practice:** Hit golf balls at the range or throw darts, twice a week, in the diary
 - **Measure:** WHOOP recovery stops trending red without physical cause
+- **Two-day arc:** 23% recovery → 72% recovery in one night. Green session surfaced second HALS: self-compassion feels threatening.
 - **Full case study:** `jackson-case-study.docx` in project files
+
+---
+
+## Coaching Transcripts — 12 Apr 2026
+65 transcripts from Simon's real coaching sessions added to `/transcripts/` folder as `.txt` files.
+Fetchable via: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/transcripts/[Name].txt`
+
+### Session Types identified across corpus
+| Type | Signal state | Arc | Examples |
+|---|---|---|---|
+| Personal HALS | red/amber | Full six moves | Jackson, Helen, Kara, Will Rayment, George |
+| Leadership/values | amber/green | Overplayed values framing | Marianne, Eugene, Georgina, Danielle |
+| Meaning/transition | varied | Integration not reframe | Brian, Raj, Rick |
+| First/orientation | any | Edge-finding, not yet at belief | Jason, Nick, Torkjel |
+
+The wearable surfaces Personal HALS sessions most often. That is where Lumen must be strongest.
 
 ---
 
 ## Rewrite It — Architecture
 **Five Supabase tables:** `rewrite_trees`, `rewrite_beliefs`, `rewrite_practices`, `rewrite_diary`, `rewrite_nudge_settings` — all with RLS.
-
 **Four screens:** Tree / Balcony / Practices / History
-
 **Commitment object:** what / when / where / how / who / HALS being revised / measure
 
 **Daily balcony practice (three questions):**
@@ -263,11 +315,12 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 ## Outstanding Work
 
 ### Immediate
-- [ ] All 4 participants reconnect WHOOP once (cron now running, whoop-auth.js fixed)
+- [ ] All 4 participants reconnect WHOOP once (cron running)
 - [ ] Add Jackson to `study_participants` table
-- [x] Jackson localStorage entries recovered and inserted manually — both sessions in Supabase
 - [ ] Set Twilio env vars to activate WhatsApp nudges
 - [ ] Simon enters first Rewrite It declaration + balcony entry to test end-to-end
+- [ ] **Audit what `systemExtra` wearable.html passes to Lumen** — critical to ensure Lumen is not opening blind (no signal state = generic responses)
+- [ ] Test new Lumen prompt with real session — does it feel like Simon or like a checklist?
 
 ### Body Signal
 - [ ] HRV volatility (CV) — WHOOP AI validation session needed
@@ -291,7 +344,9 @@ File: `body-signal-research-paper.docx`
 Last updated: 10 Apr 2026
 Key additions: Cycle of Constructed Experience (Barrett 2017, McEwen, Porges), HALS concept, 9-state scoring, composite load index, HRV volatility, study design.
 
-**Case study:** `jackson-case-study.docx` — complete narrative arc from signal to identity shift. Eight sections. Includes the intergenerational HALS layer, the two-stage reframe ("I deserve to rest" → "Take time to rest to not burn yourself out"), and the structured Rewrite It output with declaration, from/toward shifts, practice, and measure. Updated 11 Apr: Section 3.4 Jackson arc added. Section 9 (two-day arc) in case study doc. To be updated at 30 days with full physiological arc.
+**Case study:** `jackson-case-study.docx` — complete narrative arc from signal to identity shift.
+Nine sections including the intergenerational HALS layer, two-stage reframe, structured Rewrite It output, and the two-day arc (Section 9).
+To be updated at 30 days with full physiological arc.
 
 ---
 
@@ -325,67 +380,11 @@ content = open('file.js', 'rb').read().decode('utf-8')
 fixed = re.sub(r'[^\x00-\x7F]', '-', content)
 open('file.js', 'w').write(fixed)
 "
+
+# Convert transcripts locally (if needed)
+cd '/Users/simonlamb/Library/CloudStorage/OneDrive-PurposefulChange/coaching transcripts'
+for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f"; done
 ```
-
----
-
-
----
-
-## Case Study — Jackson (10 Apr 2026)
-
-File: `jackson-case-study.docx` (in project files)
-
-This is the primary case study for the research paper. One participant, one morning, the complete methodology made visible. Use this as the narrative anchor for the paper.
-
-### The Arc
-
-**Signal:** 23% recovery, HRV below baseline and declining, no physical cause. Scoring engine: `red_psych`.
-
-**The four questions (red_psych pattern):**
-1. What has been sitting with you lately? — "Rugby training and a few beers. Feeling like I have to keep going to keep things afloat."
-2. Where have you felt tension in your body this week? — "Right between my shoulders."
-3. What were you believing to be true about yourself that felt uncomfortable? — "I have to not let people down. If I stop it costs others dearly."
-4. What would it mean if you let yourself fully rest right now? — "I would let people down."
-
-**Lumen's move:** Named that the rugby was not the cause. The real pattern: "If I stop, I am lazy."
-
-**The intergenerational layer:** Lumen asked where that belief came from. Jackson recognised it wasn't just his experience — it came before him. A family history of working hard and being useful. A HALS borrowed from a different generation, a different context.
-
-**The reframe (arrived at, not imposed):**
-- First: "I deserve to rest." (identity-level — worthiness, not strategy)
-- Then: "Take time to rest to not burn yourself out." (functional translation)
-
-**The practice:**
-- What: Hit golf balls at the range / throw darts
-- When: Twice a week, in the diary
-- Why it works: Each act is a vote for the new identity
-
-**The Rewrite It output (Section 7 of the case study):**
-- Declaration: "I am choosing to be someone who deserves to rest."
-- Identity shift from/toward: conditional worth → leads from recovery
-- Belief shift from/toward: "If I stop I am lazy" → "I deserve to rest"
-- HALS being revised: inherited belief that worth = output, built across generations
-- Practice: what/when/where/who/measure
-- Measure: guilt before rest stops; Monday mornings feel different; WHOOP recovery stops trending red
-
-### What to watch at 30 days
-- HRV stabilising toward baseline
-- Recovery climbing
-- `red_psych` pattern recurrence rate declining
-- Signal state moving from red toward amber/green
-
-### Data — confirmed in Supabase
-Both sessions now in Supabase (inserted manually — save bugs now fixed):
-- 10 Apr: red_psych, recovery 23%, HRV 42ms
-- 11 Apr: green_high, recovery 72%, HRV 52ms
-
-### The Two-Day Arc
-Body confirmed the identity shift in fewer than 24 hours. 23% → 72% recovery. The green session went deeper than red could — second HALS surfaced: self-compassion feels threatening, kindness feels like a compliment, compliments feel unsafe. "I know it is not true at my core." Case study Section 9 added: "The Second Day: What Green Reveals."
-
-**Extended arc:**
-Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Body Confirms → Deeper Layer Surfaces → Work Continues
-
 
 ---
 
@@ -396,8 +395,10 @@ Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe �
 | 8 Apr 2026 | Cross-user isolation fixed (JWT-only lookup). WHOOP auth refactored. Melinda connected. 3 participants live. |
 | 9 Apr 2026 | Scoring engine WHOOP AI validated. Guardrails added. Composite load index built. Feedback measure deployed. Research paper updated. Rewrite It conceived + mocked up. |
 | 10 Apr 2026 AM | rewrite.html built (4 screens, SVG icons, 5 Supabase tables with RLS). HRV volatility + AMBER_VOLATILE added. Jackson (4th participant) connected. CRON_SECRET added. |
-| 10 Apr 2026 PM | WHOOP token expiry fixed (whoop-auth.js — SUPABASE_SERVICE_KEY for user resolution, PATCH not upsert). whoop-refresh.js Node.js runtime confirmed working. localStorage→Supabase sync added to wearable.html. Three-tab nav across all pages. start.html — Rewrite It replaces Deepen It. Auth bug fixed in rewrite.html (wrong anon key). Jackson case study written — complete arc from signal to identity shift including intergenerational HALS layer. README-DEV established as cross-session context. |
-| 11 Apr 2026 | Three bugs fixed: (1) float type — recovery/hrv/strain columns altered to numeric, Math.round() in saveEntry. (2) pendingSync not set on auth failure — fixed, syncPendingEntries now retries any entry with no supabaseId. (3) amber missing from mode constraint — fixed. Jackson 2 sessions in Supabase: 10 Apr red_psych 23% → 11 Apr green_high 72%. Body confirmed identity shift overnight. Second HALS surfaced in green session (self-compassion feels threatening). Jackson case study Section 9 added. Research paper Section 3.4 Jackson arc added. Research paper prose hyphen cleanup. |
+| 10 Apr 2026 PM | WHOOP token expiry fixed. whoop-refresh.js Node.js runtime confirmed. localStorage→Supabase sync added. Three-tab nav across all pages. Jackson case study written. README-DEV established. |
+| 11 Apr 2026 | Three bugs fixed: float types, pendingSync, amber mode constraint. Jackson 2 sessions in Supabase. Body confirmed identity shift overnight (23% → 72%). Second HALS surfaced in green session. Case study Section 9 added. Research paper Section 3.4 added. |
+| 12 Apr 2026 | 65 coaching transcripts converted to .txt and pushed to /transcripts/ on GitHub. Transcript corpus analysed — Simon's coaching methodology extracted (six moves, question/offer distinction, paradox move, balcony close, Simon's exact language). Lumen system prompt completely rewritten based on real transcripts. New prompt deployed to production. Critical open question identified: need to audit systemExtra context passed from wearable.html to Lumen — without rich context Lumen may open generically. |
 
 ---
+
 *Update this file at the end of every session. It is the memory between chats.*
