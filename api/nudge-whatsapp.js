@@ -12,6 +12,27 @@ const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM;
 
+function signalSummary(entry) {
+  if (!entry) return null;
+  const parts = [];
+  if (entry.recovery !== null && entry.recovery !== undefined) parts.push(`Recovery ${entry.recovery}%`);
+  if (entry.hrv !== null && entry.hrv !== undefined) parts.push(`HRV ${entry.hrv}ms`);
+  const stateMap = {
+    'red_psych': 'something non-physical is running',
+    'red_trend': 'something has been accumulating',
+    'red_strain': 'your body logged something you haven\'t named',
+    'amb_load': 'something is asking for attention',
+    'amb_trend': 'something has been quietly building',
+    'amb_recovery': 'you\'re coming back - take it gently',
+    'amb_volatile': 'your system has been unsettled',
+    'grn_thriving': 'your system is running well',
+    'grn_bounce': 'something shifted',
+    'grn_streak': 'something is working - name it'
+  };
+  const signal = entry.mode ? stateMap[entry.pattern_id] || null : null;
+  return { metrics: parts.join(', '), signal };
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -48,7 +69,22 @@ module.exports = async function handler(req, res) {
       const trees = await treeRes.json();
       const declaration = trees[0]?.declaration || 'the person you are choosing to become';
 
-      const message = `*Balcony practice*\n\n"${declaration}"\n\nTwo questions:\n\n1. Where did you act from the more whole version of yourself today?\n\n2. What do you appreciate about how you showed up?\n\nhttps://app.purposefulchange.co.uk/rewrite.html`;
+      // Get their most recent body signal entry
+      const signalRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/wearable_entries?user_id=eq.${setting.user_id}&select=recovery,hrv,mode,pattern_id,pattern_title&order=created_at.desc&limit=1`,
+        { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, apikey: SUPABASE_SERVICE_KEY } }
+      );
+      const signals = await signalRes.json();
+      const latestSignal = signals && signals.length ? signals[0] : null;
+      const signal = signalSummary(latestSignal);
+
+      // Build message
+      let signalLine = '';
+      if (signal && signal.metrics) {
+        signalLine = `\nYour body today: ${signal.metrics}${signal.signal ? ` - ${signal.signal}` : ''}.\n`;
+      }
+
+      const message = `*Time to get on the balcony.*${signalLine}\n"${declaration}"\n\nTwo questions before the day closes:\n\n1. Where did you act from the more whole version of yourself today?\n\n2. What do you appreciate about how you showed up?\n\nOpen Body Signal to reflect:\nhttps://app.purposefulchange.co.uk/wearable.html`;
 
       const twilioRes = await fetch(
         `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
