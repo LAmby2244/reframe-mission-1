@@ -61,14 +61,6 @@ module.exports = async function handler(req, res) {
       const diary = await diaryRes.json();
       if (diary.length) continue;
 
-      // Get their declaration
-      const treeRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/rewrite_trees?user_id=eq.${setting.user_id}&status=eq.active&select=declaration&limit=1`,
-        { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, apikey: SUPABASE_SERVICE_KEY } }
-      );
-      const trees = await treeRes.json();
-      const declaration = trees[0]?.declaration || 'the person you are choosing to become';
-
       // Get their most recent body signal entry
       const signalRes = await fetch(
         `${SUPABASE_URL}/rest/v1/wearable_entries?user_id=eq.${setting.user_id}&select=recovery,hrv,mode,pattern_id,pattern_title&order=created_at.desc&limit=1`,
@@ -84,7 +76,7 @@ module.exports = async function handler(req, res) {
         signalLine = `\nYour body today: ${signal.metrics}${signal.signal ? ` - ${signal.signal}` : ''}.\n`;
       }
 
-      const message = `*Time to get on the balcony.*${signalLine}\n"${declaration}"\n\nTwo questions before the day closes:\n\n1. Where did you act from the more whole version of yourself today?\n\n2. What do you appreciate about how you showed up?\n\nOpen Body Signal to reflect:\nhttps://app.purposefulchange.co.uk/wearable.html`;
+      const message = `*Time to get on the balcony.*${signalLine}\nYour body is sending a signal. Open Body Signal to read it and reflect:\n\nhttps://app.purposefulchange.co.uk/wearable.html`;
 
       const twilioRes = await fetch(
         `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
