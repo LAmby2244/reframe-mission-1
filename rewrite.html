@@ -32,8 +32,6 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
-
-  /* -- NAV -- */
   .top-nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 200;
     background: rgba(245,230,205,0.97);
@@ -52,8 +50,6 @@
   }
   .top-nav-title { font-size: 15px; font-weight: 500; color: var(--dark); }
   .top-nav-sub { font-size: 11px; color: var(--mid); }
-
-  /* -- BOTTOM NAV -- */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(245,230,205,0.97);
@@ -75,13 +71,9 @@
   }
   .bnav-btn:hover { background: rgba(10,50,40,0.06); }
   .bnav-btn.active { color: var(--dark); font-weight: 500; }
-
-  /* -- SCREENS -- */
   .screen { display: none; padding-top: 56px; padding-bottom: 90px; min-height: 100vh; }
   .screen.active { display: block; }
   .hidden { display: none !important; }
-
-  /* -- HERO -- */
   .hero {
     background: var(--dark);
     padding: 40px 24px 36px;
@@ -104,8 +96,6 @@
   }
   .hero h1 em { font-style: italic; color: var(--yellow); }
   .hero-sub { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5; }
-
-  /* -- DECLARATION CARD -- */
   .section { padding: 20px 20px 0; }
   .section-label {
     font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
@@ -130,8 +120,6 @@
     border-radius: 8px; border-left: 3px solid var(--teal);
   }
   .declaration-toward span { font-weight: 500; color: var(--teal); font-size: 10px; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
-
-  /* -- BELIEF CARDS -- */
   .belief-card {
     background: var(--white);
     border-radius: 14px;
@@ -153,8 +141,6 @@
   }
   .belief-from-box .belief-box-label { color: rgba(10,50,40,0.4); }
   .belief-toward-box .belief-box-label { color: var(--teal); }
-
-  /* -- PRACTICE PILLS -- */
   .practices-list { margin-top: 10px; }
   .practice-pill {
     display: flex; align-items: flex-start; gap: 10px;
@@ -176,8 +162,6 @@
   }
   .practice-text { font-size: 13px; line-height: 1.4; color: var(--dark); }
   .practice-meta { font-size: 11px; color: var(--mid); margin-top: 2px; }
-
-  /* -- STREAK BAR -- */
   .streak-bar {
     display: flex; gap: 4px; padding: 12px 20px 0;
   }
@@ -188,8 +172,6 @@
   }
   .streak-day.done { background: var(--teal); }
   .streak-day.today { background: var(--yellow); }
-
-  /* -- BALCONY SECTION -- */
   .balcony-card {
     background: var(--dark);
     border-radius: 16px;
@@ -207,9 +189,7 @@
     font-size: 15px; font-weight: 500; color: white; margin-bottom: 4px;
   }
   .balcony-card p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
-  .balcony-q {
-    margin-bottom: 12px;
-  }
+  .balcony-q { margin-bottom: 12px; }
   .balcony-q label {
     font-size: 11px; font-weight: 500; color: var(--yellow);
     text-transform: uppercase; letter-spacing: 0.08em;
@@ -225,8 +205,6 @@
   }
   .balcony-q textarea::placeholder { color: rgba(255,255,255,0.3); }
   .balcony-q textarea:focus { outline: none; border-color: var(--yellow); }
-
-  /* -- LUMEN REPLY -- */
   .lumen-reply {
     background: rgba(255,190,25,0.1);
     border: 0.5px solid rgba(255,190,25,0.2);
@@ -244,8 +222,6 @@
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .lumen-reply p { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.6; }
-
-  /* -- BUTTONS -- */
   .btn-primary {
     width: 100%; padding: 14px;
     background: var(--orange); color: white;
@@ -270,8 +246,6 @@
   }
   .btn-small.teal { background: var(--teal-bg); color: var(--teal); }
   .btn-small.orange { background: var(--orange); color: white; }
-
-  /* -- FORM -- */
   .form-field { margin-bottom: 16px; }
   .form-field label {
     font-size: 11px; font-weight: 500; color: var(--mid);
@@ -289,8 +263,6 @@
     outline: none; border-color: var(--teal);
   }
   .form-field textarea { min-height: 64px; line-height: 1.5; }
-
-  /* -- MODAL -- */
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 500;
     background: rgba(10,50,40,0.5);
@@ -308,8 +280,6 @@
   }
   .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
   .modal-sub { font-size: 13px; color: var(--mid); margin-bottom: 20px; }
-
-  /* -- HISTORY -- */
   .history-card {
     background: var(--white); border-radius: 12px;
     border: 0.5px solid var(--border); padding: 16px;
@@ -326,17 +296,12 @@
   .signal-badge.green { background: #EEF7F1; color: #27AE60; }
   .signal-badge.amber { background: #FEF5EC; color: #E67E22; }
   .signal-badge.red { background: #FDF0EE; color: #C0392B; }
-
-  /* -- EMPTY STATE -- */
   .empty-state {
     text-align: center; padding: 48px 32px;
     color: var(--mid);
   }
-  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
   .empty-state h3 { font-size: 16px; font-weight: 500; color: var(--dark); margin-bottom: 6px; }
   .empty-state p { font-size: 13px; line-height: 1.6; }
-
-  /* -- WHATSAPP SETUP -- */
   .wa-card {
     background: var(--white); border-radius: 14px;
     border: 0.5px solid var(--border); padding: 16px;
@@ -350,15 +315,9 @@
   }
   .wa-text h4 { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
   .wa-text p { font-size: 12px; color: var(--mid); line-height: 1.5; }
-
-  /* -- DIVIDER -- */
   .divider { height: 0.5px; background: var(--border); margin: 16px 0; }
-
-  /* -- FADE IN -- */
   .fade-in { animation: fadeIn 0.3s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* -- LOADING -- */
   .loading { text-align: center; padding: 40px; color: var(--mid); font-size: 13px; }
   .spinner {
     width: 24px; height: 24px; border: 2px solid var(--border);
@@ -366,11 +325,16 @@
     animation: spin 0.8s linear infinite; margin: 0 auto 12px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .wa-status {
+    font-size: 11px; color: var(--teal); margin-top: 6px;
+    display: none; padding: 6px 10px; background: var(--teal-bg);
+    border-radius: 8px;
+  }
+  .wa-status.visible { display: block; }
 </style>
 </head>
 <body>
 
-<!-- TOP NAV -->
 <nav class="top-nav">
   <div class="top-nav-logo">
     <div class="logo-circle">R</div>
@@ -387,107 +351,71 @@
   <div id="streak-count" style="font-size:12px;color:var(--mid);"></div>
 </nav>
 
-<!-- SCREENS -->
-
 <!-- == SCREEN: TREE == -->
 <div class="screen active" id="screen-tree">
-
   <div class="hero">
     <div class="hero-eyebrow">Your declaration</div>
     <h1 id="hero-declaration">The person you are <em>choosing to become</em></h1>
   </div>
-
-  <!-- Streak bar -->
   <div class="streak-bar" id="streak-bar"></div>
-
-  <!-- Today's practice check-in -->
   <div class="section" style="margin-top:16px;">
     <div class="section-label">Today's practices</div>
-    <div id="todays-practices">
-      <div class="loading"><div class="spinner"></div>Loading...</div>
-    </div>
+    <div id="todays-practices"><div class="loading"><div class="spinner"></div>Loading...</div></div>
   </div>
-
-  <!-- Identity shift -->
   <div class="section" style="margin-top:8px;">
     <div class="section-label">Identity shift</div>
-    <div class="declaration-card" id="identity-card">
-      <div class="loading"><div class="spinner"></div></div>
-    </div>
+    <div class="declaration-card" id="identity-card"><div class="loading"><div class="spinner"></div></div></div>
   </div>
-
-  <!-- Beliefs and values -->
   <div class="section" style="margin-top:8px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="section-label" style="margin-bottom:0;">Beliefs and values in motion</div>
       <button class="btn-small teal" onclick="showModal('modal-add-belief')">+ Add</button>
     </div>
-    <div id="beliefs-list">
-      <div class="loading"><div class="spinner"></div></div>
-    </div>
+    <div id="beliefs-list"><div class="loading"><div class="spinner"></div></div></div>
   </div>
-
   <div style="padding:16px 20px 0;">
-    <button class="btn-secondary" onclick="showModal('modal-setup')" id="btn-setup">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:middle;">
-      <path d="M10 2l2 2-7 7H3v-2L10 2z"/>
-      <path d="M9 3l2 2"/>
-    </svg>Edit declaration
+    <button class="btn-secondary" onclick="showModal('modal-setup')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:middle;"><path d="M10 2l2 2-7 7H3v-2L10 2z"/><path d="M9 3l2 2"/></svg>Edit declaration
     </button>
   </div>
 </div>
 
 <!-- == SCREEN: BALCONY == -->
 <div class="screen" id="screen-balcony">
-
   <div class="hero" style="padding-bottom:28px;">
     <div class="hero-eyebrow">Daily practice</div>
     <h1>The <em>balcony</em> view</h1>
     <p class="hero-sub">Looking back and forward from a place of perspective.</p>
   </div>
-
   <div style="padding:20px 0 0;">
     <div class="balcony-card fade-in" id="balcony-form">
       <h3>Looking back</h3>
       <p>From the balcony, you can see clearly.</p>
-
       <div class="balcony-q">
         <label>Where did I act from the more whole version of myself today?</label>
         <textarea id="q-whole" placeholder="Even something small counts..."></textarea>
       </div>
-
       <div class="balcony-q">
         <label>What do I appreciate about how I showed up?</label>
         <textarea id="q-appreciate" placeholder="What was present today that matters..."></textarea>
       </div>
-
       <div class="divider" style="background:rgba(255,255,255,0.1);"></div>
-
       <h3 style="margin-bottom:4px;margin-top:4px;">Looking forward</h3>
       <div class="balcony-q" style="margin-top:12px;">
         <label>One thing tomorrow I want to bring my declaration into</label>
         <textarea id="q-forward" placeholder="One specific moment or context..."></textarea>
       </div>
-
       <div id="balcony-lumen" class="hidden">
         <div class="lumen-reply">
           <div class="lumen-reply-label"><div class="lumen-dot"></div> Lumen</div>
           <p id="lumen-balcony-text"></p>
         </div>
       </div>
-
-      <button class="btn-primary" style="margin-top:16px;background:var(--yellow);color:var(--dark);" onclick="saveBalcony()">
-        Save and reflect
-      </button>
+      <button class="btn-primary" style="margin-top:16px;background:var(--yellow);color:var(--dark);" onclick="saveBalcony()">Save and reflect</button>
     </div>
-
-    <!-- Already done today -->
     <div id="balcony-done" class="hidden" style="padding:0 20px;">
       <div style="text-align:center;padding:32px 0 20px;">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;">
-      <circle cx="16" cy="16" r="13"/>
-      <path d="M10 16l4 4 8-8"/>
-    </svg>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><circle cx="16" cy="16" r="13"/><path d="M10 16l4 4 8-8"/></svg>
         <div style="font-size:15px;font-weight:500;color:var(--dark);margin-bottom:4px;">Balcony practice complete</div>
         <div style="font-size:13px;color:var(--mid);">You showed up today.</div>
       </div>
@@ -498,7 +426,6 @@
 
 <!-- == SCREEN: PRACTICES == -->
 <div class="screen" id="screen-practices">
-
   <div style="padding:20px 20px 0;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div>
@@ -507,21 +434,17 @@
       </div>
       <button class="btn-small orange" onclick="showModal('modal-add-practice')">+ Practice</button>
     </div>
-    <div id="all-practices-list">
-      <div class="loading"><div class="spinner"></div>Loading...</div>
-    </div>
+    <div id="all-practices-list"><div class="loading"><div class="spinner"></div>Loading...</div></div>
   </div>
-
-  <!-- WhatsApp nudge setup -->
   <div class="section" style="margin-top:8px;">
     <div class="section-label">Daily nudge</div>
     <div class="wa-card">
       <div class="wa-icon">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 10c0 4.4-3.6 8-8 8a7.9 7.9 0 01-4.1-1.1L2 18l1.1-3.9A8 8 0 1118 10z"/>
-        <path d="M7 9h.01M10 9h.01M13 9h.01"/>
-      </svg>
-    </div>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 10c0 4.4-3.6 8-8 8a7.9 7.9 0 01-4.1-1.1L2 18l1.1-3.9A8 8 0 1118 10z"/>
+          <path d="M7 9h.01M10 9h.01M13 9h.01"/>
+        </svg>
+      </div>
       <div class="wa-text">
         <h4>WhatsApp balcony reminder</h4>
         <p>Get your daily balcony practice prompt via WhatsApp at a time that works for you.</p>
@@ -540,6 +463,7 @@
     <div style="font-size:11px;color:var(--mid);margin-top:6px;padding:0 2px;">
       UK users: set 1 hour earlier than you want. e.g. for 7pm BST, enter 18:00.
     </div>
+    <div class="wa-status" id="wa-status"></div>
     <button class="btn-small teal" style="margin-top:10px;width:100%;padding:10px;" onclick="saveWaSettings()">
       Save nudge settings
     </button>
@@ -551,141 +475,73 @@
   <div style="padding:20px 20px 0;">
     <div style="font-size:18px;font-weight:500;margin-bottom:4px;">Pattern over time</div>
     <div style="font-size:13px;color:var(--mid);margin-bottom:20px;">Lumen reads across all of it.</div>
-    <div id="history-list">
-      <div class="loading"><div class="spinner"></div>Loading...</div>
-    </div>
+    <div id="history-list"><div class="loading"><div class="spinner"></div>Loading...</div></div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="bnav-btn active" onclick="showScreen('tree',this)">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 17V8"/>
-      <path d="M10 8C10 8 7 5.5 5 4c1 2.5 2 4 5 4z"/>
-      <path d="M10 8C10 8 13 5.5 15 4c-1 2.5-2 4-5 4z"/>
-      <path d="M10 12C10 12 7 10 5 8.5c1 2 2.5 3.5 5 3.5z"/>
-      <path d="M10 12C10 12 13 10 15 8.5c-1 2-2.5 3.5-5 3.5z"/>
-    </svg>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17V8"/><path d="M10 8C10 8 7 5.5 5 4c1 2.5 2 4 5 4z"/><path d="M10 8C10 8 13 5.5 15 4c-1 2.5-2 4-5 4z"/><path d="M10 12C10 12 7 10 5 8.5c1 2 2.5 3.5 5 3.5z"/><path d="M10 12C10 12 13 10 15 8.5c-1 2-2.5 3.5-5 3.5z"/></svg>
     <span>Tree</span>
   </button>
   <button class="bnav-btn" onclick="showScreen('balcony',this)">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 3L2 10h3v7h4v-4h2v4h4v-7h3L10 3z"/>
-    </svg>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L2 10h3v7h4v-4h2v4h4v-7h3L10 3z"/></svg>
     <span>Balcony</span>
   </button>
   <button class="bnav-btn" onclick="showScreen('practices',this)">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="10" cy="10" r="7"/>
-      <path d="M10 6v4l3 3"/>
-    </svg>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 3"/></svg>
     <span>Practices</span>
   </button>
   <button class="bnav-btn" onclick="showScreen('history',this)">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="4" width="14" height="13" rx="2"/>
-      <path d="M7 2v4M13 2v4M3 9h14"/>
-      <path d="M7 13h2M7 16h4"/>
-    </svg>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M7 2v4M13 2v4M3 9h14"/><path d="M7 13h2M7 16h4"/></svg>
     <span>History</span>
   </button>
 </nav>
 
-<!-- == MODALS == -->
-
-<!-- Setup / Edit declaration -->
+<!-- MODALS -->
 <div class="modal-backdrop hidden" id="modal-setup" onclick="closeModal(event,'modal-setup')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <h2>Your declaration</h2>
     <p class="modal-sub">Define the identity shift at the heart of your Rewrite.</p>
-
-    <div class="form-field">
-      <label>Who I have been running as (the HALS)</label>
-      <textarea id="setup-from" placeholder="e.g. Someone who proves worth through achievement and cannot stop..."></textarea>
-    </div>
-    <div class="form-field">
-      <label>Who I am choosing to become</label>
-      <textarea id="setup-toward" placeholder="e.g. Someone who leads from security, not from fear..."></textarea>
-    </div>
-    <div class="form-field">
-      <label>The declaration (I am choosing to be someone who...)</label>
-      <textarea id="setup-declaration" placeholder="I am choosing to be someone who..."></textarea>
-    </div>
+    <div class="form-field"><label>Who I have been running as (the HALS)</label><textarea id="setup-from" placeholder="e.g. Someone who proves worth through achievement..."></textarea></div>
+    <div class="form-field"><label>Who I am choosing to become</label><textarea id="setup-toward" placeholder="e.g. Someone who leads from security, not from fear..."></textarea></div>
+    <div class="form-field"><label>The declaration (I am choosing to be someone who...)</label><textarea id="setup-declaration" placeholder="I am choosing to be someone who..."></textarea></div>
     <button class="btn-primary" onclick="saveDeclaration()">Save declaration</button>
     <button class="btn-secondary" onclick="closeModalById('modal-setup')">Cancel</button>
   </div>
 </div>
 
-<!-- Add belief/value -->
 <div class="modal-backdrop hidden" id="modal-add-belief" onclick="closeModal(event,'modal-add-belief')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <h2>Add a belief or value</h2>
     <p class="modal-sub">Name what is shifting as you make this move.</p>
-
-    <div class="form-field">
-      <label>Type</label>
-      <select id="belief-type">
-        <option value="belief">Belief</option>
-        <option value="value">Value</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label>From (the old)</label>
-      <textarea id="belief-from" placeholder="e.g. My worth is conditional on my performance..."></textarea>
-    </div>
-    <div class="form-field">
-      <label>Toward (the new)</label>
-      <textarea id="belief-toward" placeholder="e.g. My presence has value independent of output..."></textarea>
-    </div>
+    <div class="form-field"><label>Type</label><select id="belief-type"><option value="belief">Belief</option><option value="value">Value</option></select></div>
+    <div class="form-field"><label>From (the old)</label><textarea id="belief-from" placeholder="e.g. My worth is conditional on my performance..."></textarea></div>
+    <div class="form-field"><label>Toward (the new)</label><textarea id="belief-toward" placeholder="e.g. My presence has value independent of output..."></textarea></div>
     <button class="btn-primary" onclick="saveBelief()">Save</button>
     <button class="btn-secondary" onclick="closeModalById('modal-add-belief')">Cancel</button>
   </div>
 </div>
 
-<!-- Add practice -->
 <div class="modal-backdrop hidden" id="modal-add-practice" onclick="closeModal(event,'modal-add-practice')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <h2>Add a practice</h2>
     <p class="modal-sub">The specific vote you cast each day for the new identity.</p>
-
-    <div class="form-field">
-      <label>What — the specific act</label>
-      <textarea id="p-what" placeholder="e.g. When I notice the urge to over-explain, I stop at two sentences..."></textarea>
-    </div>
-    <div class="form-field">
-      <label>When — time or trigger</label>
-      <input type="text" id="p-when" placeholder="e.g. Daily 7am / When I'm about to go quiet in a meeting"/>
-    </div>
-    <div class="form-field">
-      <label>Where — context</label>
-      <input type="text" id="p-where" placeholder="e.g. Leadership meetings / At home with family"/>
-    </div>
-    <div class="form-field">
-      <label>How — the method</label>
-      <input type="text" id="p-how" placeholder="e.g. Pause, breathe, ask a question instead"/>
-    </div>
-    <div class="form-field">
-      <label>Who knows / supports you</label>
-      <input type="text" id="p-who" placeholder="e.g. Christina / My coach"/>
-    </div>
-    <div class="form-field">
-      <label>The HALS being revised</label>
-      <textarea id="p-hals" placeholder="e.g. The strategy of staying silent to avoid judgement..."></textarea>
-    </div>
-    <div class="form-field">
-      <label>I will know it's working when...</label>
-      <textarea id="p-measure" placeholder="e.g. I stop rehearsing conversations before they happen..."></textarea>
-    </div>
+    <div class="form-field"><label>What - the specific act</label><textarea id="p-what" placeholder="e.g. When I notice the urge to over-explain, I stop at two sentences..."></textarea></div>
+    <div class="form-field"><label>When - time or trigger</label><input type="text" id="p-when" placeholder="e.g. Daily 7am / When I'm about to go quiet in a meeting"/></div>
+    <div class="form-field"><label>Where - context</label><input type="text" id="p-where" placeholder="e.g. Leadership meetings / At home with family"/></div>
+    <div class="form-field"><label>How - the method</label><input type="text" id="p-how" placeholder="e.g. Pause, breathe, ask a question instead"/></div>
+    <div class="form-field"><label>Who knows / supports you</label><input type="text" id="p-who" placeholder="e.g. Christina / My coach"/></div>
+    <div class="form-field"><label>The HALS being revised</label><textarea id="p-hals" placeholder="e.g. The strategy of staying silent to avoid judgement..."></textarea></div>
+    <div class="form-field"><label>I will know it's working when...</label><textarea id="p-measure" placeholder="e.g. I stop rehearsing conversations before they happen..."></textarea></div>
     <button class="btn-primary" onclick="savePractice()">Save practice</button>
     <button class="btn-secondary" onclick="closeModalById('modal-add-practice')">Cancel</button>
   </div>
 </div>
 
-<!-- Practice detail -->
 <div class="modal-backdrop hidden" id="modal-practice-detail" onclick="closeModal(event,'modal-practice-detail')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
@@ -706,38 +562,12 @@ let beliefs = [];
 let practices = [];
 let diaryEntries = [];
 
-// -- AUTH --
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    authToken = session.access_token;
-    userId = session.user.id;
-    await loadAll();
-  } else {
-    sb.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        authToken = session.access_token;
-        userId = session.user.id;
-        await loadAll();
-      }
-    });
-    const hash = window.location.hash;
-    if (hash.includes('access_token')) {
-      const { data: { session: s } } = await sb.auth.getSession();
-      if (s) {
-        authToken = s.access_token;
-        userId = s.user.id;
-        await loadAll();
-      }
-    }
-  }
-}
-
 async function loadAll() {
   await loadTree();
   await loadBeliefs();
   await loadPractices();
   await loadDiary();
+  await loadNudgeSettings();
   renderTree();
   renderPractices();
   renderHistory();
@@ -745,7 +575,21 @@ async function loadAll() {
   renderStreak();
 }
 
-// -- DATA LOADING --
+async function loadNudgeSettings() {
+  if (!userId) return;
+  try {
+    const { data } = await sb.from('rewrite_nudge_settings')
+      .select('*').eq('user_id', userId).limit(1);
+    if (data && data.length) {
+      document.getElementById('wa-number').value = data[0].whatsapp_number || '';
+      document.getElementById('wa-time').value = data[0].nudge_time ? data[0].nudge_time.slice(0,5) : '20:00';
+      const status = document.getElementById('wa-status');
+      status.textContent = 'Nudge active - set to ' + data[0].nudge_time.slice(0,5) + ' UTC';
+      status.classList.add('visible');
+    }
+  } catch(e) {}
+}
+
 async function loadTree() {
   if (!userId) return;
   const { data } = await sb.from('rewrite_trees')
@@ -774,7 +618,6 @@ async function loadDiary() {
   diaryEntries = data || [];
 }
 
-// -- RENDER TREE --
 function renderTree() {
   const decEl = document.getElementById('hero-declaration');
   if (currentTree) {
@@ -786,28 +629,15 @@ function renderTree() {
   const card = document.getElementById('identity-card');
   if (currentTree) {
     card.innerHTML = `
-      <div class="declaration-from">
-        <span>Running as</span>
-        ${currentTree.identity_from || '-'}
-      </div>
-      <div style="text-align:center;color:var(--mid);font-size:18px;padding:6px 0;">down</div>
-      <div class="declaration-toward">
-        <span>Becoming</span>
-        ${currentTree.identity_toward || '-'}
-      </div>
+      <div class="declaration-from"><span>Running as</span>${currentTree.identity_from || '-'}</div>
+      <div style="text-align:center;color:var(--mid);font-size:18px;padding:6px 0;">&#8595;</div>
+      <div class="declaration-toward"><span>Becoming</span>${currentTree.identity_toward || '-'}</div>
     `;
   } else {
     card.innerHTML = `
       <div class="empty-state" style="padding:24px 0;">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;">
-      <path d="M20 34V16"/>
-      <path d="M20 16C20 16 14 11 10 8c2 5 4 8 10 8z"/>
-      <path d="M20 16C20 16 26 11 30 8c-2 5-4 8-10 8z"/>
-      <path d="M20 24C20 24 14 20 10 17c2 4 5 7 10 7z"/>
-      <path d="M20 24C20 24 26 20 30 17c-2 4-5 7-10 7z"/>
-    </svg>
-        <h3>Start your declaration</h3>
-        <p>Name the shift you are making.</p>
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><path d="M20 34V16"/><path d="M20 16C20 16 14 11 10 8c2 5 4 8 10 8z"/><path d="M20 16C20 16 26 11 30 8c-2 5-4 8-10 8z"/><path d="M20 24C20 24 14 20 10 17c2 4 5 7 10 7z"/><path d="M20 24C20 24 26 20 30 17c-2 4-5 7-10 7z"/></svg>
+        <h3>Start your declaration</h3><p>Name the shift you are making.</p>
       </div>
       <button class="btn-primary" onclick="showModal('modal-setup')">Create declaration</button>
     `;
@@ -821,18 +651,10 @@ function renderTree() {
       <div class="belief-card fade-in">
         <div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:10px;">${b.type}</div>
         <div class="belief-pair">
-          <div class="belief-from-box">
-            <span class="belief-box-label">From</span>
-            ${b.belief_from}
-          </div>
-          <div class="belief-toward-box">
-            <span class="belief-box-label">Toward</span>
-            ${b.belief_toward}
-          </div>
+          <div class="belief-from-box"><span class="belief-box-label">From</span>${b.belief_from}</div>
+          <div class="belief-toward-box"><span class="belief-box-label">Toward</span>${b.belief_toward}</div>
         </div>
-        <div class="practices-list" id="belief-practices-${b.id}">
-          ${renderBeliefPractices(b.id)}
-        </div>
+        <div class="practices-list">${renderBeliefPractices(b.id)}</div>
       </div>
     `).join('');
   }
@@ -845,16 +667,8 @@ function renderBeliefPractices(beliefId) {
   if (!bps.length) return '<div style="font-size:12px;color:var(--mid);padding:4px 0;">No practices yet</div>';
   return bps.map(p => `
     <div class="practice-pill" onclick="showPracticeDetail('${p.id}')">
-      <div class="practice-check">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="5" cy="5" r="3.5"/>
-          <path d="M5 3v2l1.5 1.5"/>
-        </svg>
-      </div>
-      <div>
-        <div class="practice-text">${p.what}</div>
-        <div class="practice-meta">${p.when_trigger || ''}</div>
-      </div>
+      <div class="practice-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="3.5"/><path d="M5 3v2l1.5 1.5"/></svg></div>
+      <div><div class="practice-text">${p.what}</div><div class="practice-meta">${p.when_trigger || ''}</div></div>
     </div>
   `).join('');
 }
@@ -867,36 +681,26 @@ function renderTodaysPractices() {
   }
   const today = new Date().toISOString().split('T')[0];
   container.innerHTML = practices.map(p => {
-    const checkedToday = diaryEntries.some(d =>
-      d.practice_id === p.id && d.created_at && d.created_at.startsWith(today)
-    );
+    const checkedToday = diaryEntries.some(d => d.practice_id === p.id && d.created_at && d.created_at.startsWith(today));
     return `
       <div class="practice-pill ${checkedToday ? 'done' : ''}" onclick="togglePractice('${p.id}',${checkedToday})">
         <div class="practice-check">${checkedToday ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l2.5 2.5L8 3"/></svg>' : ''}</div>
-        <div>
-          <div class="practice-text">${p.what}</div>
-          <div class="practice-meta">${p.when_trigger || ''}</div>
-        </div>
+        <div><div class="practice-text">${p.what}</div><div class="practice-meta">${p.when_trigger || ''}</div></div>
       </div>
     `;
   }).join('');
 }
 
-// -- STREAK --
 function renderStreak() {
   const bar = document.getElementById('streak-bar');
   const today = new Date().toISOString().split('T')[0];
   const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    days.push(d.toISOString().split('T')[0]);
-  }
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().split('T')[0]); }
   bar.innerHTML = days.map(d => {
     const hasEntry = diaryEntries.some(e => e.created_at && e.created_at.startsWith(d));
     const isToday = d === today;
     return `<div class="streak-day ${hasEntry ? 'done' : ''} ${isToday && !hasEntry ? 'today' : ''}"></div>`;
   }).join('');
-
   let streak = 0;
   for (let i = 0; i < 30; i++) {
     const d = new Date(); d.setDate(d.getDate() - i);
@@ -907,16 +711,13 @@ function renderStreak() {
   document.getElementById('streak-count').textContent = streak > 0 ? `${streak} day streak` : '';
 }
 
-// -- BALCONY --
 function renderBalcony() {
   const today = new Date().toISOString().split('T')[0];
   const todayEntry = diaryEntries.find(e => e.created_at && e.created_at.startsWith(today) && e.looked_back);
-
   if (todayEntry) {
     document.getElementById('balcony-form').classList.add('hidden');
     document.getElementById('balcony-done').classList.remove('hidden');
-    const display = document.getElementById('todays-entry-display');
-    display.innerHTML = `
+    document.getElementById('todays-entry-display').innerHTML = `
       <div class="history-card">
         <div class="history-q">Where I acted from my more whole self</div>
         <div class="history-a">${todayEntry.looked_back || '-'}</div>
@@ -924,151 +725,87 @@ function renderBalcony() {
         <div class="history-a">${todayEntry.appreciated || '-'}</div>
         <div class="history-q">Looking forward</div>
         <div class="history-a">${todayEntry.looked_forward || '-'}</div>
-        ${todayEntry.lumen_reply ? `
-          <div class="lumen-reply" style="background:rgba(55,115,100,0.08);border-color:rgba(55,115,100,0.2);">
-            <div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);"></div> Lumen</div>
-            <p style="color:var(--dark);">${todayEntry.lumen_reply}</p>
-          </div>
-        ` : ''}
+        ${todayEntry.lumen_reply ? `<div class="lumen-reply" style="background:rgba(55,115,100,0.08);border-color:rgba(55,115,100,0.2);"><div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);"></div> Lumen</div><p style="color:var(--dark);">${todayEntry.lumen_reply}</p></div>` : ''}
       </div>
     `;
   }
 }
 
-// -- SAVE BALCONY --
 async function saveBalcony() {
   const whole = document.getElementById('q-whole').value.trim();
   const appreciate = document.getElementById('q-appreciate').value.trim();
   const forward = document.getElementById('q-forward').value.trim();
-
   if (!whole && !appreciate) return;
-
   const btn = document.querySelector('#balcony-form .btn-primary');
   btn.textContent = 'Reflecting...'; btn.disabled = true;
-
   let signalState = null;
   try {
-    const { data } = await sb.from('wearable_entries').select('signal_state')
-      .eq('user_id', userId).order('created_at', { ascending: false }).limit(1);
+    const { data } = await sb.from('wearable_entries').select('signal_state').eq('user_id', userId).order('created_at', { ascending: false }).limit(1);
     if (data && data.length) signalState = data[0].signal_state;
   } catch(e) {}
-
   const { data: entry } = await sb.from('rewrite_diary').insert({
-    user_id: userId,
-    tree_id: currentTree?.id,
-    looked_back: whole,
-    appreciated: appreciate,
-    looked_forward: forward,
-    body_signal_state: signalState,
-    created_at: new Date().toISOString()
+    user_id: userId, tree_id: currentTree?.id,
+    looked_back: whole, appreciated: appreciate, looked_forward: forward,
+    body_signal_state: signalState, created_at: new Date().toISOString()
   }).select().single();
-
   try {
-    const recent = diaryEntries.slice(0, 5).map(e =>
-      `[${e.created_at?.split('T')[0]}] ${e.looked_back || ''} / ${e.appreciated || ''}`
-    ).join('\n');
-
+    const recent = diaryEntries.slice(0, 5).map(e => `[${e.created_at?.split('T')[0]}] ${e.looked_back || ''} / ${e.appreciated || ''}`).join('\n');
     const res = await fetch('/api/lumen', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
       body: JSON.stringify({
-        systemExtra: `You are Lumen - the AI mirror companion for the Reframe platform.\n\nThis is a Balcony Practice entry - the person's daily return to a place of perspective, looking back and forward from the wider view of their identity shift.\n\nTheir declaration: "${currentTree?.declaration || 'not yet set'}"\nTheir identity shift: From "${currentTree?.identity_from || '-'}" toward "${currentTree?.identity_toward || '-'}"\nCurrent Body Signal state: ${signalState || 'unknown'}\n\nRecent entries (for pattern awareness):\n${recent || 'First entry.'}\n\nToday's entry:\nWhere they acted from their more whole self: "${whole}"\nWhat they appreciated: "${appreciate}"\nLooking forward: "${forward}"\n\nRULES:\n- 2-3 sentences maximum\n- One observation about what you notice across their entries (if there are patterns)\n- One reflection that surfaces their own words back to them\n- No advice. No prescriptions. Mirror only.\n- If this is their first entry, reflect warmly on what they've named.`,
+        systemExtra: `You are Lumen - the AI mirror companion for the Reframe platform.\n\nThis is a Balcony Practice entry.\n\nTheir declaration: "${currentTree?.declaration || 'not yet set'}"\nIdentity shift: From "${currentTree?.identity_from || '-'}" toward "${currentTree?.identity_toward || '-'}"\nBody Signal state: ${signalState || 'unknown'}\n\nRecent entries:\n${recent || 'First entry.'}\n\nToday:\nMore whole self: "${whole}"\nAppreciated: "${appreciate}"\nLooking forward: "${forward}"\n\nRULES: 2-3 sentences. One observation across entries. One reflection using their own words. No advice. Mirror only.`,
         messages: [{ role: 'user', content: 'Please reflect on what I have written.' }]
       })
     });
     const lumenData = await res.json();
     const reply = lumenData.reply || '';
-
     if (reply && entry) {
       await sb.from('rewrite_diary').update({ lumen_reply: reply }).eq('id', entry.id);
       document.getElementById('balcony-lumen').classList.remove('hidden');
       document.getElementById('lumen-balcony-text').textContent = reply;
-
-      setTimeout(async () => {
-        await loadDiary();
-        renderBalcony();
-        renderStreak();
-      }, 2000);
-    } else {
-      await loadDiary();
-      renderBalcony();
-      renderStreak();
-    }
-  } catch(e) {
-    await loadDiary();
-    renderBalcony();
-    renderStreak();
-  }
+      setTimeout(async () => { await loadDiary(); renderBalcony(); renderStreak(); }, 2000);
+    } else { await loadDiary(); renderBalcony(); renderStreak(); }
+  } catch(e) { await loadDiary(); renderBalcony(); renderStreak(); }
 }
 
-// -- TOGGLE PRACTICE --
 async function togglePractice(practiceId, isDone) {
   if (isDone) return;
-  await sb.from('rewrite_diary').insert({
-    user_id: userId,
-    tree_id: currentTree?.id,
-    practice_id: practiceId,
-    created_at: new Date().toISOString()
-  });
-  await loadDiary();
-  renderTodaysPractices();
-  renderStreak();
+  await sb.from('rewrite_diary').insert({ user_id: userId, tree_id: currentTree?.id, practice_id: practiceId, created_at: new Date().toISOString() });
+  await loadDiary(); renderTodaysPractices(); renderStreak();
 }
 
-// -- SAVE DECLARATION --
 async function saveDeclaration() {
   const from = document.getElementById('setup-from').value.trim();
   const toward = document.getElementById('setup-toward').value.trim();
   const declaration = document.getElementById('setup-declaration').value.trim();
   if (!declaration) return;
-
   if (currentTree) {
-    await sb.from('rewrite_trees').update({
-      identity_from: from, identity_toward: toward, declaration
-    }).eq('id', currentTree.id);
+    await sb.from('rewrite_trees').update({ identity_from: from, identity_toward: toward, declaration }).eq('id', currentTree.id);
   } else {
-    await sb.from('rewrite_trees').insert({
-      user_id: userId, identity_from: from, identity_toward: toward,
-      declaration, status: 'active'
-    });
+    await sb.from('rewrite_trees').insert({ user_id: userId, identity_from: from, identity_toward: toward, declaration, status: 'active' });
   }
-  await loadTree();
-  renderTree();
-  closeModalById('modal-setup');
+  await loadTree(); renderTree(); closeModalById('modal-setup');
 }
 
-// -- SAVE BELIEF --
 async function saveBelief() {
   if (!currentTree) return;
   const type = document.getElementById('belief-type').value;
   const from = document.getElementById('belief-from').value.trim();
   const toward = document.getElementById('belief-toward').value.trim();
   if (!from || !toward) return;
-
-  await sb.from('rewrite_beliefs').insert({
-    tree_id: currentTree.id, user_id: userId,
-    belief_from: from, belief_toward: toward,
-    type, sort_order: beliefs.length
-  });
-  await loadBeliefs();
-  renderTree();
-  closeModalById('modal-add-belief');
+  await sb.from('rewrite_beliefs').insert({ tree_id: currentTree.id, user_id: userId, belief_from: from, belief_toward: toward, type, sort_order: beliefs.length });
+  await loadBeliefs(); renderTree(); closeModalById('modal-add-belief');
   document.getElementById('belief-from').value = '';
   document.getElementById('belief-toward').value = '';
 }
 
-// -- SAVE PRACTICE --
 async function savePractice() {
   if (!currentTree) return;
   const what = document.getElementById('p-what').value.trim();
   if (!what) return;
-
   await sb.from('rewrite_practices').insert({
-    tree_id: currentTree.id, user_id: userId,
-    what,
+    tree_id: currentTree.id, user_id: userId, what,
     when_trigger: document.getElementById('p-when').value.trim(),
     where_context: document.getElementById('p-where').value.trim(),
     how_method: document.getElementById('p-how').value.trim(),
@@ -1077,29 +814,14 @@ async function savePractice() {
     measure: document.getElementById('p-measure').value.trim(),
     status: 'active'
   });
-  await loadPractices();
-  renderTree();
-  renderPractices();
-  closeModalById('modal-add-practice');
-  ['p-what','p-when','p-where','p-how','p-who','p-hals','p-measure'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  await loadPractices(); renderTree(); renderPractices(); closeModalById('modal-add-practice');
+  ['p-what','p-when','p-where','p-how','p-who','p-hals','p-measure'].forEach(id => { document.getElementById(id).value = ''; });
 }
 
-// -- RENDER PRACTICES --
 function renderPractices() {
   const list = document.getElementById('all-practices-list');
   if (!practices.length) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;">
-      <circle cx="20" cy="20" r="14"/>
-      <path d="M20 12v8l5 5"/>
-    </svg>
-        <h3>No practices yet</h3>
-        <p>Add the specific acts that cast votes for your new identity.</p>
-      </div>
-    `;
+    list.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><circle cx="20" cy="20" r="14"/><path d="M20 12v8l5 5"/></svg><h3>No practices yet</h3><p>Add the specific acts that cast votes for your new identity.</p></div>`;
     return;
   }
   list.innerHTML = practices.map(p => `
@@ -1111,12 +833,10 @@ function renderPractices() {
   `).join('');
 }
 
-// -- PRACTICE DETAIL --
 function showPracticeDetail(id) {
   const p = practices.find(x => x.id === id);
   if (!p) return;
-  const content = document.getElementById('practice-detail-content');
-  content.innerHTML = `
+  document.getElementById('practice-detail-content').innerHTML = `
     <h2 style="margin-bottom:4px;">Practice</h2>
     <p class="modal-sub" style="margin-bottom:16px;">${p.what}</p>
     ${p.when_trigger ? `<div class="form-field"><label>When</label><div style="font-size:14px;padding:10px 0;">${p.when_trigger}</div></div>` : ''}
@@ -1124,36 +844,18 @@ function showPracticeDetail(id) {
     ${p.how_method ? `<div class="form-field"><label>How</label><div style="font-size:14px;padding:10px 0;">${p.how_method}</div></div>` : ''}
     ${p.who_accountability ? `<div class="form-field"><label>Who knows</label><div style="font-size:14px;padding:10px 0;">${p.who_accountability}</div></div>` : ''}
     ${p.hals_being_revised ? `<div class="form-field"><label>HALS being revised</label><div style="font-size:14px;padding:10px 0;">${p.hals_being_revised}</div></div>` : ''}
-    ${p.measure ? `
-      <div style="background:var(--teal-bg);border-radius:10px;padding:12px;border-left:3px solid var(--teal);">
-        <div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">I will know it's working when...</div>
-        <div style="font-size:14px;color:var(--dark);">${p.measure}</div>
-      </div>
-    ` : ''}
+    ${p.measure ? `<div style="background:var(--teal-bg);border-radius:10px;padding:12px;border-left:3px solid var(--teal);"><div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">I will know it's working when...</div><div style="font-size:14px;color:var(--dark);">${p.measure}</div></div>` : ''}
   `;
   showModal('modal-practice-detail');
 }
 
-// -- RENDER HISTORY --
 function renderHistory() {
   const list = document.getElementById('history-list');
   const balconyEntries = diaryEntries.filter(e => e.looked_back);
-
   if (!balconyEntries.length) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;">
-      <rect x="6" y="8" width="28" height="26" rx="3"/>
-      <path d="M14 4v8M26 4v8M6 18h28"/>
-      <path d="M14 26h6M14 32h10"/>
-    </svg>
-        <h3>No entries yet</h3>
-        <p>Complete your first balcony practice and the pattern will begin to form here.</p>
-      </div>
-    `;
+    list.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="6" y="8" width="28" height="26" rx="3"/><path d="M14 4v8M26 4v8M6 18h28"/><path d="M14 26h6M14 32h10"/></svg><h3>No entries yet</h3><p>Complete your first balcony practice and the pattern will begin to form here.</p></div>`;
     return;
   }
-
   list.innerHTML = balconyEntries.map(e => `
     <div class="history-card fade-in">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -1163,40 +865,30 @@ function renderHistory() {
       <div class="history-q">More whole self</div>
       <div class="history-a">${e.looked_back || '-'}</div>
       ${e.appreciated ? `<div class="history-q">Appreciated</div><div class="history-a">${e.appreciated}</div>` : ''}
-      ${e.lumen_reply ? `
-        <div class="lumen-reply" style="background:rgba(55,115,100,0.06);border-color:rgba(55,115,100,0.15);">
-          <div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);animation:none;"></div> Lumen</div>
-          <p style="color:var(--dark);">${e.lumen_reply}</p>
-        </div>
-      ` : ''}
+      ${e.lumen_reply ? `<div class="lumen-reply" style="background:rgba(55,115,100,0.06);border-color:rgba(55,115,100,0.15);"><div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);animation:none;"></div> Lumen</div><p style="color:var(--dark);">${e.lumen_reply}</p></div>` : ''}
     </div>
   `).join('');
 }
 
-// -- WHATSAPP SETTINGS --
 async function saveWaSettings() {
   const number = document.getElementById('wa-number').value.trim();
   const time = document.getElementById('wa-time').value;
   if (!number || !userId) return;
-
   await sb.from('rewrite_nudge_settings').upsert({
-    user_id: userId,
-    whatsapp_number: number,
-    nudge_time: time,
+    user_id: userId, whatsapp_number: number, nudge_time: time,
     updated_at: new Date().toISOString()
   }, { onConflict: 'user_id' });
-
-  document.querySelector('[onclick="saveWaSettings()"]').textContent = 'Saved';
-  setTimeout(() => {
-    document.querySelector('[onclick="saveWaSettings()"]').textContent = 'Save nudge settings';
-  }, 2000);
+  const status = document.getElementById('wa-status');
+  status.textContent = 'Saved - nudge active at ' + time + ' UTC';
+  status.classList.add('visible');
+  const btn = document.querySelector('[onclick="saveWaSettings()"]');
+  btn.textContent = 'Saved';
+  setTimeout(() => { btn.textContent = 'Save nudge settings'; }, 2000);
 }
 
-// -- HELPERS --
 function formatDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 function getSignalClass(state) {
@@ -1208,7 +900,6 @@ function getSignalClass(state) {
 }
 
 function formatState(state) {
-  if (!state) return '';
   const map = {
     'grn_thriving': 'Thriving', 'grn_bounce': 'Bouncing back', 'grn_streak': 'Green streak',
     'amb_load': 'Carrying something', 'amb_trend': 'Building quietly',
@@ -1218,7 +909,6 @@ function formatState(state) {
   return map[state] || state;
 }
 
-// -- NAVIGATION --
 function showScreen(name, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
@@ -1235,15 +925,9 @@ function showModal(id) {
   }
 }
 
-function closeModal(event, id) {
-  if (event.target === document.getElementById(id)) closeModalById(id);
-}
+function closeModal(event, id) { if (event.target === document.getElementById(id)) closeModalById(id); }
+function closeModalById(id) { document.getElementById(id).classList.add('hidden'); }
 
-function closeModalById(id) {
-  document.getElementById(id).classList.add('hidden');
-}
-
-// -- INIT --
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
