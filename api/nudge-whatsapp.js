@@ -3,6 +3,7 @@
  * Vercel Cron Job — WhatsApp Balcony Practice Nudge
  * Called by Vercel cron job every minute to check scheduled nudges
  * Uses Twilio WhatsApp Sandbox API
+ * Updated: 12 Apr 2026
  */
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -70,7 +71,7 @@ module.exports = async function handler(req, res) {
         sent++;
         console.log(`Nudge sent to ${setting.user_id}, SID: ${twilioData.sid}`);
       } else {
-        console.error(`Nudge failed for ${setting.user_id}:`, JSON.stringify(twilioData));
+        console.error(`Nudge failed for ${setting.user_id}: code=${twilioData.code} msg=${twilioData.message} status=${twilioData.status}`);
       }
     }
 
