@@ -32,24 +32,37 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
-  .top-nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-    background: rgba(245,230,205,0.97);
-    backdrop-filter: blur(12px);
-    border-bottom: 0.5px solid var(--border);
-    padding: 0 20px;
-    height: 56px;
+
+  /* -- TOPBAR -- */
+  .topbar {
+    background: var(--dark); padding: 12px 32px;
     display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 200;
   }
-  .top-nav-logo { display: flex; align-items: center; gap: 10px; }
-  .logo-circle {
-    width: 32px; height: 32px; border-radius: 50%;
+  .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .topbar-mark {
+    width: 28px; height: 28px; border-radius: 50%;
     background: var(--orange);
     display: flex; align-items: center; justify-content: center;
-    color: white; font-weight: 600; font-size: 14px;
   }
-  .top-nav-title { font-size: 15px; font-weight: 500; color: var(--dark); }
-  .top-nav-sub { font-size: 11px; color: var(--mid); }
+  .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+  .topbar-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+  .topbar-right { display: flex; align-items: center; gap: 20px; }
+  .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .topbar-signout {
+    background: none; border: none; color: rgba(255,255,255,0.35);
+    font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif;
+    transition: color 0.2s;
+  }
+  .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+  .topbar-nav { display: flex; align-items: center; gap: 4px; }
+  .topbar-nav-link {
+    font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none;
+    padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+  }
+  .topbar-nav-link:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+  .topbar-nav-link.active { color: var(--yellow); background: rgba(255,190,25,0.1); }
+
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: rgba(245,230,205,0.97);
@@ -71,7 +84,7 @@
   }
   .bnav-btn:hover { background: rgba(10,50,40,0.06); }
   .bnav-btn.active { color: var(--dark); font-weight: 500; }
-  .screen { display: none; padding-top: 56px; padding-bottom: 90px; min-height: 100vh; }
+  .screen { display: none; padding-top: 16px; padding-bottom: 90px; min-height: 100vh; }
   .screen.active { display: block; }
   .hidden { display: none !important; }
   .hero {
@@ -335,21 +348,21 @@
 </head>
 <body>
 
-<nav class="top-nav">
-  <div class="top-nav-logo">
-    <div class="logo-circle">R</div>
-    <div>
-      <div class="top-nav-title">Rewrite It</div>
-      <div class="top-nav-sub">The person you are choosing to become</div>
-    </div>
-  </div>
-  <nav style="display:flex;align-items:center;gap:4px;">
-    <a href="/dashboard.html" style="font-size:12px;font-weight:400;color:rgba(10,50,40,0.4);text-decoration:none;padding:5px 12px;border-radius:20px;transition:all 0.2s;">Learn It</a>
-    <a href="/wearable.html" style="font-size:12px;font-weight:400;color:rgba(10,50,40,0.4);text-decoration:none;padding:5px 12px;border-radius:20px;transition:all 0.2s;">Use It</a>
-    <a href="/rewrite.html" style="font-size:12px;font-weight:500;color:var(--dark);text-decoration:none;padding:5px 12px;border-radius:20px;background:rgba(10,50,40,0.08);">Rewrite It</a>
+<div class="topbar">
+  <a href="/" class="topbar-brand">
+    <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
+    <span class="topbar-name">Rewrite Your Life</span>
+  </a>
+  <nav class="topbar-nav">
+    <a href="/dashboard.html" class="topbar-nav-link">Learn It</a>
+    <a href="/wearable.html" class="topbar-nav-link">Use It</a>
+    <a href="/rewrite.html" class="topbar-nav-link active">Rewrite It</a>
   </nav>
-  <div id="streak-count" style="font-size:12px;color:var(--mid);"></div>
-</nav>
+  <div class="topbar-right">
+    <span class="topbar-user" id="topbar-user"></span>
+    <button class="topbar-signout" onclick="signOut()">Sign out</button>
+  </div>
+</div>
 
 <!-- == SCREEN: TREE == -->
 <div class="screen active" id="screen-tree">
@@ -562,6 +575,11 @@ let beliefs = [];
 let practices = [];
 let diaryEntries = [];
 
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = '/signin.html';
+}
+
 async function loadAll() {
   await loadTree();
   await loadBeliefs();
@@ -708,7 +726,7 @@ function renderStreak() {
     if (diaryEntries.some(e => e.created_at && e.created_at.startsWith(ds))) streak++;
     else break;
   }
-  document.getElementById('streak-count').textContent = streak > 0 ? `${streak} day streak` : '';
+  document.getElementById('topbar-user').textContent = streak > 0 ? streak + ' day streak' : '';
 }
 
 function renderBalcony() {
@@ -933,20 +951,10 @@ window.addEventListener('load', async () => {
   if (session) {
     authToken = session.access_token;
     userId = session.user.id;
+    document.getElementById('topbar-user').textContent = session.user.email;
     await loadAll();
   } else {
-    const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        authToken = session.access_token;
-        userId = session.user.id;
-        subscription.unsubscribe();
-        await loadAll();
-      }
-    });
-    setTimeout(async () => {
-      const { data: { session: s } } = await sb.auth.getSession();
-      if (!s) window.location.href = '/signin.html?next=/rewrite.html';
-    }, 1500);
+    window.location.href = '/signin.html?next=/rewrite.html';
   }
 });
 </script>
