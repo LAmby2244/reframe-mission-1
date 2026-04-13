@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last deploy trigger: 2026-04-13 22:10 UTC
+## Last deploy trigger: 2026-04-13 22:25 UTC — Node.js pinned to 20.x
 
 ---
 
@@ -31,6 +31,7 @@
 | Vercel team | `team_QdSm8BPRfWR7RxBzM0CtW9Ky` |
 | Vercel team slug | `simons-projects-9218b53a` |
 | Vercel plan | Pro |
+| **Node.js version** | **20.x** — pinned in Vercel project settings. Do NOT change. Node 24 causes "Unhandled type: Identifier" build errors. |
 | Supabase | `aoqjfqmlcccsosddqnws` |
 | Live domain | `app.purposefulchange.co.uk` |
 | DNS | CNAME `fb96c77117a481ee.vercel-dns-017.com` in 123-reg |
@@ -65,9 +66,9 @@ privacy.html (required for WHOOP developer registration)
 ```
 
 **Three-tab nav** — consistent across dashboard.html, wearable.html, rewrite.html:
-- Learn It → `/dashboard.html`
-- Use It → `/wearable.html`
-- Rewrite It → `/rewrite.html`
+- Learn It -> `/dashboard.html`
+- Use It -> `/wearable.html`
+- Rewrite It -> `/rewrite.html`
 
 ---
 
@@ -108,13 +109,13 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 | `answers` | Reframe mission answers (RLS enabled) |
 | `entries` | Reframe mission entries |
 | `lumen_instructions` | Per-user Lumen system context |
-| `lumen_stage` | Lumen arc stage tracking (Stage 1→2→3) |
+| `lumen_stage` | Lumen arc stage tracking (Stage 1->2->3) |
 | `pattern_recurrence_rate` | Primary study metric |
 | `wearable_pattern_summary` | View — pattern frequency per user |
 | `weekly_study_summary` | Weekly aggregation |
 | `study_participants` | Study cohort record — all 4 participants added 12 Apr 2026 |
 | `rewrite_trees` | Rewrite It — declaration + identity shift per user (one active per user) |
-| `rewrite_beliefs` | Rewrite It — belief/value from→toward pairs |
+| `rewrite_beliefs` | Rewrite It — belief/value from/toward pairs |
 | `rewrite_practices` | Rewrite It — practices (what/when/where/how/who/HALS/measure) |
 | `rewrite_diary` | Rewrite It — daily balcony entries + practice check-ins |
 | `rewrite_nudge_settings` | Rewrite It — WhatsApp nudge number + time (UTC). Simon set to 18:00 UTC. |
@@ -170,20 +171,21 @@ All 5 rewrite tables have RLS enabled.
 29. **vercel.json must never have a `functions` block** — adding `"functions": {"api/lumen.js": {"runtime": "edge"}}` causes Vercel to attempt ESM-to-CommonJS compilation of Edge functions, which fails immediately with "Unhandled type: Identifier". Runtime is declared via `export const config = { runtime: 'edge' }` inside the file itself. vercel.json contains only `crons` and `rewrites`.
 30. **No package.json in the repo root** — this is a vanilla Vercel project with no build step. Adding `{"type": "module"}` to package.json breaks all Node.js API functions that use `module.exports`. If a package.json appears, delete it.
 31. **When Vercel is behind GitHub HEAD — force redeploy by touching README-DEV.md** — if a cascade of failed builds leaves Vercel pinned to an old commit, push a trivial README-DEV change to trigger a fresh build from current HEAD. Do NOT push code changes to force a deploy.
+32. **Node.js version is pinned to 20.x in Vercel project settings** — Node 24 causes "Unhandled type: Identifier" build errors on this project. Check `Vercel > Settings > Build & Deployment > Node.js Version` if builds start failing for no obvious reason. This was changed to 24.x during the bad Jaroslav session and caused all subsequent build failures.
 
 ---
 
 ## Data Flow — Body Signal
-1. User signs in → `signin.html` → Supabase session persists across all pages
+1. User signs in -> `signin.html` -> Supabase session persists across all pages
 2. `wearable.html` passes `Authorization: Bearer [supabaseJWT]` to `/api/whoop-data`
-3. `whoop-data.js` decodes JWT → `user_id` → queries `whoop_connections` by `user_id`
+3. `whoop-data.js` decodes JWT -> `user_id` -> queries `whoop_connections` by `user_id`
 4. Fetches 28 days WHOOP v2 API using stored `access_token`
 5. Auto-refreshes token if expired using `refresh_token`
 6. Computes 28-day baselines + z-scores
 7. Runs composite load index + 9-state scoring engine
 8. Writes scored row to `daily_state` (fire-and-forget, upsert on user_id+date)
 9. Returns scored data + trend arrays
-10. `wearable.html` renders signal card → calls `/api/lumen` with arc as `systemExtra` context
+10. `wearable.html` renders signal card -> calls `/api/lumen` with arc as `systemExtra` context
 11. Lumen reads arc, works through six-move methodology arc
 12. `lumenSystemPrompt` stored at session start — reused for all continuation messages
 13. After conversation: feedback card ("Did this process surface something useful?" 1-5)
@@ -197,13 +199,13 @@ All 5 rewrite tables have RLS enabled.
 **GREEN** — `grn_thriving` / `grn_bounce` / `grn_streak`
 
 ### Scientific Guardrails (WHOOP AI validated 9 Apr 2026)
-1. Recovery >= 67% AND HRV >= baseline AND low strain → block all amber/red trend states
+1. Recovery >= 67% AND HRV >= baseline AND low strain -> block all amber/red trend states
 2. `red_trend` requires >=7 days history — under 7 downgrades to `amb_trend`
 3. Recovery >= 67% blocks `red_trend` regardless of HRV trend
 
 ### Composite Load Index
 HRV 40% / Recovery 25% / Sleep consistency 20% / Respiratory rate 15%
-2+ signals impaired → escalate one level.
+2+ signals impaired -> escalate one level.
 
 ---
 
@@ -245,7 +247,7 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 - Message: "Time to get on the balcony." + body signal line (if available) + link to `wearable.html`
 - Twilio sandbox: `+14155238886`. Join keyword: `join suggest-obtain`
 - Simon opted in. Nudge confirmed working at 18:25 UTC 12 Apr 2026.
-- Other participants need to opt in to Twilio sandbox and set nudge time in Rewrite It → Practices
+- Other participants need to opt in to Twilio sandbox and set nudge time in Rewrite It -> Practices
 
 ---
 
@@ -253,7 +255,7 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 
 ### The Arc
 ```
-Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe → Practice → Identity Shift → Physiological Confirmation
+Signal -> Body -> Questions -> Belief Named -> Origin Surfaced -> Reframe -> Practice -> Identity Shift -> Physiological Confirmation
 ```
 
 ### Jackson's case (10 Apr 2026) — reference example
@@ -261,7 +263,7 @@ Signal → Body → Questions → Belief Named → Origin Surfaced → Reframe �
 - **Belief surfaced:** "If I stop, I am lazy"
 - **Origin:** Intergenerational — family history of working hard and being useful
 - **Declaration:** "I am choosing to be someone who deserves to rest."
-- **Two-day arc:** 23% recovery → 72% recovery in one night. Green session surfaced second HALS: self-compassion feels threatening.
+- **Two-day arc:** 23% recovery -> 72% recovery in one night. Green session surfaced second HALS: self-compassion feels threatening.
 - **Full case study:** `jackson-case-study.docx` in project files
 
 ---
@@ -297,7 +299,7 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 
 ### Infrastructure
 - [ ] Submit Safe Browsing false positive: `safebrowsing.google.com/safebrowsing/report_error/`
-- [ ] Twilio sandbox → production WhatsApp Business API (when study scales)
+- [ ] Twilio sandbox -> production WhatsApp Business API (when study scales)
 
 ---
 
@@ -353,12 +355,12 @@ for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f";
 | 8 Apr 2026 | Cross-user isolation fixed (JWT-only lookup). WHOOP auth refactored. Melinda connected. 3 participants live. |
 | 9 Apr 2026 | Scoring engine WHOOP AI validated. Guardrails added. Composite load index built. Feedback measure deployed. Research paper updated. Rewrite It conceived + mocked up. |
 | 10 Apr 2026 AM | rewrite.html built (4 screens, SVG icons, 5 Supabase tables with RLS). HRV volatility + AMBER_VOLATILE added. Jackson (4th participant) connected. CRON_SECRET added. |
-| 10 Apr 2026 PM | WHOOP token expiry fixed. whoop-refresh.js Node.js runtime confirmed. localStorage→Supabase sync added. Three-tab nav across all pages. Jackson case study written. README-DEV established. |
-| 11 Apr 2026 | Three bugs fixed: float types, pendingSync, amber mode constraint. Jackson 2 sessions in Supabase. Body confirmed identity shift overnight (23% → 72%). Second HALS surfaced in green session. Case study Section 9 added. Research paper Section 3.4 added. |
+| 10 Apr 2026 PM | WHOOP token expiry fixed. whoop-refresh.js Node.js runtime confirmed. localStorage->Supabase sync added. Three-tab nav across all pages. Jackson case study written. README-DEV established. |
+| 11 Apr 2026 | Three bugs fixed: float types, pendingSync, amber mode constraint. Jackson 2 sessions in Supabase. Body confirmed identity shift overnight (23% -> 72%). Second HALS surfaced in green session. Case study Section 9 added. Research paper Section 3.4 added. |
 | 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed. |
 | 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
 | 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
-| 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. 6 failed deployments caused by Claude pushing bad vercel.json (added functions block) and not fetching before answering revert question — rules 28/29/30/31 added to prevent recurrence. Forced redeploy to sync Vercel to GitHub HEAD. |
+| 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. Bad session (Jaroslav work) changed Node.js to 24.x and corrupted whoop-data.js with markdown fences — caused 10+ failed builds. Fixed: Node.js pinned back to 20.x in Vercel settings, whoop-data.js restored from clean container copy. Rules 28-32 added. |
 
 ---
 
