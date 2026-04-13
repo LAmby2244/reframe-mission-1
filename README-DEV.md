@@ -1,6 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
+## Last deploy trigger: 2026-04-13 22:10 UTC
 
 ---
 
@@ -168,6 +169,7 @@ All 5 rewrite tables have RLS enabled.
 28. **ALWAYS FETCH BEFORE ANSWERING REVERT QUESTIONS** — if Simon asks "do we need to revert X?" or "is file Y still correct?", Claude must fetch the live file from GitHub before answering. Never rely on memory of what was pushed. The cost of a wrong answer is a cascade of broken deployments. This rule exists because Claude confidently said vercel.json did not need reverting during the Jaroslav session without checking — it did, and caused 6 consecutive failed builds. Fetch first. Always.
 29. **vercel.json must never have a `functions` block** — adding `"functions": {"api/lumen.js": {"runtime": "edge"}}` causes Vercel to attempt ESM-to-CommonJS compilation of Edge functions, which fails immediately with "Unhandled type: Identifier". Runtime is declared via `export const config = { runtime: 'edge' }` inside the file itself. vercel.json contains only `crons` and `rewrites`.
 30. **No package.json in the repo root** — this is a vanilla Vercel project with no build step. Adding `{"type": "module"}` to package.json breaks all Node.js API functions that use `module.exports`. If a package.json appears, delete it.
+31. **When Vercel is behind GitHub HEAD — force redeploy by touching README-DEV.md** — if a cascade of failed builds leaves Vercel pinned to an old commit, push a trivial README-DEV change to trigger a fresh build from current HEAD. Do NOT push code changes to force a deploy.
 
 ---
 
@@ -356,7 +358,7 @@ for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f";
 | 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed. |
 | 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
 | 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
-| 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. 6 failed deployments caused by Claude pushing bad vercel.json (added functions block) and not fetching before answering revert question — rules 28/29/30 added to prevent recurrence. |
+| 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. 6 failed deployments caused by Claude pushing bad vercel.json (added functions block) and not fetching before answering revert question — rules 28/29/30/31 added to prevent recurrence. Forced redeploy to sync Vercel to GitHub HEAD. |
 
 ---
 
