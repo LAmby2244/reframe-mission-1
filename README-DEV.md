@@ -160,10 +160,10 @@ All 5 rewrite tables have RLS enabled.
 21. **nudge_time is UTC** — stored as `time without time zone`. Cron compares `HH:MM` against UTC. UK participants must subtract 1hr (BST). UI shows UTC label with hint.
 22. **nudge-whatsapp only shows today's body signal** — queries `wearable_entries` with `created_at >= today`. If no session done today, sends nudge without data line. Never shows stale data.
 23. **Vercel env var changes need a new deployment** — Redeploy via UI reuses the same build. Must push a GitHub commit to force a fresh build that picks up new env vars.
-24. **GitHub MCP server** — installed in Claude Desktop config (`npx @modelcontextprotocol/server-github`). Requires Node.js. PAT stored in config. Claude can now read/write files directly from GitHub without copy-paste.
+24. **GitHub MCP — use the official GitHub server** — `github-mcp-server` binary (installed via `brew install github/github-mcp-server/github-mcp-server`). Config: `{"command": "github-mcp-server", "args": ["stdio"], "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "..."}}`. The old `@modelcontextprotocol/server-github` (npx) silently truncated large file pushes — do NOT use it. The official binary handles any file size correctly.
 25. **lumenSystemPrompt persists across conversation (FIXED 13 Apr)** — `triggerLumenReflection()` stores the rich system prompt in `lumenSystemPrompt`. `sendToLumen()` uses it for all continuation messages. Lumen stays in full context for the whole session.
-26. **wearable.html is 107KB / 2507 lines** — too large to push inline via GitHub MCP `create_or_update_file` or `push_files` (times out). If file gets corrupted, restore using Chrome MCP: navigate to GitHub editor, run `fetch()` to get good blob, apply targeted string replacements, use `document.execCommand('selectAll') + execCommand('insertText', false, fixedContent)` to inject, then click Commit.
-27. **wearable.html known good blob** — commit `91fcb63f0fccedb2ab82b45b96f78c24acba1246` contains the last known-good full file before any corruption. Fetchable via raw GitHub URL with that commit SHA.
+26. **wearable.html is 107KB / 2507 lines — large file pushes now work fine** with the official GitHub MCP server (rule 24). `create_or_update_file` handles the full file without truncation.
+27. **wearable.html last known-good commit** — `d10f69448df278261fde2eba85e867aed317c995` (13 Apr, post lumenSystemPrompt fix, verified 109KB push via official MCP server).
 
 ---
 
@@ -337,29 +337,6 @@ cd '/Users/simonlamb/Library/CloudStorage/OneDrive-PurposefulChange/coaching tra
 for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f"; done
 ```
 
-### Chrome MCP restore pattern for wearable.html (107KB — too large for GitHub MCP inline push)
-```javascript
-// 1. Navigate to: github.com/LAmby2244/reframe-mission-1/edit/main/wearable.html
-// 2. In browser JS console (via Chrome MCP javascript_tool):
-(async () => {
-  const res = await fetch('https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/GOOD_COMMIT_SHA/wearable.html');
-  let fixed = await res.text();
-  // Apply targeted string replacements here
-  window._fixedContent = fixed;
-  return 'done: ' + fixed.length;
-})()
-
-// 3. Inject into editor:
-const cmContent = document.querySelector('.cm-content');
-cmContent.focus();
-document.execCommand('selectAll');
-document.execCommand('insertText', false, window._fixedContent);
-
-// 4. Click commit button:
-document.querySelector('button[data-hotkey]')?.click();
-// or: Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Commit changes')).click()
-```
-
 ---
 
 ## Session Log
@@ -373,7 +350,8 @@ document.querySelector('button[data-hotkey]')?.click();
 | 11 Apr 2026 | Three bugs fixed: float types, pendingSync, amber mode constraint. Jackson 2 sessions in Supabase. Body confirmed identity shift overnight (23% → 72%). Second HALS surfaced in green session. Case study Section 9 added. Research paper Section 3.4 added. |
 | 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed. |
 | 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
-| 13 Apr 2026 | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt, Lumen blind after message 1. Fix: store system in lumenSystemPrompt var in triggerLumenReflection, reuse in sendToLumen. wearable.html accidentally wiped twice during this session by create_or_update_file with partial content — restored both times via Chrome MCP (fetch raw from good commit, inject via execCommand insertText, commit via GitHub editor). Chrome MCP restore pattern now documented in Common Commands. |
+| 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
+| 13 Apr 2026 PM | Switched to GitHub's official MCP server (github-mcp-server binary via Homebrew). Confirmed 109KB file push works correctly — no truncation. Chrome MCP restore workaround no longer needed. README rules 24/26/27 updated to reflect the fix. |
 
 ---
 
