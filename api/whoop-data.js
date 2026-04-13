@@ -1,6 +1,6 @@
 /**
  * /api/whoop-data.js
- * Vercel Edge Function — WHOOP Data + Scoring Engine
+ * Vercel Edge Function -- WHOOP Data + Scoring Engine
  * Validated against WHOOP AI and HRV research literature
  */
 export const config = { runtime: 'edge' };
@@ -27,18 +27,18 @@ function sd(arr) {
   return Math.max(Math.sqrt(variance), 0.1);
 }
 
-// ── HRV VOLATILITY (COEFFICIENT OF VARIATION) ────────────────────
+// -- HRV VOLATILITY (COEFFICIENT OF VARIATION) --
 // Measures night-to-night instability in HRV, independent of absolute level or trend.
-// CV = SD / mean × 100. Normalises instability relative to the person's own baseline.
+// CV = SD / mean x 100. Normalises instability relative to the person's own baseline.
 // Requires minimum 5 days of HRV data to fire.
 //
 // Thresholds (per HRV literature):
 //   CV < 10%  = very stable (no flag)
-//   CV 10–20% = normal variation (no flag)
-//   CV 20–30% = moderate instability → hrv_volatility_flag: true (green preserved)
-//   CV > 30%, 5+ days sustained → amb_volatile state
+//   CV 10-20% = normal variation (no flag)
+//   CV 20-30% = moderate instability -> hrv_volatility_flag: true (green preserved)
+//   CV > 30%, 5+ days sustained -> amb_volatile state
 //
-// Per WHOOP AI validation: volatility alone cannot trigger red — needs a second signal.
+// Per WHOOP AI validation: volatility alone cannot trigger red -- needs a second signal.
 function computeHRVVolatility(history) {
   const hrvValues = history.slice(0, 7).map(d => d.hrv_ms).filter(Boolean);
 
@@ -52,7 +52,7 @@ function computeHRVVolatility(history) {
   const s = sd(hrvValues);
   const cv_pct = (s / m) * 100;
 
-  // Score on 0–1 scale for composite use
+  // Score on 0-1 scale for composite use
   let volatility_score = 0;
   if (cv_pct > 30) volatility_score = 1.0;
   else if (cv_pct > 20) volatility_score = 0.6;
@@ -78,13 +78,13 @@ function zScore(value, baseline_mean, baseline_sd) {
 }
 
 
-// ── COMPOSITE LOAD INDEX ──────────────────────────────────────────
+// -- COMPOSITE LOAD INDEX --
 // Weights: HRV 40% / Recovery 25% / Sleep consistency 20% / RR 15%
 // Per WHOOP AI validation, April 2026
 function computeCompositeLoad(todayScored, baselines, history) {
   const { hrv_z, rec_z, rr_bpm, recovery_pct } = todayScored;
 
-  // HRV component (40%) — z-score below baseline = load
+  // HRV component (40%) -- z-score below baseline = load
   let hrv_score = 0;
   if (hrv_z !== null) {
     if (hrv_z < -1.0) hrv_score = 1.0;
@@ -92,7 +92,7 @@ function computeCompositeLoad(todayScored, baselines, history) {
     else if (hrv_z < 0) hrv_score = 0.3;
   }
 
-  // Recovery component (25%) — below 67% = load
+  // Recovery component (25%) -- below 67% = load
   let rec_score = 0;
   if (rec_z !== null) {
     if (rec_z < -1.0) rec_score = 1.0;
@@ -130,11 +130,11 @@ function computeCompositeLoad(todayScored, baselines, history) {
     else if (rr_elevation > 1.0) rr_score = 0.4;
   }
 
-  // Weighted composite (0–1 scale)
+  // Weighted composite (0-1 scale)
   const composite = (hrv_score * 0.40) + (rec_score * 0.25) +
                     (consistency_score * 0.20) + (rr_score * 0.15);
 
-  // Count how many signals are impaired (≥0.5 threshold per signal)
+  // Count how many signals are impaired (>=0.5 threshold per signal)
   const impaired_count = [hrv_score, rec_score, consistency_score, rr_score]
     .filter(s => s >= 0.5).length;
 
@@ -154,10 +154,10 @@ function computeCompositeLoad(todayScored, baselines, history) {
   };
 }
 
-// ── STATE ESCALATION ──────────────────────────────────────────────
-// Per WHOOP AI: 2+ signals impaired → escalate one level
+// -- STATE ESCALATION --
+// Per WHOOP AI: 2+ signals impaired -> escalate one level
 // Sleep consistency alone does NOT override green guardrail
-// Exception: chronic poor consistency (5+ days) + borderline signal → allow amber
+// Exception: chronic poor consistency (5+ days) + borderline signal -> allow amber
 function applyStateEscalation(state, confidence, compositeLoad, todayScored, history) {
   const { impaired_count, consistency_score, composite } = compositeLoad;
   const { recovery_pct, hrv_z } = todayScored;
@@ -165,10 +165,10 @@ function applyStateEscalation(state, confidence, compositeLoad, todayScored, his
   // If already red, no escalation needed
   if (state && state.startsWith('red_')) return { state, confidence };
 
-  // 2+ signals impaired → escalate amber to red, null to amber
+  // 2+ signals impaired -> escalate amber to red, null to amber
   if (impaired_count >= 2) {
     if (state && state.startsWith('amb_')) {
-      // Amber → red_psych (most likely psychological load pattern)
+      // Amber -> red_psych (most likely psychological load pattern)
       return { state: 'red_psych', confidence: 'medium' };
     }
     if (!state || state === null) {
@@ -207,17 +207,17 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   const last3rec = history.slice(0, 3).map(d => d.recovery_pct).filter(Boolean);
   const recRising = last3rec.length >= 2 && last3rec[0] > last3rec[last3rec.length - 1];
 
-  // ── SCIENTIFIC GUARDRAIL (WHOOP AI + HRV literature validated) ───────────
-  // If recovery ≥ 67% AND HRV ≥ baseline AND strain is low-moderate:
+  // -- SCIENTIFIC GUARDRAIL (WHOOP AI + HRV literature validated) --
+  // If recovery >= 67% AND HRV >= baseline AND strain is low-moderate:
   // the system is physiologically well-resourced. Block all amber/red trend
-  // states — score green instead. (Elevated HRV = parasympathetic dominance
+  // states -- score green instead. (Elevated HRV = parasympathetic dominance
   // = positive adaptation signal, regardless of short-term drift.)
   const hrvAtOrAboveBaseline = hrv_z !== null && hrv_z >= 0;
   const recoveryIsGreen = recovery_pct !== null && recovery_pct >= 67;
   const strainIsLowMod = strain_z === null || strain_z < 1.0;
   const physiologicallyWell = recoveryIsGreen && hrvAtOrAboveBaseline && strainIsLowMod;
 
-  // ── RED: psychological depletion ──────────────────────────────────────────
+  // -- RED: psychological depletion --
   // red_psych: low recovery despite good sleep and low strain
   if (
     rec_z !== null && rec_z < -0.8 &&
@@ -230,16 +230,16 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
 
   // red_trend: HRV declining multi-day, not physical
   // GUARDS:
-  //   1. Block if physiologically well (recovery green + HRV ≥ baseline + low strain)
-  //   2. Require ≥7 days of history (< 7 days = within normal HRV variance)
-  //   3. Block if recovery ≥ 67% (high recovery overrides HRV trend concern)
+  //   1. Block if physiologically well (recovery green + HRV >= baseline + low strain)
+  //   2. Require >=7 days of history (< 7 days = within normal HRV variance)
+  //   3. Block if recovery >= 67% (high recovery overrides HRV trend concern)
   if (
     hrvDeclining &&
     hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) &&
     strain_z !== null && strain_z < 0.5
   ) {
     if (physiologicallyWell) {
-      // System is well — route to green, not amber
+      // System is well -- route to green, not amber
       // (falls through to green scoring below)
     } else {
       const hasEnoughHistory = history.length >= 7;
@@ -260,7 +260,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     return { state: 'red_strain', confidence: 'high' };
   }
 
-  // ── RED medium confidence ─────────────────────────────────────────────────
+  // -- RED medium confidence --
   if (rec_z !== null && rec_z < -0.8 && sleep_suff >= 0.85) {
     return { state: 'red_psych', confidence: 'medium' };
   }
@@ -274,7 +274,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     return { state: 'amb_trend', confidence: 'low' };
   }
 
-  // ── GREEN ─────────────────────────────────────────────────────────────────
+  // -- GREEN --
   if (
     rec_z !== null && rec_z > 0.5 &&
     hrv_z !== null && hrv_z >= 0.0 &&
@@ -297,7 +297,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     return { state: 'grn_streak', confidence: 'high' };
   }
 
-  // Physiologically well but not strongly green — still score green
+  // Physiologically well but not strongly green -- still score green
   if (physiologicallyWell) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
@@ -306,7 +306,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
 
-  // ── AMBER: HRV volatility (sustained high CV, no stronger signal) ─────────
+  // -- AMBER: HRV volatility (sustained high CV, no stronger signal) --
   // CV >30% over 5+ days with no green/amber/red state already firing.
   // Green states are handled via hrv_volatility_flag instead (state preserved).
   if (hrvVolatility && hrvVolatility.volatile_high) {
@@ -364,7 +364,7 @@ export default async function handler(req) {
       : null;
 
     if (!lookup) {
-      return new Response(JSON.stringify({ error: 'No WHOOP connection found — please connect your WHOOP', data_source: 'error' }), {
+      return new Response(JSON.stringify({ error: 'No WHOOP connection found -- please connect your WHOOP', data_source: 'error' }), {
         status: 401, headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -418,7 +418,7 @@ export default async function handler(req) {
   }
 
   if (!access_token) {
-    return new Response(JSON.stringify({ error: 'Missing access_token — please reconnect WHOOP', data_source: 'error' }), {
+    return new Response(JSON.stringify({ error: 'Missing access_token -- please reconnect WHOOP', data_source: 'error' }), {
       status: 401, headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -479,7 +479,6 @@ export default async function handler(req) {
         sleep_stress: sleepStress,
         rr_bpm: sleepScore.respiratory_rate ?? null,
         sleep_onset_hour: (() => {
-          // Extract sleep onset hour from sleep start time
           const startTime = sleep?.start;
           if (!startTime) return null;
           const d = new Date(startTime);
@@ -547,10 +546,54 @@ export default async function handler(req) {
     const { state, confidence } = applyStateEscalation(baseState, baseConfidence, compositeLoad, todayScored, history);
     const exploration_score = computeExplorationScore(todayScored, baselines, history);
 
-    // hrv_volatility_flag: moderate instability (CV 20–30%) while state is green.
-    // State is preserved — Lumen adds a secondary observation rather than leading with it.
+    // hrv_volatility_flag: moderate instability (CV 20-30%) while state is green.
+    // State is preserved -- Lumen adds a secondary observation rather than leading with it.
     const isGreen = state && state.startsWith('grn_');
     const hrv_volatility_flag = isGreen && hrvVolatility.volatile && !hrvVolatility.volatile_high;
+
+    // -- WRITE TO daily_state --
+    // Fire-and-forget -- never block the response on a DB write.
+    // Uses upsert via Prefer: resolution=merge-duplicates so re-loading the page
+    // today just updates the row rather than erroring on a unique constraint.
+    if (userId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+      const dailyStateRow = {
+        user_id:           userId,
+        date:              today.date,
+        recovery_pct:      today.recovery_pct   !== null ? Math.round(today.recovery_pct)   : null,
+        hrv_ms:            today.hrv_ms          !== null ? parseFloat(today.hrv_ms.toFixed(1)) : null,
+        rhr_bpm:           today.rhr_bpm          !== null ? Math.round(today.rhr_bpm)          : null,
+        day_strain:        today.day_strain       !== null ? parseFloat(today.day_strain.toFixed(1)) : null,
+        sleep_perf_pct:    today.sleep_perf_pct   !== null ? Math.round(today.sleep_perf_pct)  : null,
+        sleep_hours:       today.sleep_hours      !== null ? parseFloat(today.sleep_hours.toFixed(2)) : null,
+        respiratory_rate:  today.rr_bpm           !== null ? parseFloat((today.rr_bpm).toFixed(2)) : null,
+        workout_logged:    today.workout_logged   || false,
+        sleep_suff:        today.sleep_suff       !== null ? parseFloat(today.sleep_suff.toFixed(3)) : null,
+        signal_state:      state || null,
+        signal_confidence: confidence || null,
+        rec_z:             todayScored.rec_z      !== null ? parseFloat(todayScored.rec_z.toFixed(3))  : null,
+        hrv_z:             todayScored.hrv_z      !== null ? parseFloat(todayScored.hrv_z.toFixed(3))  : null,
+        strain_z:          todayScored.strain_z   !== null ? parseFloat(todayScored.strain_z.toFixed(3)) : null,
+        composite_load:    parseFloat(compositeLoad.composite.toFixed(3)),
+        impaired_signals:  compositeLoad.impaired_count,
+        hrv_cv:            hrvVolatility.cv_pct,
+        exploration_score: exploration_score,
+        sleep_debt_7d:     parseFloat(sleep_debt_7d.toFixed(2)),
+        days_of_history:   historicalDays.length,
+      };
+      fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/daily_state`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+            apikey: process.env.SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify(dailyStateRow)
+        }
+      ).catch(e => console.error('daily_state write error:', e.message));
+    }
 
     const response = {
       recovery:          today.recovery_pct,
