@@ -28,6 +28,7 @@
 | GitHub | `github.com/LAmby2244/reframe-mission-1` |
 | Vercel project | `prj_XhDamdR45TOFhqZqHTk7A6NKWdbU` |
 | Vercel team | `team_QdSm8BPRfWR7RxBzM0CtW9Ky` |
+| Vercel team slug | `simons-projects-9218b53a` |
 | Vercel plan | Pro |
 | Supabase | `aoqjfqmlcccsosddqnws` |
 | Live domain | `app.purposefulchange.co.uk` |
@@ -77,17 +78,17 @@ privacy.html (required for WHOOP developer registration)
 | `dashboard.html` | Learn It — missions | 14 missions, three-tab nav |
 | `start.html` | Platform entry page | Three paths: Learn It / Use It / Rewrite It |
 | `whoop-callback.html` | WHOOP OAuth callback | Stores tokens in localStorage after redirect |
-| `signin.html` | Auth gate | Single sign-in for all pages |
+| `signin.html` | Auth gate | Single sign-in for all pages. Shows confirm-email panel if email not yet confirmed. |
 | `study-dashboard.html` | Researcher view | All participant data, PRR charts, Lumen stages |
 | `privacy.html` | Privacy policy | Required for WHOOP dev registration |
-| `api/whoop-data.js` | WHOOP fetch + scoring engine | **Edge function.** Composite load index, guardrails, 9 states |
+| `api/whoop-data.js` | WHOOP fetch + scoring engine | **Edge function.** Composite load index, guardrails, 9 states. Writes to daily_state on every load. |
 | `api/whoop-auth.js` | WHOOP OAuth flow | Uses SUPABASE_SERVICE_KEY. Check-then-PATCH-or-INSERT. No upsert. |
 | `api/whoop-refresh.js` | Token refresh cron | **Node.js.** Runs every 45 min. Auth check removed 12 Apr (was causing 401 on every run). |
 | `api/lumen.js` | Lumen AI companion | **Edge. UPDATED 12 Apr 2026** — full six-move methodology prompt. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
 | `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Only shows today's body signal (not stale). |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
-| `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. |
+| `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. **No `functions` block** — adding one breaks Edge runtime compilation. |
 | `README-DEV.md` | This file | Update at end of every session before closing |
 | `transcripts/*.txt` | 65 coaching transcripts | Plain text. Fetchable via raw GitHub URL. Source of Lumen methodology. |
 
@@ -102,7 +103,7 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 |---|---|
 | `whoop_connections` | WHOOP OAuth tokens per user. Has `expires_at` column. PATCH not upsert. |
 | `wearable_entries` | Body Signal sessions — see column list above |
-| `daily_state` | Raw scored WHOOP metrics per user per day — currently empty, not being populated |
+| `daily_state` | Raw scored WHOOP metrics per user per day. Written on every whoop-data.js call. |
 | `answers` | Reframe mission answers (RLS enabled) |
 | `entries` | Reframe mission entries |
 | `lumen_instructions` | Per-user Lumen system context |
@@ -164,6 +165,9 @@ All 5 rewrite tables have RLS enabled.
 25. **lumenSystemPrompt persists across conversation (FIXED 13 Apr)** — `triggerLumenReflection()` stores the rich system prompt in `lumenSystemPrompt`. `sendToLumen()` uses it for all continuation messages. Lumen stays in full context for the whole session.
 26. **wearable.html is 107KB / 2507 lines — large file pushes now work fine** with the official GitHub MCP server (rule 24). `create_or_update_file` handles the full file without truncation.
 27. **wearable.html last known-good commit** — `d10f69448df278261fde2eba85e867aed317c995` (13 Apr, post lumenSystemPrompt fix, verified 109KB push via official MCP server).
+28. **ALWAYS FETCH BEFORE ANSWERING REVERT QUESTIONS** — if Simon asks "do we need to revert X?" or "is file Y still correct?", Claude must fetch the live file from GitHub before answering. Never rely on memory of what was pushed. The cost of a wrong answer is a cascade of broken deployments. This rule exists because Claude confidently said vercel.json did not need reverting during the Jaroslav session without checking — it did, and caused 6 consecutive failed builds. Fetch first. Always.
+29. **vercel.json must never have a `functions` block** — adding `"functions": {"api/lumen.js": {"runtime": "edge"}}` causes Vercel to attempt ESM-to-CommonJS compilation of Edge functions, which fails immediately with "Unhandled type: Identifier". Runtime is declared via `export const config = { runtime: 'edge' }` inside the file itself. vercel.json contains only `crons` and `rewrites`.
+30. **No package.json in the repo root** — this is a vanilla Vercel project with no build step. Adding `{"type": "module"}` to package.json breaks all Node.js API functions that use `module.exports`. If a package.json appears, delete it.
 
 ---
 
@@ -175,12 +179,13 @@ All 5 rewrite tables have RLS enabled.
 5. Auto-refreshes token if expired using `refresh_token`
 6. Computes 28-day baselines + z-scores
 7. Runs composite load index + 9-state scoring engine
-8. Returns scored data + trend arrays
-9. `wearable.html` renders signal card → calls `/api/lumen` with arc as `systemExtra` context
-10. Lumen reads arc, works through six-move methodology arc
-11. `lumenSystemPrompt` stored at session start — reused for all continuation messages
-12. After conversation: feedback card ("Did this process surface something useful?" 1-5)
-13. Entry saved to localStorage immediately, then Supabase. If Supabase fails, retried on next load.
+8. Writes scored row to `daily_state` (fire-and-forget, upsert on user_id+date)
+9. Returns scored data + trend arrays
+10. `wearable.html` renders signal card → calls `/api/lumen` with arc as `systemExtra` context
+11. Lumen reads arc, works through six-move methodology arc
+12. `lumenSystemPrompt` stored at session start — reused for all continuation messages
+13. After conversation: feedback card ("Did this process surface something useful?" 1-5)
+14. Entry saved to localStorage immediately, then Supabase. If Supabase fails, retried on next load.
 
 ---
 
@@ -278,12 +283,12 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 - [ ] Test new Lumen prompt with real session — does it feel like Simon or like a checklist?
 - [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens expired — needs OAuth reconnect from their devices)
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
+- [ ] Set Supabase confirmation email template to Rewrite Your Life branding (dashboard: Auth > Email Templates > Confirm signup)
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
 - [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda: most history — due mid-April)
 - [ ] Jackson 30-day follow-up — does Body Signal confirm the identity shift?
-- [ ] Populate `daily_state` table — currently empty, not being written to
 
 ### Reframe workbook
 - [ ] Missions 3-5, 7-14 to build (1, 2, 6 live)
@@ -351,7 +356,7 @@ for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f";
 | 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed. |
 | 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
 | 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
-| 13 Apr 2026 PM | Switched to GitHub's official MCP server (github-mcp-server binary via Homebrew). Confirmed 109KB file push works correctly — no truncation. Chrome MCP restore workaround no longer needed. README rules 24/26/27 updated to reflect the fix. |
+| 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. 6 failed deployments caused by Claude pushing bad vercel.json (added functions block) and not fetching before answering revert question — rules 28/29/30 added to prevent recurrence. |
 
 ---
 
