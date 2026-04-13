@@ -19,6 +19,7 @@
       --border: rgba(10,50,40,0.12);
       --muted:  rgba(10,50,40,0.45);
       --red:    #C0392B;
+      --green:  #1a7a4a;
     }
 
     html, body {
@@ -38,7 +39,7 @@
       padding: 24px;
     }
 
-    /* ── CARD ── */
+    /* -- CARD -- */
     .card {
       background: var(--white);
       border-radius: 24px;
@@ -48,7 +49,7 @@
       box-shadow: 0 4px 32px rgba(10,50,40,0.08);
     }
 
-    /* ── LOGO ── */
+    /* -- LOGO -- */
     .logo {
       display: flex; align-items: center; gap: 10px;
       margin-bottom: 32px;
@@ -63,7 +64,7 @@
       font-size: 14px; font-weight: 700; color: var(--dark);
     }
 
-    /* ── HEADING ── */
+    /* -- HEADING -- */
     h1 {
       font-size: 26px; font-weight: 700; color: var(--dark);
       margin-bottom: 6px; line-height: 1.2;
@@ -73,7 +74,7 @@
       margin-bottom: 32px; line-height: 1.5;
     }
 
-    /* ── FORM ── */
+    /* -- FORM -- */
     .field { margin-bottom: 16px; }
     .field label {
       display: block;
@@ -119,7 +120,49 @@
     }
     .error.show { display: block; }
 
-    /* ── TOGGLE ── */
+    /* -- CONFIRM EMAIL PANEL -- */
+    .confirm-panel {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: #f0faf4;
+      border: 1.5px solid rgba(26,122,74,0.2);
+      border-radius: 16px;
+      text-align: center;
+    }
+    .confirm-panel.show { display: block; }
+    .confirm-panel .confirm-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .confirm-panel h3 {
+      font-size: 16px; font-weight: 700;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+    .confirm-panel p {
+      font-size: 13px; font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .confirm-panel .resend-btn {
+      margin-top: 14px;
+      background: none;
+      border: 1.5px solid var(--green);
+      color: var(--green);
+      font-family: 'Rubik', sans-serif;
+      font-size: 13px; font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .confirm-panel .resend-btn:hover {
+      background: var(--green);
+      color: white;
+    }
+
+    /* -- TOGGLE -- */
     .toggle {
       margin-top: 24px;
       text-align: center;
@@ -132,7 +175,7 @@
       cursor: pointer; text-decoration: underline;
     }
 
-    /* ── BACK ── */
+    /* -- BACK -- */
     .back {
       margin-top: 28px;
       text-align: center;
@@ -143,7 +186,7 @@
     }
     .back a:hover { color: var(--dark); }
 
-    /* ── SHAPE ── */
+    /* -- SHAPE -- */
     .bg-shape {
       position: fixed; bottom: -80px; right: -80px;
       width: 360px; height: 360px; border-radius: 50%;
@@ -168,23 +211,39 @@
     <h1 id="heading">Welcome back</h1>
     <p class="subtitle" id="subheading">Sign in to continue your journey. Your reflections are waiting.</p>
 
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="you@example.com"
-             onkeydown="if(event.key==='Enter')submit()" />
+    <div id="form-fields">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@example.com"
+               onkeydown="if(event.key==='Enter')submit()" />
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter')submit()" />
+      </div>
+
+      <button class="btn" id="btn" onclick="submit()">Sign in</button>
+
+      <div class="error" id="error"></div>
     </div>
 
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••"
-             onkeydown="if(event.key==='Enter')submit()" />
+    <!-- Shown after sign-up when email confirmation is required -->
+    <div class="confirm-panel" id="confirm-panel">
+      <div class="confirm-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="20" fill="#f0faf4"/>
+          <path d="M10 15a2 2 0 012-2h16a2 2 0 012 2v11a2 2 0 01-2 2H12a2 2 0 01-2-2V15z" stroke="#1a7a4a" stroke-width="1.5" fill="none"/>
+          <path d="M10 15l10 8 10-8" stroke="#1a7a4a" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h3>Check your email</h3>
+      <p id="confirm-message">We sent a confirmation link to <strong id="confirm-email"></strong>. Open it to activate your account, then come back here to sign in.</p>
+      <button class="resend-btn" onclick="resendConfirmation()">Resend email</button>
     </div>
 
-    <button class="btn" id="btn" onclick="submit()">Sign in</button>
-
-    <div class="error" id="error"></div>
-
-    <div class="toggle">
+    <div class="toggle" id="toggle-row">
       <span id="toggle-text">Don't have an account?</span>
       <button onclick="toggleMode()" id="toggle-btn">Create one</button>
     </div>
@@ -192,7 +251,7 @@
   </div>
 
   <div class="back">
-    <a href="/index.html">← Back to Rewrite Your Life</a>
+    <a href="/index.html">Back to Rewrite Your Life</a>
   </div>
 
   <script>
@@ -201,14 +260,14 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let isSignUp = false;
+    let pendingEmail = '';
 
-    // If already signed in — go straight to destination
+    // If already signed in -- go straight to destination
     sb.auth.getSession().then(({ data: { session } }) => {
       if (session) goToDestination();
     });
 
     function goToDestination() {
-      // Honour ?next= param, otherwise go to start
       const params = new URLSearchParams(window.location.search);
       const next   = params.get('next');
       const allowed = ['/start.html', '/dashboard.html', '/wearable.html',
@@ -223,6 +282,7 @@
 
     function toggleMode() {
       isSignUp = !isSignUp;
+      showFormFields();
       document.getElementById('heading').textContent      = isSignUp ? 'Create your account' : 'Welcome back';
       document.getElementById('subheading').textContent   = isSignUp
         ? 'Your reflections will be saved so you can return anytime.'
@@ -231,6 +291,32 @@
       document.getElementById('toggle-text').textContent  = isSignUp ? 'Already have an account?' : "Don't have an account?";
       document.getElementById('toggle-btn').textContent   = isSignUp ? 'Sign in' : 'Create one';
       document.getElementById('error').classList.remove('show');
+    }
+
+    function showConfirmPanel(email) {
+      pendingEmail = email;
+      document.getElementById('confirm-email').textContent = email;
+      document.getElementById('form-fields').style.display = 'none';
+      document.getElementById('toggle-row').style.display  = 'none';
+      document.getElementById('confirm-panel').classList.add('show');
+      document.getElementById('heading').textContent    = 'Almost there';
+      document.getElementById('subheading').textContent = 'One last step before you can start.';
+    }
+
+    function showFormFields() {
+      document.getElementById('form-fields').style.display = '';
+      document.getElementById('toggle-row').style.display  = '';
+      document.getElementById('confirm-panel').classList.remove('show');
+    }
+
+    async function resendConfirmation() {
+      if (!pendingEmail) return;
+      const btn = document.querySelector('.resend-btn');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      await sb.auth.resend({ type: 'signup', email: pendingEmail });
+      btn.textContent = 'Sent!';
+      setTimeout(() => { btn.textContent = 'Resend email'; btn.disabled = false; }, 3000);
     }
 
     async function submit() {
@@ -250,17 +336,35 @@
       btn.disabled = true;
 
       try {
-        const result = isSignUp
-          ? await sb.auth.signUp({ email, password })
-          : await sb.auth.signInWithPassword({ email, password });
-
-        if (result.error) {
-          errEl.textContent = result.error.message;
-          errEl.classList.add('show');
-          btn.textContent = isSignUp ? 'Create account' : 'Sign in';
-          btn.disabled = false;
+        if (isSignUp) {
+          const { data, error } = await sb.auth.signUp({ email, password });
+          if (error) {
+            errEl.textContent = error.message;
+            errEl.classList.add('show');
+            btn.textContent = 'Create account';
+            btn.disabled = false;
+          } else if (data.user && !data.session) {
+            // Email confirmation required -- show the confirm panel
+            showConfirmPanel(email);
+          } else if (data.session) {
+            // Email confirmation disabled -- signed in immediately
+            goToDestination();
+          }
         } else {
-          goToDestination();
+          const { data, error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) {
+            // Catch the specific "Email not confirmed" error
+            if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
+              showConfirmPanel(email);
+            } else {
+              errEl.textContent = error.message;
+              errEl.classList.add('show');
+              btn.textContent = 'Sign in';
+              btn.disabled = false;
+            }
+          } else {
+            goToDestination();
+          }
         }
       } catch(e) {
         errEl.textContent = 'Something went wrong. Please try again.';
