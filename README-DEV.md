@@ -72,8 +72,8 @@ privacy.html (required for WHOOP developer registration)
 ## Key Files
 | File | Purpose | Notes |
 |---|---|---|
-| `wearable.html` | Body Signal main page | Passes `Authorization: Bearer [authToken]` to `/api/whoop-data`. Has localStorage→Supabase sync (syncPendingEntries). |
-| `rewrite.html` | Rewrite It — 4 screens | Tree / Balcony / Practices / History. Loads saved nudge settings on page load (added 12 Apr). |
+| `wearable.html` | Body Signal main page | 107KB / 2507 lines. Passes `Authorization: Bearer [authToken]` to `/api/whoop-data`. `lumenSystemPrompt` persists rich context across full Lumen conversation (fixed 13 Apr). |
+| `rewrite.html` | Rewrite It — 4 screens | Tree / Balcony / Practices / History. Loads saved nudge settings on page load. |
 | `dashboard.html` | Learn It — missions | 14 missions, three-tab nav |
 | `start.html` | Platform entry page | Three paths: Learn It / Use It / Rewrite It |
 | `whoop-callback.html` | WHOOP OAuth callback | Stores tokens in localStorage after redirect |
@@ -85,7 +85,7 @@ privacy.html (required for WHOOP developer registration)
 | `api/whoop-refresh.js` | Token refresh cron | **Node.js.** Runs every 45 min. Auth check removed 12 Apr (was causing 401 on every run). |
 | `api/lumen.js` | Lumen AI companion | **Edge. UPDATED 12 Apr 2026** — full six-move methodology prompt. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
-| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Sends if nudge_time matches UTC minute. Only shows body signal data if from today (not stale). Links to wearable.html. |
+| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Only shows today's body signal (not stale). |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
 | `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. |
 | `README-DEV.md` | This file | Update at end of every session before closing |
@@ -157,11 +157,13 @@ All 5 rewrite tables have RLS enabled.
 18. **lumen.js is Edge runtime** — `export const config = { runtime: 'edge' }` must stay. Never add Node.js module.exports to it.
 19. **Transcripts are .txt in /transcripts folder** — fetchable via raw GitHub URL. Both .docx and .txt versions exist. Use .txt for reading.
 20. **Cron auth check removed** — both `whoop-refresh.js` and `nudge-whatsapp.js` had auth checks that caused 401 on every cron run. Removed 12 Apr. Do NOT re-add.
-21. **nudge_time is UTC** — stored as `time without time zone`. Cron compares `HH:MM` against UTC. UK participants must subtract 1hr (BST). UI now shows UTC label with hint.
+21. **nudge_time is UTC** — stored as `time without time zone`. Cron compares `HH:MM` against UTC. UK participants must subtract 1hr (BST). UI shows UTC label with hint.
 22. **nudge-whatsapp only shows today's body signal** — queries `wearable_entries` with `created_at >= today`. If no session done today, sends nudge without data line. Never shows stale data.
 23. **Vercel env var changes need a new deployment** — Redeploy via UI reuses the same build. Must push a GitHub commit to force a fresh build that picks up new env vars.
 24. **GitHub MCP server** — installed in Claude Desktop config (`npx @modelcontextprotocol/server-github`). Requires Node.js. PAT stored in config. Claude can now read/write files directly from GitHub without copy-paste.
-25. **systemExtra audit (open)** — `triggerLumenReflection()` in wearable.html passes rich context to Lumen for the first message. But `sendToLumen()` (continuation messages) rebuilds a blank 2-line system prompt — Lumen is blind after message 1. Fix not yet pushed.
+25. **lumenSystemPrompt persists across conversation (FIXED 13 Apr)** — `triggerLumenReflection()` stores the rich system prompt in `lumenSystemPrompt`. `sendToLumen()` uses it for all continuation messages. Lumen stays in full context for the whole session.
+26. **wearable.html is 107KB / 2507 lines** — too large to push inline via GitHub MCP `create_or_update_file` or `push_files` (times out). If file gets corrupted, restore using Chrome MCP: navigate to GitHub editor, run `fetch()` to get good blob, apply targeted string replacements, use `document.execCommand('selectAll') + execCommand('insertText', false, fixedContent)` to inject, then click Commit.
+27. **wearable.html known good blob** — commit `91fcb63f0fccedb2ab82b45b96f78c24acba1246` contains the last known-good full file before any corruption. Fetchable via raw GitHub URL with that commit SHA.
 
 ---
 
@@ -176,8 +178,9 @@ All 5 rewrite tables have RLS enabled.
 8. Returns scored data + trend arrays
 9. `wearable.html` renders signal card → calls `/api/lumen` with arc as `systemExtra` context
 10. Lumen reads arc, works through six-move methodology arc
-11. After conversation: feedback card ("Did this process surface something useful?" 1-5)
-12. Entry saved to localStorage immediately, then Supabase. If Supabase fails, retried on next load.
+11. `lumenSystemPrompt` stored at session start — reused for all continuation messages
+12. After conversation: feedback card ("Did this process surface something useful?" 1-5)
+13. Entry saved to localStorage immediately, then Supabase. If Supabase fails, retried on next load.
 
 ---
 
@@ -219,8 +222,8 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 3. "What do you need to integrate?"
 4. "And what are you going to do — specifically?"
 
-### Critical Open Issue — systemExtra in continuation messages
-`triggerLumenReflection()` passes rich context (WHOOP data, signal state, all 4 answers, history) for the FIRST Lumen message only. `sendToLumen()` rebuilds a blank 2-line system prompt for all subsequent messages — Lumen is completely blind after message 1. Fix ready but not yet pushed.
+### lumenSystemPrompt — FIXED 13 Apr 2026
+`triggerLumenReflection()` now stores the full rich system prompt in `lumenSystemPrompt` variable. `sendToLumen()` uses it for all continuation messages instead of rebuilding a blank 2-line prompt. Lumen stays fully in context (WHOOP data, signal state, answers, history, mode) for the entire conversation.
 
 ### Simon's Coaching Language — in Lumen prompt
 "Here's the irony..." / "Your code" / "The overplayed value always creates the opposite of the value" / "You can't escape it" / "Is it actually true?" / "That belief was built for a different chapter" / "Get on the balcony of this"
@@ -272,7 +275,6 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 ## Outstanding Work
 
 ### Immediate
-- [ ] **Fix `sendToLumen()` in wearable.html** — continuation messages are blind (no systemExtra). Fix identified, not yet pushed.
 - [ ] Test new Lumen prompt with real session — does it feel like Simon or like a checklist?
 - [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens expired — needs OAuth reconnect from their devices)
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
@@ -335,6 +337,29 @@ cd '/Users/simonlamb/Library/CloudStorage/OneDrive-PurposefulChange/coaching tra
 for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f"; done
 ```
 
+### Chrome MCP restore pattern for wearable.html (107KB — too large for GitHub MCP inline push)
+```javascript
+// 1. Navigate to: github.com/LAmby2244/reframe-mission-1/edit/main/wearable.html
+// 2. In browser JS console (via Chrome MCP javascript_tool):
+(async () => {
+  const res = await fetch('https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/GOOD_COMMIT_SHA/wearable.html');
+  let fixed = await res.text();
+  // Apply targeted string replacements here
+  window._fixedContent = fixed;
+  return 'done: ' + fixed.length;
+})()
+
+// 3. Inject into editor:
+const cmContent = document.querySelector('.cm-content');
+cmContent.focus();
+document.execCommand('selectAll');
+document.execCommand('insertText', false, window._fixedContent);
+
+// 4. Click commit button:
+document.querySelector('button[data-hotkey]')?.click();
+// or: Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Commit changes')).click()
+```
+
 ---
 
 ## Session Log
@@ -346,8 +371,9 @@ for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f";
 | 10 Apr 2026 AM | rewrite.html built (4 screens, SVG icons, 5 Supabase tables with RLS). HRV volatility + AMBER_VOLATILE added. Jackson (4th participant) connected. CRON_SECRET added. |
 | 10 Apr 2026 PM | WHOOP token expiry fixed. whoop-refresh.js Node.js runtime confirmed. localStorage→Supabase sync added. Three-tab nav across all pages. Jackson case study written. README-DEV established. |
 | 11 Apr 2026 | Three bugs fixed: float types, pendingSync, amber mode constraint. Jackson 2 sessions in Supabase. Body confirmed identity shift overnight (23% → 72%). Second HALS surfaced in green session. Case study Section 9 added. Research paper Section 3.4 added. |
-| 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed — continuation messages identified as blind (fix pending). |
-| 12 Apr 2026 PM | GitHub MCP server installed in Claude Desktop — Claude can now read/write repo directly. whoop-refresh cron fixed (auth check was 401ing every run). All 4 participants added to study_participants table. Twilio set up — TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM all set. nudge-whatsapp added to vercel.json cron. WhatsApp nudge confirmed working (Simon opted in, first nudge received 18:25 UTC). Nudge message updated: shows today's body signal only (not stale), links to wearable.html. rewrite.html updated: nudge settings pre-fill on load, UTC label with BST hint. |
+| 12 Apr 2026 AM | 65 coaching transcripts converted to .txt and pushed to /transcripts/. Transcript corpus analysed. Lumen six-move methodology prompt written and deployed. systemExtra audit completed. |
+| 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
+| 13 Apr 2026 | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt, Lumen blind after message 1. Fix: store system in lumenSystemPrompt var in triggerLumenReflection, reuse in sendToLumen. wearable.html accidentally wiped twice during this session by create_or_update_file with partial content — restored both times via Chrome MCP (fetch raw from good commit, inject via execCommand insertText, commit via GitHub editor). Chrome MCP restore pattern now documented in Common Commands. |
 
 ---
 
