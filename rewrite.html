@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rewrite It - Purposeful Change</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --orange:   #F56914;
+    --yellow:   #FFBE19;
+    --dark:     #0A3228;
+    --mid:      #377364;
+    --light:    #F5E6CD;
+    --white:    #ffffff;
+    --border:   rgba(10,50,40,0.12);
+    --sky:      #9BD7E6;
+    --blush:    #FFB9AA;
+    --teal:     #1D9E75;
+    --teal-bg:  #E8F7F1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Rubik', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  /* TOPBAR */
+  .topbar { background: var(--dark); padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .topbar-mark { width: 28px; height: 28px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; }
+  .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+  .topbar-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .topbar-streak { font-size: 12px; color: rgba(255,190,25,0.7); }
+  .topbar-signout { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+  .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+  .topbar-nav { display: flex; align-items: center; gap: 4px; }
+  .topbar-nav-link { font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none; padding: 5px 12px; border-radius: 20px; transition: all 0.2s; }
+  .topbar-nav-link:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+  .topbar-nav-link.active { color: var(--yellow); background: rgba(255,190,25,0.1); }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(245,230,205,0.97); backdrop-filter: blur(12px); border-top: 0.5px solid var(--border); padding: 8px 20px 20px; display: flex; gap: 4px; z-index: 100; }
+  .bnav-btn { flex: 1; padding: 8px 4px; border: none; background: none; font-family: 'Rubik', sans-serif; font-size: 11px; font-weight: 400; color: var(--mid); cursor: pointer; border-radius: 8px; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bnav-btn:hover { background: rgba(10,50,40,0.06); }
+  .bnav-btn.active { color: var(--dark); font-weight: 500; }
+
+  /* SCREENS */
+  .screen { display: none; padding-bottom: 90px; min-height: 100vh; }
+  .screen.active { display: block; }
+  .hidden { display: none !important; }
+
+  /* DECLARATION HERO */
+  .decl-hero { background: var(--dark); padding: 28px 24px 24px; position: relative; overflow: hidden; }
+  .decl-hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,190,25,0.07); }
+  .decl-eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; color: var(--yellow); text-transform: uppercase; margin-bottom: 8px; }
+  .decl-text { font-size: 20px; font-weight: 300; color: white; line-height: 1.35; margin-bottom: 12px; }
+  .decl-text em { font-style: italic; color: var(--yellow); }
+  .decl-shift { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .decl-from-pill { font-size: 11px; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 20px; }
+  .decl-arrow { font-size: 12px; color: rgba(255,255,255,0.25); }
+  .decl-toward-pill { font-size: 11px; color: rgba(255,190,25,0.8); background: rgba(255,190,25,0.1); padding: 4px 10px; border-radius: 20px; }
+  .decl-edit-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; color: rgba(255,255,255,0.25); font-size: 11px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
+  .decl-edit-btn:hover { color: rgba(255,255,255,0.55); }
+
+  /* STREAK */
+  .streak-row { display: flex; gap: 4px; padding: 12px 20px 0; }
+  .streak-day { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+  .streak-day.done { background: var(--teal); }
+  .streak-day.today { background: var(--yellow); }
+
+  /* SECTION */
+  .section { padding: 20px 20px 0; }
+  .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; color: var(--mid); text-transform: uppercase; }
+
+  /* PRACTICE PILLS */
+  .practice-pill { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--white); margin-bottom: 8px; cursor: pointer; transition: all 0.15s; border: 1.5px solid var(--border); }
+  .practice-pill:hover { border-color: var(--teal); }
+  .practice-pill.done { opacity: 0.55; }
+  .practice-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--mid); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .practice-pill.done .practice-check { background: var(--teal); border-color: var(--teal); }
+  .practice-text { font-size: 13px; line-height: 1.45; color: var(--dark); font-weight: 400; }
+  .practice-meta { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+  /* BALCONY CARD */
+  .balcony-card { background: var(--dark); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; }
+  .balcony-card::before { content: ''; position: absolute; bottom: -30px; right: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,190,25,0.05); }
+  .balcony-card h3 { font-size: 15px; font-weight: 500; color: white; margin-bottom: 4px; }
+  .balcony-card p { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 16px; line-height: 1.5; }
+  .balcony-q { margin-bottom: 12px; }
+  .balcony-q label { font-size: 11px; font-weight: 500; color: var(--yellow); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
+  .balcony-q textarea { width: 100%; background: rgba(255,255,255,0.07); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Rubik', sans-serif; font-size: 13px; color: white; resize: none; min-height: 72px; line-height: 1.55; }
+  .balcony-q textarea::placeholder { color: rgba(255,255,255,0.25); }
+  .balcony-q textarea:focus { outline: none; border-color: rgba(255,190,25,0.4); }
+  .lumen-reply { background: rgba(255,190,25,0.08); border: 0.5px solid rgba(255,190,25,0.18); border-radius: 10px; padding: 12px; margin-top: 12px; }
+  .lumen-reply-label { font-size: 10px; font-weight: 500; color: var(--yellow); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .lumen-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .lumen-reply p { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+  .balcony-done-inner { text-align: center; padding: 28px 0 16px; }
+  .balcony-done-title { font-size: 15px; font-weight: 500; color: white; margin-top: 8px; margin-bottom: 4px; }
+  .balcony-done-sub { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+  /* HISTORY */
+  .history-card { background: var(--white); border-radius: 12px; border: 0.5px solid var(--border); padding: 16px; margin-bottom: 10px; }
+  .history-date { font-size: 11px; color: var(--mid); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .history-q { font-size: 11px; font-weight: 500; color: var(--mid); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
+  .history-a { font-size: 13px; color: var(--dark); line-height: 1.5; margin-bottom: 10px; }
+  .signal-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 500; }
+  .signal-badge.green { background: #EEF7F1; color: #27AE60; }
+  .signal-badge.amber { background: #FEF5EC; color: #E67E22; }
+  .signal-badge.red { background: #FDF0EE; color: #C0392B; }
+
+  /* PLAN */
+  .week-label { font-size: 11px; font-weight: 500; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 20px 8px; }
+  .intention-card { background: var(--dark); border-radius: 16px; padding: 20px; margin: 0 20px 0; position: relative; overflow: hidden; }
+  .intention-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: rgba(155,215,230,0.06); }
+  .intention-eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; color: var(--sky); text-transform: uppercase; margin-bottom: 8px; }
+  .intention-card textarea { width: 100%; background: rgba(255,255,255,0.07); border: 0.5px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 300; color: white; resize: none; min-height: 80px; line-height: 1.6; }
+  .intention-card textarea::placeholder { color: rgba(255,255,255,0.25); }
+  .intention-card textarea:focus { outline: none; border-color: rgba(155,215,230,0.4); }
+  .lumen-intention { background: rgba(155,215,230,0.1); border: 0.5px solid rgba(155,215,230,0.2); border-radius: 10px; padding: 12px; margin-top: 12px; display: none; }
+  .lumen-intention.show { display: block; }
+  .lumen-intention-label { font-size: 10px; font-weight: 500; color: var(--sky); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .lumen-sky-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+  .lumen-intention p { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.6; font-style: italic; }
+
+  /* MOMENT CARDS */
+  .moment-card { background: var(--white); border-radius: 14px; border: 1.5px solid var(--border); padding: 16px; margin-bottom: 10px; transition: border-color 0.2s; }
+  .moment-card:hover { border-color: rgba(10,50,40,0.2); }
+  .moment-card-header { display: flex; align-items: flex-start; gap: 10px; }
+  .moment-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--teal-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .moment-body { flex: 1; min-width: 0; }
+  .moment-action { font-size: 14px; font-weight: 500; color: var(--dark); line-height: 1.35; margin-bottom: 4px; }
+  .moment-meta { font-size: 11px; color: var(--mid); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .moment-nudge-badge { background: #E8F7EF; color: var(--teal); padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 500; }
+  .moment-lumen { background: var(--teal-bg); border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 13px; color: var(--dark); line-height: 1.6; font-style: italic; border-left: 3px solid var(--teal); }
+  .moment-lumen-label { font-size: 9px; font-weight: 500; color: var(--teal); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .moment-ask-lumen { background: none; border: none; color: var(--mid); font-size: 11px; cursor: pointer; font-family: 'Rubik', sans-serif; padding: 6px 0 0; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+  .moment-ask-lumen:hover { color: var(--dark); }
+
+  /* ADD MOMENT */
+  .add-moment-btn { width: 100%; background: var(--white); border: 1.5px dashed var(--border); border-radius: 14px; padding: 14px; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 400; color: var(--mid); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .add-moment-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-bg); }
+  .add-moment-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--teal); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 300; flex-shrink: 0; }
+
+  /* BUTTONS */
+  .btn-primary { width: 100%; padding: 14px; background: var(--orange); color: white; border: none; border-radius: 12px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: #d95c10; }
+  .btn-yellow { width: 100%; padding: 14px; background: var(--yellow); color: var(--dark); border: none; border-radius: 12px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-yellow:hover { background: #e5a800; }
+  .btn-secondary { width: 100%; padding: 12px; background: none; color: var(--mid); border: 0.5px solid var(--border); border-radius: 12px; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 400; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+  .btn-secondary:hover { background: rgba(10,50,40,0.05); }
+  .btn-small { padding: 8px 14px; border-radius: 8px; font-family: 'Rubik', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-small.teal { background: var(--teal-bg); color: var(--teal); }
+  .btn-small.orange { background: var(--orange); color: white; }
+
+  /* FORMS */
+  .form-field { margin-bottom: 16px; }
+  .form-field label { font-size: 11px; font-weight: 500; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
+  .form-field input, .form-field textarea, .form-field select { width: 100%; padding: 11px 14px; background: var(--white); border: 0.5px solid var(--border); border-radius: 10px; font-family: 'Rubik', sans-serif; font-size: 14px; color: var(--dark); resize: none; transition: border-color 0.2s; }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { outline: none; border-color: var(--teal); }
+  .form-field textarea { min-height: 64px; line-height: 1.5; }
+  .form-hint { font-size: 11px; color: var(--mid); margin-top: 4px; line-height: 1.5; }
+
+  /* FREQUENCY */
+  .freq-options { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .freq-btn { padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--white); font-family: 'Rubik', sans-serif; font-size: 12px; font-weight: 400; color: var(--mid); cursor: pointer; transition: all 0.15s; }
+  .freq-btn.active { border-color: var(--teal); background: var(--teal-bg); color: var(--teal); font-weight: 500; }
+  .day-toggles { display: flex; gap: 4px; margin-top: 8px; }
+  .day-btn { flex: 1; padding: 7px 4px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--white); font-family: 'Rubik', sans-serif; font-size: 11px; font-weight: 400; color: var(--mid); cursor: pointer; transition: all 0.15s; text-align: center; }
+  .day-btn.active { border-color: var(--teal); background: var(--teal-bg); color: var(--teal); font-weight: 500; }
+  .nudge-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 0.5px solid var(--border); margin-top: 4px; }
+  .nudge-toggle-label { font-size: 13px; color: var(--dark); font-weight: 400; }
+  .toggle-switch { position: relative; width: 40px; height: 22px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); border-radius: 22px; transition: 0.3s; }
+  .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+  input:checked + .toggle-slider { background: var(--teal); }
+  input:checked + .toggle-slider:before { transform: translateX(18px); }
+  .nudge-detail { margin-top: 12px; display: none; }
+  .nudge-detail.show { display: block; }
+
+  /* MODAL */
+  .modal-backdrop { position: fixed; inset: 0; z-index: 500; background: rgba(10,50,40,0.5); display: flex; align-items: flex-end; backdrop-filter: blur(4px); }
+  .modal { background: var(--light); border-radius: 20px 20px 0 0; padding: 24px 20px 40px; width: 100%; max-height: 92vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 20px; }
+  .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .modal-sub { font-size: 13px; color: var(--mid); margin-bottom: 20px; line-height: 1.5; }
+  .empty-state { text-align: center; padding: 40px 32px; color: var(--mid); }
+  .empty-state h3 { font-size: 16px; font-weight: 500; color: var(--dark); margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+  .divider { height: 0.5px; background: rgba(255,255,255,0.1); margin: 12px 0; }
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .loading { text-align: center; padding: 32px; color: var(--mid); font-size: 13px; }
+  .spinner { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="topbar-brand">
+    <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
+    <span class="topbar-name">Rewrite Your Life</span>
+  </a>
+  <nav class="topbar-nav">
+    <a href="/dashboard.html" class="topbar-nav-link">Learn It</a>
+    <a href="/use-it.html" class="topbar-nav-link">Use It</a>
+    <a href="/rewrite.html" class="topbar-nav-link active">Rewrite It</a>
+  </nav>
+  <div class="topbar-right">
+    <span class="topbar-streak" id="topbar-streak"></span>
+    <span class="topbar-user" id="topbar-user"></span>
+    <button class="topbar-signout" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<!-- TODAY -->
+<div class="screen active" id="screen-today">
+  <div class="decl-hero">
+    <button class="decl-edit-btn" onclick="showModal('modal-setup')">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l2.5 2.5-6 6H2v-2.5l6-6z"/></svg>
+      Edit
+    </button>
+    <div class="decl-eyebrow">Your declaration</div>
+    <div class="decl-text" id="decl-text">The person you are <em>choosing to become</em></div>
+    <div class="decl-shift" id="decl-shift" style="display:none">
+      <div class="decl-from-pill" id="decl-from-pill"></div>
+      <div class="decl-arrow">to</div>
+      <div class="decl-toward-pill" id="decl-toward-pill"></div>
+    </div>
+  </div>
+  <div class="streak-row" id="streak-bar"></div>
+  <div class="section" style="margin-top:20px;">
+    <div class="section-hd">
+      <div class="section-label">Today's practices</div>
+      <button class="btn-small teal" onclick="showModal('modal-add-practice')">+ Add</button>
+    </div>
+    <div id="todays-practices"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+  <div class="section" style="margin-top:20px;">
+    <div class="section-label" style="margin-bottom:12px;">Balcony check-in</div>
+    <div class="balcony-card fade-in" id="balcony-form">
+      <h3>How did today go?</h3>
+      <p>Against your declaration and today's commitments.</p>
+      <div class="balcony-q">
+        <label>Where did you bring your declaration into today?</label>
+        <textarea id="q-whole" placeholder="Even something small counts..."></textarea>
+      </div>
+      <div class="balcony-q">
+        <label>What do you appreciate about how you showed up?</label>
+        <textarea id="q-appreciate" placeholder="What was present today that matters..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div class="balcony-q" style="margin-top:12px;">
+        <label>One thing tomorrow you want to bring this into</label>
+        <textarea id="q-forward" placeholder="One specific moment or context..."></textarea>
+      </div>
+      <div id="balcony-lumen" class="hidden">
+        <div class="lumen-reply">
+          <div class="lumen-reply-label"><div class="lumen-dot"></div>Lumen</div>
+          <p id="lumen-balcony-text"></p>
+        </div>
+      </div>
+      <button class="btn-yellow" style="margin-top:16px;" onclick="saveBalcony()">Save and reflect</button>
+    </div>
+    <div id="balcony-done" class="hidden">
+      <div class="balcony-card">
+        <div class="balcony-done-inner">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="13"/><path d="M10 16l4 4 8-8"/></svg>
+          <div class="balcony-done-title">Balcony practice complete</div>
+          <div class="balcony-done-sub">You showed up today.</div>
+        </div>
+        <div id="todays-entry-display"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN -->
+<div class="screen" id="screen-plan">
+  <div class="week-label" id="plan-week-label">This week</div>
+  <div class="intention-card">
+    <div class="intention-eyebrow">Weekly intention</div>
+    <textarea id="intention-text" placeholder="What is this week about for you - in the context of your declaration?"></textarea>
+    <div class="lumen-intention" id="lumen-intention">
+      <div class="lumen-intention-label"><div class="lumen-sky-dot"></div>Lumen</div>
+      <p id="lumen-intention-text"></p>
+    </div>
+    <button class="btn-yellow" style="margin-top:14px;width:100%;padding:12px;font-size:14px;" onclick="saveIntention()">Save intention</button>
+  </div>
+  <div class="section" style="margin-top:20px;">
+    <div class="section-hd">
+      <div class="section-label">Planned moments</div>
+    </div>
+    <div id="moments-list"></div>
+    <button class="add-moment-btn" onclick="showModal('modal-add-moment')">
+      <div class="add-moment-icon">+</div>
+      Plan a moment
+    </button>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="screen-history">
+  <div style="padding:20px 20px 0;">
+    <div style="font-size:18px;font-weight:500;margin-bottom:4px;">Pattern over time</div>
+    <div style="font-size:13px;color:var(--mid);margin-bottom:20px;">Your balcony entries, read by Lumen.</div>
+    <div id="history-list"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="bnav-btn active" onclick="showScreen('today',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17V8"/><path d="M10 8C10 8 7 5.5 5 4c1 2.5 2 4 5 4z"/><path d="M10 8C10 8 13 5.5 15 4c-1 2.5-2 4-5 4z"/><path d="M10 12C10 12 7 10 5 8.5c1 2 2.5 3.5 5 3.5z"/><path d="M10 12C10 12 13 10 15 8.5c-1 2-2.5 3.5-5 3.5z"/></svg>
+    <span>Today</span>
+  </button>
+  <button class="bnav-btn" onclick="showScreen('plan',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M7 2v4M13 2v4M3 9h14"/><path d="M7 12h1M10 12h1M13 12h1M7 15h1M10 15h1"/></svg>
+    <span>Plan</span>
+  </button>
+  <button class="bnav-btn" onclick="showScreen('history',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 3"/></svg>
+    <span>History</span>
+  </button>
+</nav>
+
+<!-- MODAL: DECLARATION -->
+<div class="modal-backdrop hidden" id="modal-setup" onclick="closeModal(event,'modal-setup')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Your declaration</h2>
+    <p class="modal-sub">The identity shift at the heart of your Rewrite. This comes from your mission work.</p>
+    <div class="form-field"><label>Running as (the pattern you're moving from)</label><textarea id="setup-from" placeholder="e.g. Someone who proves worth through achievement..."></textarea></div>
+    <div class="form-field"><label>Becoming (who you are choosing to be)</label><textarea id="setup-toward" placeholder="e.g. Someone who leads from security, not from fear..."></textarea></div>
+    <div class="form-field"><label>Your declaration (I am choosing to be someone who...)</label><textarea id="setup-declaration" placeholder="I am choosing to be someone who..."></textarea></div>
+    <div style="margin-bottom:16px;">
+      <div class="section-label" style="margin-bottom:12px;">Beliefs in motion</div>
+      <div id="beliefs-list-modal"></div>
+      <button class="btn-small teal" style="margin-top:8px;" onclick="showBeliefForm()">+ Add a belief or value</button>
+      <div id="belief-form" class="hidden" style="margin-top:12px;background:var(--white);border-radius:12px;padding:16px;">
+        <div class="form-field"><label>Type</label><select id="belief-type"><option value="belief">Belief</option><option value="value">Value</option></select></div>
+        <div class="form-field"><label>From (the old code)</label><textarea id="belief-from" placeholder="e.g. My worth is conditional on my performance..."></textarea></div>
+        <div class="form-field" style="margin-bottom:8px;"><label>Toward (the new)</label><textarea id="belief-toward" placeholder="e.g. My presence has value independent of output..."></textarea></div>
+        <button class="btn-small teal" onclick="saveBelief()">Save belief</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveDeclaration()">Save declaration</button>
+    <button class="btn-secondary" onclick="closeModalById('modal-setup')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: ADD PRACTICE -->
+<div class="modal-backdrop hidden" id="modal-add-practice" onclick="closeModal(event,'modal-add-practice')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Add a practice</h2>
+    <p class="modal-sub">The specific vote you cast each day for the new identity.</p>
+    <div class="form-field"><label>What - the specific act</label><textarea id="p-what" placeholder="e.g. When I notice the urge to over-explain, I stop at two sentences..."></textarea></div>
+    <div class="form-field"><label>When - time or trigger</label><input type="text" id="p-when" placeholder="e.g. Daily 7am / When I'm about to go quiet in a meeting"/></div>
+    <div class="form-field"><label>The HALS being revised</label><textarea id="p-hals" placeholder="e.g. The strategy of staying silent to avoid judgement..."></textarea></div>
+    <div class="form-field" style="margin-bottom:8px;"><label>I will know it's working when...</label><textarea id="p-measure" placeholder="e.g. I stop rehearsing conversations before they happen..."></textarea></div>
+    <button class="btn-primary" onclick="savePractice()">Save practice</button>
+    <button class="btn-secondary" onclick="closeModalById('modal-add-practice')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: ADD MOMENT -->
+<div class="modal-backdrop hidden" id="modal-add-moment" onclick="closeModal(event,'modal-add-moment')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Plan a moment</h2>
+    <p class="modal-sub">A specific action you're committing to this week. You set the action, the frequency, and the nudge.</p>
+    <div class="form-field">
+      <label>Action - what specifically are you going to do?</label>
+      <textarea id="m-action" placeholder="e.g. Have the conversation with Sarah about boundaries"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Frequency</label>
+      <div class="freq-options">
+        <button class="freq-btn active" id="freq-once" onclick="setFreq('once')">Once this week</button>
+        <button class="freq-btn" id="freq-daily" onclick="setFreq('daily')">Daily</button>
+        <button class="freq-btn" id="freq-custom" onclick="setFreq('custom')">Specific days</button>
+      </div>
+      <div class="day-toggles hidden" id="day-toggles">
+        <button class="day-btn" id="day-1" onclick="toggleDay(1)">Mon</button>
+        <button class="day-btn" id="day-2" onclick="toggleDay(2)">Tue</button>
+        <button class="day-btn" id="day-3" onclick="toggleDay(3)">Wed</button>
+        <button class="day-btn" id="day-4" onclick="toggleDay(4)">Thu</button>
+        <button class="day-btn" id="day-5" onclick="toggleDay(5)">Fri</button>
+        <button class="day-btn" id="day-6" onclick="toggleDay(6)">Sat</button>
+        <button class="day-btn" id="day-0" onclick="toggleDay(0)">Sun</button>
+      </div>
+    </div>
+    <div class="nudge-toggle-row">
+      <span class="nudge-toggle-label">Send me a WhatsApp nudge</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="m-nudge-enabled" onchange="toggleNudgeDetail()"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="nudge-detail" id="nudge-detail">
+      <div class="form-field">
+        <label>What time? (UTC - UK add 1hr for BST)</label>
+        <input type="time" id="m-nudge-time" value="08:00"/>
+        <div class="form-hint">UK users: enter 1hr earlier than you want. 7am BST = 06:00.</div>
+      </div>
+      <div class="form-field" style="margin-bottom:4px;">
+        <label>Your nudge message - in your own words</label>
+        <textarea id="m-nudge-msg" placeholder="e.g. You said you'd have that conversation today. Ready?" style="min-height:80px;"></textarea>
+        <div class="form-hint">This is what you'll receive on WhatsApp. Your voice, your commitment.</div>
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-top:16px;" onclick="saveMoment()">Save moment</button>
+    <button class="btn-secondary" onclick="closeModalById('modal-add-moment')">Cancel</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let authToken = null, userId = null;
+let currentTree = null, beliefs = [], practices = [], diaryEntries = [];
+let plannedMoments = [], weeklyPlan = null;
+let momentFreq = 'once', momentDays = [];
+
+function getWeekStart() {
+  const d = new Date();
+  const day = d.getUTCDay();
+  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d);
+  mon.setUTCDate(diff);
+  return mon.toISOString().split('T')[0];
+}
+
+async function signOut() { await sb.auth.signOut(); window.location.href = '/signin.html'; }
+
+async function loadAll() {
+  await loadTree();
+  await loadBeliefs();
+  await loadPractices();
+  await loadDiary();
+  await loadWeeklyPlan();
+  await loadPlannedMoments();
+  renderToday();
+  renderPlan();
+  renderHistory();
+  renderStreak();
+}
+
+async function loadTree() {
+  const { data } = await sb.from('rewrite_trees').select('*').eq('user_id', userId).eq('status', 'active').limit(1);
+  currentTree = data && data.length ? data[0] : null;
+}
+async function loadBeliefs() {
+  if (!currentTree) return;
+  const { data } = await sb.from('rewrite_beliefs').select('*').eq('tree_id', currentTree.id).order('sort_order');
+  beliefs = data || [];
+}
+async function loadPractices() {
+  if (!currentTree) return;
+  const { data } = await sb.from('rewrite_practices').select('*').eq('tree_id', currentTree.id).eq('status', 'active');
+  practices = data || [];
+}
+async function loadDiary() {
+  const { data } = await sb.from('rewrite_diary').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
+  diaryEntries = data || [];
+}
+async function loadWeeklyPlan() {
+  const { data } = await sb.from('rewrite_weekly_plans').select('*').eq('user_id', userId).eq('week_start', getWeekStart()).limit(1);
+  weeklyPlan = data && data.length ? data[0] : null;
+}
+async function loadPlannedMoments() {
+  const { data } = await sb.from('rewrite_planned_moments').select('*').eq('user_id', userId).eq('week_start', getWeekStart()).order('created_at');
+  plannedMoments = data || [];
+}
+
+function renderToday() { renderDeclaration(); renderTodaysPractices(); renderBalcony(); }
+
+function renderDeclaration() {
+  const textEl = document.getElementById('decl-text');
+  const shiftEl = document.getElementById('decl-shift');
+  if (currentTree && currentTree.declaration) {
+    textEl.textContent = currentTree.declaration;
+  } else {
+    textEl.innerHTML = 'The person you are <em>choosing to become</em>';
+  }
+  if (currentTree && currentTree.identity_from && currentTree.identity_toward) {
+    document.getElementById('decl-from-pill').textContent = currentTree.identity_from.substring(0,40) + (currentTree.identity_from.length > 40 ? '...' : '');
+    document.getElementById('decl-toward-pill').textContent = currentTree.identity_toward.substring(0,40) + (currentTree.identity_toward.length > 40 ? '...' : '');
+    shiftEl.style.display = 'flex';
+  } else {
+    shiftEl.style.display = 'none';
+  }
+}
+
+function renderTodaysPractices() {
+  const container = document.getElementById('todays-practices');
+  if (!practices.length) {
+    container.innerHTML = '<div style="font-size:13px;color:var(--mid);padding:4px 0 8px;">No practices yet. Add one to start casting votes for your new identity.</div>';
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  container.innerHTML = practices.map(p => {
+    const done = diaryEntries.some(d => d.practice_id === p.id && d.created_at && d.created_at.startsWith(today));
+    return '<div class="practice-pill ' + (done ? 'done' : '') + '" onclick="togglePractice(\'' + p.id + '\',' + done + ')">' +
+      '<div class="practice-check">' + (done ? '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5l2.5 2.5L9 3"/></svg>' : '') + '</div>' +
+      '<div><div class="practice-text">' + p.what + '</div>' + (p.when_trigger ? '<div class="practice-meta">' + p.when_trigger + '</div>' : '') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderBalcony() {
+  const today = new Date().toISOString().split('T')[0];
+  const entry = diaryEntries.find(e => e.created_at && e.created_at.startsWith(today) && e.looked_back);
+  if (entry) {
+    document.getElementById('balcony-form').classList.add('hidden');
+    document.getElementById('balcony-done').classList.remove('hidden');
+    document.getElementById('todays-entry-display').innerHTML =
+      '<div class="history-card" style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.1);">' +
+        '<div class="history-q" style="color:var(--yellow);">Where I brought my declaration today</div>' +
+        '<div class="history-a" style="color:rgba(255,255,255,0.8);">' + (entry.looked_back || '-') + '</div>' +
+        '<div class="history-q" style="color:var(--yellow);">What I appreciated</div>' +
+        '<div class="history-a" style="color:rgba(255,255,255,0.8);">' + (entry.appreciated || '-') + '</div>' +
+        (entry.looked_forward ? '<div class="history-q" style="color:var(--yellow);">Tomorrow</div><div class="history-a" style="color:rgba(255,255,255,0.8);">' + entry.looked_forward + '</div>' : '') +
+        (entry.lumen_reply ? '<div class="lumen-reply"><div class="lumen-reply-label"><div class="lumen-dot" style="animation:none;"></div>Lumen</div><p>' + entry.lumen_reply + '</p></div>' : '') +
+      '</div>';
+  }
+}
+
+function renderStreak() {
+  const bar = document.getElementById('streak-bar');
+  const today = new Date().toISOString().split('T')[0];
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().split('T')[0]); }
+  bar.innerHTML = days.map(d => {
+    const has = diaryEntries.some(e => e.created_at && e.created_at.startsWith(d) && e.looked_back);
+    return '<div class="streak-day ' + (has ? 'done' : '') + ' ' + (d === today && !has ? 'today' : '') + '"></div>';
+  }).join('');
+  let streak = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    if (diaryEntries.some(e => e.created_at && e.created_at.startsWith(d.toISOString().split('T')[0]) && e.looked_back)) streak++;
+    else break;
+  }
+  const el = document.getElementById('topbar-streak');
+  if (el) el.textContent = streak > 0 ? streak + ' day streak' : '';
+}
+
+async function saveBalcony() {
+  const whole = document.getElementById('q-whole').value.trim();
+  const appreciate = document.getElementById('q-appreciate').value.trim();
+  const forward = document.getElementById('q-forward').value.trim();
+  if (!whole && !appreciate) return;
+  const btn = document.querySelector('#balcony-form .btn-yellow');
+  btn.textContent = 'Reflecting...'; btn.disabled = true;
+  let signalState = null;
+  try {
+    const { data } = await sb.from('wearable_entries').select('pattern_id').eq('user_id', userId).order('created_at', { ascending: false }).limit(1);
+    if (data && data.length) signalState = data[0].pattern_id;
+  } catch(e) {}
+  const { data: entry } = await sb.from('rewrite_diary').insert({
+    user_id: userId, tree_id: currentTree ? currentTree.id : null,
+    looked_back: whole, appreciated: appreciate, looked_forward: forward,
+    body_signal_state: signalState, created_at: new Date().toISOString()
+  }).select().single();
+  try {
+    const recent = diaryEntries.slice(0,4).map(e => '[' + (e.created_at||'').split('T')[0] + '] ' + (e.looked_back||'')).join('\n');
+    const pracsDone = practices.filter(p => {
+      const today = new Date().toISOString().split('T')[0];
+      return diaryEntries.some(d => d.practice_id === p.id && d.created_at && d.created_at.startsWith(today));
+    }).map(p => p.what).join(', ');
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({
+        systemExtra: 'You are Lumen.\n\nDeclaration: "' + (currentTree ? currentTree.declaration : 'not yet set') + '"\nIdentity: From "' + (currentTree ? (currentTree.identity_from||'-') : '-') + '" toward "' + (currentTree ? (currentTree.identity_toward||'-') : '-') + '"\nPractices done today: ' + (pracsDone||'none') + '\nBody signal: ' + (signalState||'unknown') + '\n\nRecent entries:\n' + (recent||'First entry.') + '\n\nToday:\nDeclaration showed up: "' + whole + '"\nAppreciated: "' + appreciate + '"\nLooking forward: "' + forward + '"\n\nRULES: 2-3 sentences. One observation that connects today to the declaration. Mirror their words precisely. No advice. No praise.',
+        messages: [{ role: 'user', content: 'Please reflect on what I have written.' }]
+      })
+    });
+    const d = await res.json();
+    if (d.reply && entry) {
+      await sb.from('rewrite_diary').update({ lumen_reply: d.reply }).eq('id', entry.id);
+      document.getElementById('balcony-lumen').classList.remove('hidden');
+      document.getElementById('lumen-balcony-text').textContent = d.reply;
+      setTimeout(async () => { await loadDiary(); renderToday(); renderStreak(); }, 2000);
+    } else { await loadDiary(); renderToday(); renderStreak(); }
+  } catch(e) { await loadDiary(); renderToday(); renderStreak(); }
+}
+
+async function togglePractice(pid, isDone) {
+  if (isDone) return;
+  await sb.from('rewrite_diary').insert({ user_id: userId, tree_id: currentTree ? currentTree.id : null, practice_id: pid, created_at: new Date().toISOString() });
+  await loadDiary(); renderTodaysPractices(); renderStreak();
+}
+
+function renderPlan() {
+  const week = getWeekStart();
+  const d = new Date(week);
+  const end = new Date(d); end.setDate(end.getDate() + 6);
+  document.getElementById('plan-week-label').textContent = 'Week of ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' - ' + end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  if (weeklyPlan) {
+    document.getElementById('intention-text').value = weeklyPlan.intention || '';
+    if (weeklyPlan.lumen_reflection) {
+      document.getElementById('lumen-intention-text').textContent = weeklyPlan.lumen_reflection;
+      document.getElementById('lumen-intention').classList.add('show');
+    }
+  }
+  const list = document.getElementById('moments-list');
+  if (!plannedMoments.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--mid);padding:4px 0 12px;">No moments planned yet. What specific actions are you committing to this week?</div>';
+    return;
+  }
+  list.innerHTML = plannedMoments.map(m => {
+    const freqLabel = m.frequency === 'daily' ? 'Daily' : m.frequency === 'once' ? 'Once this week' : formatDays(m.frequency_days);
+    return '<div class="moment-card fade-in">' +
+      '<div class="moment-card-header">' +
+        '<div class="moment-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14V6"/><circle cx="8" cy="3.5" r="1.5"/></svg></div>' +
+        '<div class="moment-body">' +
+          '<div class="moment-action">' + m.action + '</div>' +
+          '<div class="moment-meta">' + freqLabel + (m.nudge_enabled ? '<span class="moment-nudge-badge">Nudge ' + (m.nudge_time ? m.nudge_time.slice(0,5) + ' UTC' : '') + '</span>' : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      (m.lumen_reflection ? '<div class="moment-lumen"><div class="moment-lumen-label">Lumen</div>' + m.lumen_reflection + '</div>' : '') +
+      (!m.lumen_reflection ? '<button class="moment-ask-lumen" onclick="askLumenMoment(\'' + m.id + '\')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 4v.5M6 7.5v.5"/></svg> Ask Lumen</button>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function formatDays(days) {
+  if (!days || !days.length) return '';
+  const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return days.sort((a,b) => a-b).map(d => names[d]).join(', ');
+}
+
+async function saveIntention() {
+  const text = document.getElementById('intention-text').value.trim();
+  if (!text) return;
+  const btn = document.querySelector('[onclick="saveIntention()"]');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  const { data: plan } = await sb.from('rewrite_weekly_plans').upsert({
+    user_id: userId, week_start: getWeekStart(), intention: text, updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id,week_start' }).select().single();
+  weeklyPlan = plan;
+  try {
+    const recent = diaryEntries.slice(0,3).map(e => (e.looked_back||'') + ' / ' + (e.appreciated||'')).join('\n');
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({
+        systemExtra: 'You are Lumen.\n\nDeclaration: "' + (currentTree ? currentTree.declaration : 'not yet set') + '"\nRecent entries:\n' + (recent||'None yet.') + '\n\nThis week\'s intention: "' + text + '"\n\nRULES: 2-3 sentences. One precise observation about what this intention is really asking of them. One question that sharpens or challenges it. No praise.',
+        messages: [{ role: 'user', content: 'Reflect on my intention for this week.' }]
+      })
+    });
+    const d = await res.json();
+    if (d.reply && plan) {
+      await sb.from('rewrite_weekly_plans').update({ lumen_reflection: d.reply }).eq('id', plan.id);
+      document.getElementById('lumen-intention-text').textContent = d.reply;
+      document.getElementById('lumen-intention').classList.add('show');
+    }
+  } catch(e) {}
+  btn.textContent = 'Save intention'; btn.disabled = false;
+}
+
+async function saveMoment() {
+  const action = document.getElementById('m-action').value.trim();
+  if (!action) return;
+  const nudgeEnabled = document.getElementById('m-nudge-enabled').checked;
+  const { data: moment } = await sb.from('rewrite_planned_moments').insert({
+    user_id: userId, week_start: getWeekStart(), action,
+    frequency: momentFreq, frequency_days: momentFreq === 'custom' ? momentDays : [],
+    nudge_enabled: nudgeEnabled,
+    nudge_time: nudgeEnabled ? document.getElementById('m-nudge-time').value : null,
+    nudge_message: nudgeEnabled ? document.getElementById('m-nudge-msg').value.trim() : null
+  }).select().single();
+  if (moment) {
+    const msg = nudgeEnabled ? document.getElementById('m-nudge-msg').value.trim() : '';
+    try {
+      const res = await fetch('/api/lumen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+        body: JSON.stringify({
+          systemExtra: 'You are Lumen.\n\nDeclaration: "' + (currentTree ? currentTree.declaration : 'not yet set') + '"\n\nPlanned action: "' + action + '"\n' + (msg ? 'Their nudge to themselves: "' + msg + '"\n' : '') + '\nRULES: One sentence. Name what this action is really asking of them in the context of their declaration. Ask one sharp question about what they will need to navigate to actually do it. No praise.',
+          messages: [{ role: 'user', content: 'Reflect on this planned moment.' }]
+        })
+      });
+      const d = await res.json();
+      if (d.reply) await sb.from('rewrite_planned_moments').update({ lumen_reflection: d.reply }).eq('id', moment.id);
+    } catch(e) {}
+  }
+  closeModalById('modal-add-moment');
+  ['m-action','m-nudge-msg'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('m-nudge-time').value = '08:00';
+  document.getElementById('m-nudge-enabled').checked = false;
+  document.getElementById('nudge-detail').classList.remove('show');
+  momentFreq = 'once'; momentDays = [];
+  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('freq-once').classList.add('active');
+  document.getElementById('day-toggles').classList.add('hidden');
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  await loadPlannedMoments(); renderPlan();
+}
+
+async function askLumenMoment(momentId) {
+  const m = plannedMoments.find(x => x.id === momentId);
+  if (!m) return;
+  try {
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({
+        systemExtra: 'You are Lumen.\n\nDeclaration: "' + (currentTree ? currentTree.declaration : 'not yet set') + '"\n\nPlanned action: "' + m.action + '"\nFrequency: ' + m.frequency + '\n\nRULES: One sentence. Name what about this action connects to or challenges the declaration. Ask one sharp question about what they will need to navigate to actually do it. No praise.',
+        messages: [{ role: 'user', content: 'Reflect on this planned moment.' }]
+      })
+    });
+    const d = await res.json();
+    if (d.reply) {
+      await sb.from('rewrite_planned_moments').update({ lumen_reflection: d.reply }).eq('id', momentId);
+      await loadPlannedMoments(); renderPlan();
+    }
+  } catch(e) {}
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const entries = diaryEntries.filter(e => e.looked_back);
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="6" y="8" width="28" height="26" rx="3"/><path d="M14 4v8M26 4v8M6 18h28"/><path d="M14 26h6M14 32h10"/></svg><h3>No entries yet</h3><p>Complete your first balcony practice and the pattern will begin to form here.</p></div>';
+    return;
+  }
+  list.innerHTML = entries.map(e => {
+    const cls = e.body_signal_state ? (e.body_signal_state.startsWith('grn_') ? 'green' : e.body_signal_state.startsWith('amb_') ? 'amber' : 'red') : '';
+    return '<div class="history-card fade-in">' +
+      '<div class="history-date"><span>' + formatDate(e.created_at) + '</span>' + (cls ? '<span class="signal-badge ' + cls + '">' + formatState(e.body_signal_state) + '</span>' : '') + '</div>' +
+      '<div class="history-q">Where I brought my declaration</div><div class="history-a">' + (e.looked_back||'-') + '</div>' +
+      (e.appreciated ? '<div class="history-q">Appreciated</div><div class="history-a">' + e.appreciated + '</div>' : '') +
+      (e.lumen_reply ? '<div class="lumen-reply" style="background:rgba(55,115,100,0.06);border-color:rgba(55,115,100,0.15);"><div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);animation:none;"></div>Lumen</div><p style="color:var(--dark);">' + e.lumen_reply + '</p></div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+async function saveDeclaration() {
+  const from = document.getElementById('setup-from').value.trim();
+  const toward = document.getElementById('setup-toward').value.trim();
+  const declaration = document.getElementById('setup-declaration').value.trim();
+  if (!declaration) return;
+  if (currentTree) {
+    await sb.from('rewrite_trees').update({ identity_from: from, identity_toward: toward, declaration }).eq('id', currentTree.id);
+  } else {
+    await sb.from('rewrite_trees').insert({ user_id: userId, identity_from: from, identity_toward: toward, declaration, status: 'active' });
+  }
+  await loadTree(); renderDeclaration(); closeModalById('modal-setup');
+}
+
+function showBeliefForm() { document.getElementById('belief-form').classList.remove('hidden'); }
+
+async function saveBelief() {
+  if (!currentTree) return;
+  const type = document.getElementById('belief-type').value;
+  const from = document.getElementById('belief-from').value.trim();
+  const toward = document.getElementById('belief-toward').value.trim();
+  if (!from || !toward) return;
+  await sb.from('rewrite_beliefs').insert({ tree_id: currentTree.id, user_id: userId, belief_from: from, belief_toward: toward, type, sort_order: beliefs.length });
+  await loadBeliefs(); renderBeliefsModal();
+  document.getElementById('belief-from').value = '';
+  document.getElementById('belief-toward').value = '';
+  document.getElementById('belief-form').classList.add('hidden');
+}
+
+function renderBeliefsModal() {
+  const list = document.getElementById('beliefs-list-modal');
+  if (!beliefs.length) { list.innerHTML = ''; return; }
+  list.innerHTML = beliefs.map(b =>
+    '<div style="background:var(--white);border-radius:10px;padding:12px;margin-bottom:8px;">' +
+      '<div style="font-size:9px;font-weight:500;color:var(--mid);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">' + b.type + '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+        '<div style="font-size:12px;color:rgba(10,50,40,0.55);background:var(--light);padding:8px;border-radius:6px;"><span style="display:block;font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:rgba(10,50,40,0.35);margin-bottom:3px;">From</span>' + b.belief_from + '</div>' +
+        '<div style="font-size:12px;color:var(--dark);background:var(--teal-bg);padding:8px;border-radius:6px;"><span style="display:block;font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--teal);margin-bottom:3px;">Toward</span>' + b.belief_toward + '</div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+async function savePractice() {
+  if (!currentTree) return;
+  const what = document.getElementById('p-what').value.trim();
+  if (!what) return;
+  await sb.from('rewrite_practices').insert({
+    tree_id: currentTree.id, user_id: userId, what,
+    when_trigger: document.getElementById('p-when').value.trim(),
+    hals_being_revised: document.getElementById('p-hals').value.trim(),
+    measure: document.getElementById('p-measure').value.trim(),
+    status: 'active'
+  });
+  await loadPractices(); renderTodaysPractices(); closeModalById('modal-add-practice');
+  ['p-what','p-when','p-hals','p-measure'].forEach(id => { document.getElementById(id).value = ''; });
+}
+
+function setFreq(f) {
+  momentFreq = f;
+  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('freq-' + f).classList.add('active');
+  document.getElementById('day-toggles').classList.toggle('hidden', f !== 'custom');
+}
+
+function toggleDay(d) {
+  const btn = document.getElementById('day-' + d);
+  const idx = momentDays.indexOf(d);
+  if (idx > -1) { momentDays.splice(idx,1); btn.classList.remove('active'); }
+  else { momentDays.push(d); btn.classList.add('active'); }
+}
+
+function toggleNudgeDetail() {
+  document.getElementById('nudge-detail').classList.toggle('show', document.getElementById('m-nudge-enabled').checked);
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+function formatState(state) {
+  const map = { 'grn_thriving': 'Thriving', 'grn_bounce': 'Bouncing back', 'grn_streak': 'Green streak', 'amb_load': 'Carrying something', 'amb_trend': 'Building quietly', 'amb_recovery': 'Coming back', 'amb_volatile': 'Volatile signal', 'red_psych': 'Psychological load', 'red_trend': 'Sustained load', 'red_strain': 'High strain' };
+  return map[state] || state;
+}
+
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+function showModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  if (id === 'modal-setup' && currentTree) {
+    document.getElementById('setup-from').value = currentTree.identity_from || '';
+    document.getElementById('setup-toward').value = currentTree.identity_toward || '';
+    document.getElementById('setup-declaration').value = currentTree.declaration || '';
+    renderBeliefsModal();
+  }
+}
+function closeModal(e, id) { if (e.target === document.getElementById(id)) closeModalById(id); }
+function closeModalById(id) { document.getElementById(id).classList.add('hidden'); }
+
+window.addEventListener('load', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    authToken = session.access_token;
+    userId = session.user.id;
+    document.getElementById('topbar-user').textContent = session.user.email;
+    await loadAll();
+  } else {
+    window.location.href = '/signin.html?next=/rewrite.html';
+  }
+});
+</script>
+</body>
+</html>
