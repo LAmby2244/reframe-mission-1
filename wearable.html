@@ -43,34 +43,35 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── NAV ── */
-    .top-nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      background: rgba(245,230,205,0.97);
-      backdrop-filter: blur(12px);
-      border-bottom: 0.5px solid var(--border);
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--dark); padding: 12px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 200;
     }
-    .top-nav-inner {
-      padding: 14px 40px;
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 16px;
-    }
-    .nav-logo {
-      display: flex; align-items: center; gap: 10px;
-      text-decoration: none; flex-shrink: 0;
-    }
-    .nav-logo-mark {
-      width: 26px; height: 26px; border-radius: 50%;
+    .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .topbar-mark {
+      width: 28px; height: 28px; border-radius: 50%;
       background: var(--orange);
       display: flex; align-items: center; justify-content: center;
     }
-    .nav-logo-mark svg { width: 12px; height: 12px; fill: white; }
-    .nav-logo-text { font-size: 13px; font-weight: 500; color: var(--dark); }
-    .nav-back {
-      font-size: 12px; color: var(--mid); text-decoration: none;
+    .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+    .topbar-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+    .topbar-right { display: flex; align-items: center; gap: 20px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .topbar-signout {
+      background: none; border: none; color: rgba(255,255,255,0.35);
+      font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif;
       transition: color 0.2s;
     }
-    .nav-back:hover { color: var(--dark); }
+    .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav-link {
+      font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none;
+      padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+    }
+    .topbar-nav-link:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+    .topbar-nav-link.active { color: var(--yellow); background: rgba(255,190,25,0.1); }
 
     /* ── SCREENS ── */
     .screen { display: none; }
@@ -79,7 +80,7 @@
     /* ── SCREEN 1: SIGNAL READ ── */
     .signal-page {
       min-height: 100vh;
-      padding: 80px 40px 60px;
+      padding: 24px 40px 60px;
       max-width: 680px;
       margin: 0 auto;
     }
@@ -246,7 +247,7 @@
     /* ── SCREEN 2: QUESTIONS ── */
     .questions-page {
       min-height: 100vh;
-      padding: 80px 0 60px;
+      padding: 24px 0 60px;
     }
 
     .q-header {
@@ -372,7 +373,7 @@
     /* ── SCREEN 3: LUMEN PATTERN READ ── */
     .lumen-page {
       min-height: 100vh;
-      padding: 80px 0 60px;
+      padding: 24px 0 60px;
     }
 
     .lumen-header {
@@ -510,7 +511,7 @@
 
     /* ── SCREEN 4: HISTORY ── */
     .history-page {
-      padding: 80px 40px 60px;
+      padding: 24px 40px 60px;
       max-width: 720px; margin: 0 auto;
     }
     .history-header {
@@ -611,7 +612,7 @@
     /* ── INTRO HERO ── */
     .intro-hero {
       background: var(--dark);
-      padding: 100px 40px 56px;
+      padding: 56px 40px 56px;
       position: relative; overflow: hidden;
     }
     .intro-hero::before {
@@ -818,8 +819,7 @@
     }
 
     @media (max-width: 600px) {
-      .top-nav-inner { padding: 14px 20px; }
-      .intro-hero { padding: 90px 20px 44px; }
+      .intro-hero { padding: 40px 20px 44px; }
       .intro-body { padding: 24px 20px 0; }
       .hiw-states { grid-template-columns: 1fr; }
       .hiw-loop { grid-template-columns: 1fr; gap: 8px; }
@@ -833,81 +833,11 @@
       .entries-summary { padding: 20px 20px; }
       .lumen-convo-area { padding: 24px 20px 16px; }
       .lumen-input-area { padding: 0 20px 80px; }
-      .history-page { padding: 72px 20px 80px; }
+      .history-page { padding: 24px 20px 80px; }
       .data-metrics { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .metric-value { font-size: 28px; }
       .bottom-nav { padding: 10px 20px; }
     }
-    /* ── AUTH WALL ── */
-    .auth-wall {
-      position: fixed; inset: 0; z-index: 500;
-      background: var(--light);
-      display: flex; align-items: center; justify-content: center;
-      padding: 24px;
-    }
-    .auth-wall.hidden { display: none; }
-    .auth-box {
-      background: white;
-      border-radius: 20px;
-      padding: 40px 36px;
-      width: 100%; max-width: 400px;
-      box-shadow: 0 8px 40px rgba(10,50,40,0.1);
-    }
-    .auth-box-logo {
-      font-size: 13px; font-weight: 700; letter-spacing: 1px;
-      color: var(--orange); text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .auth-box h2 {
-      font-size: 22px; font-weight: 700; color: var(--dark);
-      margin-bottom: 6px;
-    }
-    .auth-box p {
-      font-size: 14px; font-weight: 300; color: var(--muted);
-      margin-bottom: 24px; line-height: 1.5;
-    }
-    .auth-field { margin-bottom: 14px; }
-    .auth-field label {
-      display: block; font-size: 12px; font-weight: 600;
-      color: var(--dark); margin-bottom: 5px; letter-spacing: 0.3px;
-    }
-    .auth-field input {
-      width: 100%; padding: 11px 14px;
-      border: 1.5px solid var(--border); border-radius: 10px;
-      font-family: 'Rubik', sans-serif; font-size: 15px;
-      color: var(--dark); background: white;
-      transition: border-color 0.2s;
-    }
-    .auth-field input:focus { outline: none; border-color: var(--orange); }
-    .auth-submit-btn {
-      width: 100%; padding: 13px;
-      background: var(--dark); color: white;
-      border: none; border-radius: 10px;
-      font-family: 'Rubik', sans-serif;
-      font-size: 15px; font-weight: 600;
-      cursor: pointer; margin-top: 4px;
-      transition: background 0.2s;
-    }
-    .auth-submit-btn:hover { background: var(--mid); }
-    .auth-error-msg {
-      font-size: 13px; color: var(--red);
-      margin-top: 10px; display: none;
-    }
-    .auth-error-msg.show { display: block; }
-    .auth-user-bar {
-      background: var(--dark); padding: 10px 40px;
-      display: flex; align-items: center;
-      justify-content: space-between;
-      position: fixed; top: 64px; left: 0; right: 0;
-      z-index: 150;
-    }
-    .auth-user-email { font-size: 13px; color: rgba(245,230,205,0.6); }
-    .auth-signout-btn {
-      font-size: 12px; font-weight: 500; color: var(--orange);
-      background: none; border: none; cursor: pointer;
-      font-family: 'Rubik', sans-serif;
-    }
-
     /* ── FEEDBACK CARD ── */
     .feedback-card {
       margin: 0 40px 32px;
@@ -977,24 +907,19 @@
 </head>
 <body>
 
-<!-- USER BAR - shown when signed in -->
-<div class="auth-user-bar" id="user-bar" style="display:none">
-  <span class="auth-user-email" id="user-email"></span>
-  <button class="auth-signout-btn" onclick="signOut()">Sign out</button>
-</div>
-
-<!-- TOP NAV -->
-<div class="top-nav">
-  <div class="top-nav-inner">
-    <a href="/index.html" class="nav-logo">
-      <div class="nav-logo-mark"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"/></svg></div>
-      <span class="nav-logo-text">Rewrite Your Life</span>
-    </a>
-    <nav style="display:flex;align-items:center;gap:4px;">
-      <a href="/dashboard.html" style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.35);text-decoration:none;padding:4px 10px;border-radius:20px;transition:all 0.2s;">Learn It</a>
-      <a href="/wearable.html" style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.85);text-decoration:none;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.1);">Use It</a>
-      <a href="/rewrite.html" style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.35);text-decoration:none;padding:4px 10px;border-radius:20px;transition:all 0.2s;">Rewrite It</a>
-    </nav>
+<div class="topbar">
+  <a href="/" class="topbar-brand">
+    <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
+    <span class="topbar-name">Rewrite Your Life</span>
+  </a>
+  <nav class="topbar-nav">
+    <a href="/dashboard.html" class="topbar-nav-link">Learn It</a>
+    <a href="/use-it.html" class="topbar-nav-link active">Use It</a>
+    <a href="/rewrite.html" class="topbar-nav-link">Rewrite It</a>
+  </nav>
+  <div class="topbar-right">
+    <span class="topbar-user" id="user-email"></span>
+    <button class="topbar-signout" onclick="signOut()">Sign out</button>
   </div>
 </div>
 
@@ -1050,7 +975,6 @@
     <div class="hiw-states">
       <div class="hiw-state hiw-red">
         <div class="hiw-state-icon">
-          <!-- Storm cloud - bold filled cloud with bold bolt -->
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M36 22C36 22 35.5 14 28 14C24 14 21.5 16.5 20.5 18C19.5 17.5 18.5 17 17 17C13.5 17 11 19.5 11 23C11 23 9 23.5 9 26C9 28.5 11 30 13 30H35C37.5 30 39 28 39 26C39 23.5 37 22 36 22Z" fill="#C0392B" opacity="0.85"/>
             <path d="M23 30L20 37H24L21 44L30 33H26L29 30H23Z" fill="#E67E22"/>
@@ -1062,7 +986,6 @@
       </div>
       <div class="hiw-state hiw-red">
         <div class="hiw-state-icon">
-          <!-- Hourglass draining - time and accumulation -->
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M14 8H34V10L26 22L34 34V38H14V34L22 22L14 10V8Z" stroke="#C0392B" stroke-width="2" stroke-linejoin="round" fill="none"/>
             <path d="M16 10H32L25 20L23 22L16 10Z" fill="#C0392B" opacity="0.7"/>
@@ -1078,7 +1001,6 @@
       </div>
       <div class="hiw-state hiw-red">
         <div class="hiw-state-icon">
-          <!-- Eye with question - body saw something you haven't named -->
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 24C6 24 12 12 24 12C36 12 42 24 42 24C42 24 36 36 24 36C12 36 6 24 6 24Z" fill="#C0392B" opacity="0.12" stroke="#C0392B" stroke-width="2" stroke-linejoin="round"/>
             <circle cx="24" cy="24" r="7" fill="#C0392B" opacity="0.8"/>
@@ -1148,7 +1070,6 @@
     <div class="hiw-states">
       <div class="hiw-state hiw-green">
         <div class="hiw-state-icon">
-          <!-- Sun - full energy, system thriving -->
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="24" cy="24" r="10" fill="#27AE60"/>
             <line x1="24" y1="6" x2="24" y2="11" stroke="#27AE60" stroke-width="2.5" stroke-linecap="round"/>
@@ -1167,7 +1088,6 @@
       </div>
       <div class="hiw-state hiw-green">
         <div class="hiw-state-icon">
-          <!-- Arrow rising from valley - bounce back -->
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 36 L14 24 L22 30 L32 12 L42 12" stroke="#27AE60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
             <path d="M36 8 L42 12 L36 16" stroke="#27AE60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -1181,7 +1101,6 @@
       </div>
       <div class="hiw-state hiw-green">
         <div class="hiw-state-icon">
-          <!-- Bold seedling - roots and shoot, sustained code -->
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <line x1="24" y1="42" x2="24" y2="18" stroke="#27AE60" stroke-width="3" stroke-linecap="round"/>
             <path d="M24 22 C24 22 14 20 12 12 C12 12 22 10 24 22Z" fill="#27AE60"/>
@@ -1294,7 +1213,6 @@
   </div>
 
   <div class="q-body">
-    <!-- Questions rendered here dynamically -->
     <div id="q-panels"></div>
   </div>
 
@@ -1331,7 +1249,6 @@
     <button class="lumen-send" onclick="sendToLumen()">Send →</button>
   </div>
 
-  <!-- FEEDBACK CARD - Study outcome measure -->
   <div class="feedback-card" id="feedback-card">
     <div class="feedback-q">Did this process surface something useful?</div>
     <div class="feedback-scale" id="feedback-scale">
@@ -1349,7 +1266,6 @@
     <button class="feedback-submit" id="feedback-submit-btn" onclick="submitFeedback()">Save →</button>
     <div class="feedback-done" id="feedback-done">Saved. See you tomorrow.</div>
   </div>
-
 
 </div>
 
@@ -1394,10 +1310,6 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// AUTH - Supabase session for Lumen API
-// ══════════════════════════════════════════════════════════
-
 const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
 let sb = null;
@@ -1409,10 +1321,8 @@ async function initAuth() {
     const { data: { session } } = await sb.auth.getSession();
     if (session?.access_token) {
       authToken = session.access_token;
-      document.getElementById('user-bar').style.display = 'flex';
       document.getElementById('user-email').textContent = session.user.email;
     } else {
-      // Not signed in - redirect to sign in page, return here after
       window.location.href = '/signin.html?next=' + encodeURIComponent(window.location.pathname);
     }
   } catch(e) {
@@ -1430,28 +1340,19 @@ function getLumenHeaders() {
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
   return headers;
 }
-// ══════════════════════════════════════════════════════════
-// WHOOP DATA - Live API + simulated fallback
-// ══════════════════════════════════════════════════════════
 
-// WHOOP access token - set from localStorage after OAuth connect
-async function loadWhoopToken() {
-  // Token is now managed server-side - nothing to load from localStorage
-  // wearable.html just uses the Supabase session to authenticate with /api/whoop-data
-}
+async function loadWhoopToken() {}
 
 function isWhoopConnected() {
   return !!authToken;
 }
 
 function connectWhoop() {
-  // Pass Supabase session token so we can link user_id on callback
   const token = encodeURIComponent(authToken || '');
   window.location.href = `/api/whoop-auth?action=connect&token=${token}`;
 }
 
 async function getWhoopData() {
-  // ── Connected - fetch live data using Supabase session ──────────
   if (authToken) {
     try {
       const res = await fetch('/api/whoop-data', {
@@ -1464,38 +1365,35 @@ async function getWhoopData() {
         const data = await res.json();
         if (data.recovery !== null && data.recovery !== undefined) {
           document.getElementById('data-source-note').innerHTML =
-            `<span style="color:var(--green)">● Live WHOOP data</span> · ${data.date} · ${data.days_of_history} days of history`;
+            `<span style="color:var(--green)">\u25cf Live WHOOP data</span> \u00b7 ${data.date} \u00b7 ${data.days_of_history} days of history`;
           return data;
         }
       }
 
-      // 404 = no WHOOP connection in Supabase yet
       if (res.status === 404) {
         document.getElementById('data-source-note').innerHTML =
-          `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
-          `<span style="opacity:0.5">· Using simulated data for now</span>`;
+          `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP \u2192</a> ` +
+          `<span style="opacity:0.5">\u00b7 Using simulated data for now</span>`;
         return simulatedData();
       }
 
-      // Other error
       document.getElementById('data-source-note').innerHTML =
-        `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · ` +
-        `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange)">Reconnect →</a>`;
+        `<span style="color:var(--yellow)">\u26a0 WHOOP unreachable</span> \u00b7 ` +
+        `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange)">Reconnect \u2192</a>`;
       return simulatedData();
 
     } catch(e) {
       console.warn('Live WHOOP fetch failed:', e.message);
       document.getElementById('data-source-note').innerHTML =
-        `<span style="color:var(--yellow)">⚠ WHOOP unreachable</span> · ` +
-        `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange)">Reconnect →</a>`;
+        `<span style="color:var(--yellow)">\u26a0 WHOOP unreachable</span> \u00b7 ` +
+        `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange)">Reconnect \u2192</a>`;
       return simulatedData();
     }
   }
 
-  // ── No session - simulated only ─────────────────────────────────
   document.getElementById('data-source-note').innerHTML =
-    `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP →</a> ` +
-    `<span style="opacity:0.5">· Using simulated data for now</span>`;
+    `<a href="#" onclick="connectWhoop();return false;" style="color:var(--orange);font-weight:500;">Connect your WHOOP \u2192</a> ` +
+    `<span style="opacity:0.5">\u00b7 Using simulated data for now</span>`;
   return simulatedData();
 }
 
@@ -1522,18 +1420,9 @@ function simulatedData() {
   return scenarios[idx];
 }
 
-// Load token from localStorage - stored by whoop-callback.html
-function handleWhoopCallback() {
-  loadWhoopToken();
-}
-
-// ══════════════════════════════════════════════════════════
-// SCORING ENGINE
-// Takes WHOOP data, returns a pattern state
-// ══════════════════════════════════════════════════════════
+function handleWhoopCallback() { loadWhoopToken(); }
 
 const PATTERNS = {
-  // RED PATTERNS
   RED_PSYCH: {
     id: 'red_psych', mode: 'red',
     title: 'Something non-physical is costing you',
@@ -1582,8 +1471,6 @@ const PATTERNS = {
       { q: 'What was the impact - on you, and on anyone else?', sub: 'What happened as a result of how you responded - or didn\'t?' }
     ]
   },
-
-  // GREEN PATTERNS
   GREEN_HIGH: {
     id: 'green_high', mode: 'green',
     title: 'Your system is running well',
@@ -1634,8 +1521,6 @@ const PATTERNS = {
   }
 };
 
-// ── AMBER PATTERNS ─────────────────────────────────────
-// The middle zone - curiosity, not urgency. System under mild load.
 const AMBER = {
   AMBER_LOAD: {
     id: 'amber_load', mode: 'amber',
@@ -1704,7 +1589,6 @@ const AMBER = {
 };
 
 function scoreWhoopData(d) {
-  // If the API already scored the state, use it directly
   if (d.signal_state) {
     const stateMap = {
       'red_psych':    PATTERNS.RED_PSYCH,
@@ -1720,14 +1604,11 @@ function scoreWhoopData(d) {
     };
     if (stateMap[d.signal_state]) {
       const pattern = stateMap[d.signal_state];
-      // If state is green but volatility flag is set, attach a secondary note for Lumen
       if (d.hrv_volatility_flag && pattern.mode === 'green') {
         return { ...pattern, volatility_flag: true, hrv_cv: d.hrv_cv };
       }
       return pattern;
     }
-
-    // Medium confidence red in the amber recovery range → amber
     if (d.signal_confidence === 'medium') {
       const rec = d.recovery ?? 50;
       if (rec >= 34 && rec <= 66) {
@@ -1739,8 +1620,6 @@ function scoreWhoopData(d) {
       }
     }
   }
-
-  // Fallback local scoring for simulated data
   const hrv_baseline    = d.hrv_baseline || 62;
   const strain_baseline = d.strain_baseline || 8;
   const recovery        = d.recovery ?? 50;
@@ -1749,43 +1628,28 @@ function scoreWhoopData(d) {
   const is_recovering   = d.days_trend && d.days_trend[d.days_trend.length-1] > 0 && d.days_trend[0] < 0;
   const is_green_streak = d.days_trend && d.days_trend.every(v => v > 0);
   const high_strain_no_workout = d.strain > strain_baseline * 1.1 && !d.workout_logged;
-
-  // RED - clear signal
   if (recovery < 33 && d.sleep_score > 75 && d.strain < strain_baseline * 0.7) return PATTERNS.RED_PSYCH;
   if (is_declining && hrv_pct_below > 0.2) return PATTERNS.RED_TREND;
   if (high_strain_no_workout) return PATTERNS.RED_STRAIN;
-
-  // AMBER - middle zone (recovery 34–66)
   if (recovery >= 34 && recovery <= 66) {
     if (is_declining && hrv_pct_below > 0.05) return AMBER.AMBER_TREND;
     if (is_recovering) return AMBER.AMBER_RECOVERY;
     return AMBER.AMBER_LOAD;
   }
-
-  // GREEN - system running well
   if (is_green_streak && recovery >= 67) return PATTERNS.GREEN_STREAK;
   if (is_recovering && recovery >= 67)   return PATTERNS.GREEN_BOUNCE;
   if (recovery >= 67)                    return PATTERNS.GREEN_HIGH;
-
   return AMBER.AMBER_LOAD;
 }
 
-// ══════════════════════════════════════════════════════════
-// PERSISTENCE - Supabase primary, localStorage fallback
-// ══════════════════════════════════════════════════════════
-
 async function saveEntry(entry) {
-  // Always save to localStorage immediately
   entries.unshift(entry);
   localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
-
-  // Save to Supabase if authenticated
   if (!sb || !authToken) {
     entry.pendingSync = true;
     localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
     return entry;
   }
-
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
@@ -1793,7 +1657,6 @@ async function saveEntry(entry) {
       localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
       return entry;
     }
-
     const { data, error } = await sb
       .from('wearable_entries')
       .insert({
@@ -1808,35 +1671,24 @@ async function saveEntry(entry) {
       })
       .select('id')
       .single();
-
     if (error) throw error;
-
-    // Store Supabase id so we can update with Lumen reply
     entry.supabaseId = data.id;
     localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
-
   } catch(e) {
     console.warn('Supabase save failed, using localStorage:', e.message);
-    // Mark as pending sync so we retry on next load
     entry.pendingSync = true;
     localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
   }
-
   return entry;
 }
 
-// Retry any entries that failed to save to Supabase
 async function syncPendingEntries() {
   if (!sb || !authToken) return;
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-
     const pending = entries.filter(e => !e.supabaseId);
     if (!pending.length) return;
-
-    console.log(`Syncing ${pending.length} pending entries to Supabase...`);
-
     for (const entry of pending) {
       try {
         const { data, error } = await sb
@@ -1856,85 +1708,46 @@ async function syncPendingEntries() {
           })
           .select('id')
           .single();
-
         if (!error && data) {
           entry.supabaseId = data.id;
           entry.pendingSync = false;
-          console.log('Synced pending entry:', data.id);
         }
-      } catch(e) {
-        console.warn('Pending sync failed for entry:', e.message);
-      }
+      } catch(e) { console.warn('Pending sync failed:', e.message); }
     }
-
-    // Save updated sync state to localStorage
     localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
-  } catch(e) {
-    console.warn('syncPendingEntries error:', e.message);
-  }
+  } catch(e) { console.warn('syncPendingEntries error:', e.message); }
 }
 
 async function updateEntryLumenReply(entry, reply) {
-  // Update localStorage
   entry.lumenReply = reply;
   localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
-
-  // Update Supabase if we have an id
   if (!sb || !entry.supabaseId) return;
-
   try {
-    await sb
-      .from('wearable_entries')
-      .update({ lumen_reply: reply })
-      .eq('id', entry.supabaseId);
-  } catch(e) {
-    console.warn('Supabase update failed:', e.message);
-  }
+    await sb.from('wearable_entries').update({ lumen_reply: reply }).eq('id', entry.supabaseId);
+  } catch(e) { console.warn('Supabase update failed:', e.message); }
 }
 
 async function loadEntries() {
-  // Start with localStorage
   entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
-
-  // Hydrate from Supabase if authenticated
   if (!sb || !authToken) return;
-
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-
     const { data, error } = await sb
       .from('wearable_entries')
       .select('*')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(50);
-
     if (error || !data) return;
-
-    // Map Supabase rows back to local format
     entries = data.map(row => ({
-      id:           row.id,
-      supabaseId:   row.id,
-      date:         row.created_at,
-      mode:         row.mode,
-      pattern:      row.pattern_id,
-      patternTitle: row.pattern_title,
-      data: {
-        recovery: row.recovery,
-        hrv:      row.hrv,
-        strain:   row.strain
-      },
-      answers:    row.answers || {},
-      lumenReply: row.lumen_reply
+      id: row.id, supabaseId: row.id, date: row.created_at,
+      mode: row.mode, pattern: row.pattern_id, patternTitle: row.pattern_title,
+      data: { recovery: row.recovery, hrv: row.hrv, strain: row.strain },
+      answers: row.answers || {}, lumenReply: row.lumen_reply
     }));
-
-    // Keep localStorage in sync
     localStorage.setItem('wb_entries', JSON.stringify(entries));
-
-  } catch(e) {
-    console.warn('Supabase load failed, using localStorage:', e.message);
-  }
+  } catch(e) { console.warn('Supabase load failed, using localStorage:', e.message); }
 }
 
 let currentData = null;
@@ -1946,107 +1759,82 @@ let lumenConvo = [];
 let lumenSystemPrompt = '';
 let entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
 
-// ══════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════
-
 async function init() {
   currentData = await getWhoopData();
-  if (!currentData) return; // redirecting to reconnect
+  if (!currentData) return;
   currentPattern = scoreWhoopData(currentData);
   currentMode = currentPattern.mode;
 
-  // Render metrics
   const recEl = document.getElementById('m-recovery');
   recEl.textContent = currentData.recovery + '%';
   recEl.className = 'metric-value ' + (currentData.recovery >= 67 ? 'val-green' : currentData.recovery >= 34 ? 'val-amber' : 'val-red');
 
   const hrvEl = document.getElementById('m-hrv');
   hrvEl.textContent = currentData.hrv;
-  const hrv_ok = currentData.hrv_baseline
-    ? currentData.hrv >= currentData.hrv_baseline * 0.9
-    : true;
+  const hrv_ok = currentData.hrv_baseline ? currentData.hrv >= currentData.hrv_baseline * 0.9 : true;
   hrvEl.className = 'metric-value ' + (hrv_ok ? 'val-green' : 'val-red');
 
   const strainEl = document.getElementById('m-strain');
   strainEl.textContent = currentData.strain != null ? currentData.strain.toFixed(1) : '-';
   strainEl.className = 'metric-value val-amber';
 
-  // Trends
   const daysTrend = currentData.days_trend || [];
   const lastTrend = daysTrend.length ? daysTrend[daysTrend.length - 1] : 0;
   document.getElementById('t-recovery').innerHTML = lastTrend > 0
-    ? '<span class="trend-up">↑ vs yesterday</span>'
+    ? '<span class="trend-up">\u2191 vs yesterday</span>'
     : lastTrend < 0
-    ? '<span class="trend-down">↓ vs yesterday</span>'
+    ? '<span class="trend-down">\u2193 vs yesterday</span>'
     : '<span class="trend-flat">- steady</span>';
 
   document.getElementById('t-hrv').innerHTML = (!currentData.hrv_baseline || currentData.hrv >= currentData.hrv_baseline)
-    ? '<span class="trend-up">↑ above baseline</span>'
-    : '<span class="trend-down">↓ below baseline</span>';
+    ? '<span class="trend-up">\u2191 above baseline</span>'
+    : '<span class="trend-down">\u2193 below baseline</span>';
 
   document.getElementById('t-strain').innerHTML = !currentData.workout_logged
     ? '<span class="trend-down">No workout logged</span>'
     : '<span class="trend-up">Workout logged</span>';
 
-  // Last workout
   const workoutEl = document.getElementById('m-workout');
   const lastWo = currentData.last_workout_days_ago;
   if (lastWo === 0) {
-    workoutEl.textContent = 'Today';
-    workoutEl.className = 'metric-value val-green';
-    document.getElementById('t-workout').innerHTML = '<span class="trend-up">↑ active</span>';
+    workoutEl.textContent = 'Today'; workoutEl.className = 'metric-value val-green';
+    document.getElementById('t-workout').innerHTML = '<span class="trend-up">\u2191 active</span>';
   } else if (lastWo === 1) {
-    workoutEl.textContent = 'Yesterday';
-    workoutEl.className = 'metric-value val-green';
+    workoutEl.textContent = 'Yesterday'; workoutEl.className = 'metric-value val-green';
     document.getElementById('t-workout').innerHTML = '<span class="trend-flat">- recent</span>';
   } else if (lastWo != null) {
     workoutEl.textContent = `${lastWo}d ago`;
     workoutEl.className = 'metric-value ' + (lastWo <= 3 ? 'val-amber' : 'val-red');
     document.getElementById('t-workout').innerHTML = lastWo > 3
-      ? '<span class="trend-down">↓ overdue</span>'
-      : '<span class="trend-flat">- ok</span>';
+      ? '<span class="trend-down">\u2193 overdue</span>' : '<span class="trend-flat">- ok</span>';
   } else {
-    workoutEl.textContent = '-';
-    workoutEl.className = 'metric-value val-amber';
+    workoutEl.textContent = '-'; workoutEl.className = 'metric-value val-amber';
     document.getElementById('t-workout').innerHTML = '<span class="trend-flat">No data</span>';
   }
 
-  // Signal card
   const card = document.getElementById('signal-card');
   card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : currentMode === 'amber' ? 'amber-signal' : 'green-signal');
-
   document.getElementById('signal-icon-el').innerHTML = currentPattern.icon;
   document.getElementById('signal-title').textContent = currentPattern.title;
   document.getElementById('signal-desc').textContent = currentPattern.desc;
 
   const badgesEl = document.getElementById('pattern-badges');
-  badgesEl.innerHTML = currentPattern.badges.map(b =>
-    `<span class="pattern-badge">${b}</span>`
-  ).join('');
+  badgesEl.innerHTML = currentPattern.badges.map(b => `<span class="pattern-badge">${b}</span>`).join('');
 
-  // CTA button
   const btn = document.getElementById('btn-begin');
-  btn.textContent = currentMode === 'red' ? 'Explore what\'s beneath →'
-    : currentMode === 'amber' ? 'Check in →'
-    : 'Explore what\'s working →';
+  btn.textContent = currentMode === 'red' ? 'Explore what\'s beneath \u2192'
+    : currentMode === 'amber' ? 'Check in \u2192' : 'Explore what\'s working \u2192';
   btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : currentMode === 'amber' ? 'btn-amber' : 'btn-green');
 
-  // Lumen opening observation - screen 1, before questions
   renderLumenOpening();
 }
 
 function renderLumenOpening() {
-  // Remove any existing opening
   const existing = document.getElementById('lumen-opening');
   if (existing) existing.remove();
-
   const d = currentData;
   const mode = currentMode;
-
-  // Build a contextual observation based on the signal
   let obs = '';
-
   if (mode === 'red') {
     if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
       obs = `Your HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
@@ -2058,11 +1846,9 @@ function renderLumenOpening() {
   } else if (mode === 'amber') {
     obs = `Recovery is in the middle range - something is asking for attention before it becomes a pattern.`;
   } else {
-    // Green - the nuanced read
     const noWorkout = !d.workout_logged;
     const lastWo = d.last_workout_days_ago;
     const hrvBelowBaseline = d.hrv < d.hrv_baseline;
-
     if (noWorkout && lastWo > 3) {
       obs = `Recovery is holding well - but no workout in ${lastWo} days. The body is restoring, not being challenged. What's the thread, and is rest itself the pattern?`;
     } else if (hrvBelowBaseline) {
@@ -2071,39 +1857,18 @@ function renderLumenOpening() {
       obs = `Several consecutive days of strong recovery. There's a thread running through this. Let's name it before it becomes unconscious again.`;
     }
   }
-
-  // Only show if we have something useful to say
   if (!obs) return;
-
   const container = document.getElementById('data-section');
   const ctaEl = container.querySelector('.signal-cta');
-
   const div = document.createElement('div');
   div.id = 'lumen-opening';
-  div.style.cssText = `
-    display: flex; align-items: flex-start; gap: 12px;
-    background: rgba(255,190,25,0.07);
-    border: 1px solid rgba(255,190,25,0.15);
-    border-radius: 12px; padding: 14px 16px;
-    margin-bottom: 20px; margin-top: 4px;
-  `;
-  div.innerHTML = `
-    <div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);
-      display:flex;align-items:center;justify-content:center;
-      font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div>
-    <div style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">${obs}</div>
-  `;
-
+  div.style.cssText = `display:flex;align-items:flex-start;gap:12px;background:rgba(255,190,25,0.07);border:1px solid rgba(255,190,25,0.15);border-radius:12px;padding:14px 16px;margin-bottom:20px;margin-top:4px;`;
+  div.innerHTML = `<div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div><div style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">${obs}</div>`;
   ctaEl.parentNode.insertBefore(div, ctaEl);
 }
 
-// ══════════════════════════════════════════════════════════
-// QUESTIONS
-// ══════════════════════════════════════════════════════════
-
 function beginQuestions() {
-  currentQ = 0;
-  answers = {};
+  currentQ = 0; answers = {};
   buildQuestionPanels();
   showScreen('questions');
   updateQProgress();
@@ -2111,21 +1876,14 @@ function beginQuestions() {
 
 function buildQuestionPanels() {
   const qs = currentPattern.questions;
-  const isRed = currentMode === 'red';
-
-  // Header
   document.getElementById('q-header').className = 'q-header ' + (currentMode === 'red' ? 'red-header' : currentMode === 'amber' ? 'amber-header' : 'green-header');
   document.getElementById('q-mode-label').textContent = currentPattern.mode_label;
   document.getElementById('q-header-title').innerHTML = currentPattern.qHeader;
   document.getElementById('q-header-sub').textContent = currentPattern.qSub;
-
-  // Dots
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById('dot-' + i);
     dot.className = 'q-dot' + (i === 0 ? (' ' + (currentMode === 'red' ? 'active-red' : currentMode === 'amber' ? 'active-amber' : 'active-green')) : '');
   }
-
-  // Build panels
   const container = document.getElementById('q-panels');
   const btnClass = currentMode === 'red' ? 'btn-next-red' : currentMode === 'amber' ? 'btn-next-amber' : 'btn-next-green';
   container.innerHTML = qs.map((q, i) => `
@@ -2133,14 +1891,12 @@ function buildQuestionPanels() {
       <div class="q-label">Question ${i+1}</div>
       <div class="q-text">${q.q}</div>
       <div class="q-sub">${q.sub}</div>
-      <textarea id="qa-${i}" placeholder="Write here..." rows="4"
-        oninput="updateWC(${i})"></textarea>
+      <textarea id="qa-${i}" placeholder="Write here..." rows="4" oninput="updateWC(${i})"></textarea>
       <div class="wc" id="wc-${i}">0 words</div>
       <div class="q-nav">
-        ${i > 0 ? `<button class="btn-prev-q" onclick="prevQ(${i})">←</button>` : ''}
-        <button class="btn-next-q ${btnClass}"
-          onclick="${i < qs.length - 1 ? `nextQ(${i})` : 'submitEntry()'}">
-          ${i < qs.length - 1 ? 'Next →' : 'See what Lumen notices →'}
+        ${i > 0 ? `<button class="btn-prev-q" onclick="prevQ(${i})">\u2190</button>` : ''}
+        <button class="btn-next-q ${btnClass}" onclick="${i < qs.length - 1 ? `nextQ(${i})` : 'submitEntry()'}">
+          ${i < qs.length - 1 ? 'Next \u2192' : 'See what Lumen notices \u2192'}
         </button>
       </div>
     </div>
@@ -2173,64 +1929,41 @@ function prevQ(i) {
 
 function updateQProgress() {
   const total = currentPattern.questions.length;
-  const isRed = currentMode === 'red';
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById('dot-' + i);
     if (i < currentQ) dot.className = 'q-dot done';
-    else if (i === currentQ) dot.className = 'q-dot ' + (isRed ? 'active-red' : 'active-green');
+    else if (i === currentQ) dot.className = 'q-dot ' + (currentMode === 'red' ? 'active-red' : 'active-green');
     else dot.className = 'q-dot';
   }
-  document.getElementById('q-progress-label').textContent =
-    `Question ${currentQ + 1} of ${total}`;
+  document.getElementById('q-progress-label').textContent = `Question ${currentQ + 1} of ${total}`;
 }
 
 async function submitEntry() {
-  // Collect last answer
   const lastEl = document.getElementById('qa-' + currentQ);
   answers[currentQ] = lastEl ? lastEl.value.trim() : '';
-
-  // Build entry
   const entry = {
-    id: Date.now(),
-    date: new Date().toISOString(),
-    pattern: currentPattern.id,
-    mode: currentMode,
+    id: Date.now(), date: new Date().toISOString(),
+    pattern: currentPattern.id, mode: currentMode,
     patternTitle: currentPattern.title,
     data: { recovery: currentData.recovery, hrv: currentData.hrv, strain: currentData.strain },
-    answers: { ...answers },
-    lumenReply: null
+    answers: { ...answers }, lumenReply: null
   };
-
-  // Save to Supabase + localStorage
   await saveEntry(entry);
-
-  // Go to Lumen screen
   showScreen('lumen');
   buildLumenScreen(entry);
   triggerLumenReflection(entry);
 }
 
-// ══════════════════════════════════════════════════════════
-// LUMEN SCREEN
-// ══════════════════════════════════════════════════════════
-
 function buildLumenScreen(entry) {
   lumenConvo = [];
   document.getElementById('lumen-msgs').innerHTML = '';
-
-  // Entry pills
   const pills = document.getElementById('entry-pills-display');
   const isGreen = entry.mode === 'green';
   pills.innerHTML = [
     { label: `Recovery: ${entry.data.recovery}%`, color: entry.data.recovery >= 67 ? '#27AE60' : '#C0392B' },
     { label: `HRV: ${entry.data.hrv}ms`, color: isGreen ? '#27AE60' : '#C0392B' },
     { label: entry.patternTitle, color: isGreen ? '#27AE60' : '#C0392B' }
-  ].map(p => `
-    <div class="entry-pill">
-      <div class="pill-dot" style="background:${p.color}"></div>
-      ${p.label}
-    </div>
-  `).join('');
+  ].map(p => `<div class="entry-pill"><div class="pill-dot" style="background:${p.color}"></div>${p.label}</div>`).join('');
 }
 
 async function triggerLumenReflection(entry) {
@@ -2239,7 +1972,6 @@ async function triggerLumenReflection(entry) {
     answers[i] ? `Q: "${q.q}"\nA: "${answers[i]}"` : null
   ).filter(Boolean).join('\n\n');
 
-  const isGreen = entry.mode === 'green';
   const modeContext = entry.mode === 'green'
     ? 'This is a GLIMMER entry - the person\'s body is in a healthy, recovered state and they are capturing what underpins that. Your role is to help them name the mental and emotional code that runs a healthy system. What beliefs, values, or conditions are present when they thrive? Reflect warmly but precisely.'
     : entry.mode === 'amber'
@@ -2252,33 +1984,14 @@ async function triggerLumenReflection(entry) {
       ).join(' || ')}`
     : '';
 
-  const system = `You are Lumen - the AI mirror companion for the Reframe platform by Simon Lamb.
+  const system = `You are Lumen - the AI mirror companion for the Reframe platform by Simon Lamb.\n\n${modeContext}\n\nThe person's WHOOP data today: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nADDITIONAL SIGNAL: HRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green - do not lead with this. After your primary green observation, add ONE sentence noting that HRV has been unusually variable night to night, and invite them to notice if anything in their life might explain that inconsistency.` : ''}\n\n${historyContext}\n\nTheir answers to the reflection questions:\n${answerSummary}\n\nRULES:\n- 3 sentences maximum in your first response\n- One observation. One question. Nothing more.\n- No advice, no prescriptions, no "you should"\n- If there is a pattern across previous entries, name it precisely\n- If this is a glimmer, help them name the code that runs their healthy system\n- If this is a trigger, surface what the body already knows\n- You are a mirror, not a coach`;
 
-${modeContext}
-
-The person's WHOOP data today: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nADDITIONAL SIGNAL: HRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green — do not lead with this. After your primary green observation, add ONE sentence noting that HRV has been unusually variable night to night, and invite them to notice if anything in their life might explain that inconsistency.` : ''}
-
-${historyContext}
-
-Their answers to the reflection questions:
-${answerSummary}
-
-RULES:
-- 3 sentences maximum in your first response
-- One observation. One question. Nothing more.
-- No advice, no prescriptions, no "you should"
-- If there is a pattern across previous entries, name it precisely
-- If this is a glimmer, help them name the code that runs their healthy system
-- If this is a trigger, surface what the body already knows
-- You are a mirror, not a coach`;
-
-  // Store rich system prompt so sendToLumen can reuse it
   lumenSystemPrompt = system;
   addThinking();
 
   if (!authToken) {
     removeThinking();
-    addMsg('lumen', 'Lumen needs you to be signed in to reflect on your entries. <a href="/dashboard.html" style="color:var(--yellow);text-decoration:underline;">Sign in here →</a>');
+    addMsg('lumen', 'Lumen needs you to be signed in to reflect on your entries.');
     return;
   }
 
@@ -2286,21 +1999,15 @@ RULES:
     const res = await fetch('/api/lumen', {
       method: 'POST',
       headers: getLumenHeaders(),
-      body: JSON.stringify({
-        systemExtra: system,
-        messages: [{ role: 'user', content: 'Please reflect on what I\'ve written.' }]
-      })
+      body: JSON.stringify({ systemExtra: system, messages: [{ role: 'user', content: 'Please reflect on what I\'ve written.' }] })
     });
     const data = await res.json();
     removeThinking();
     const reply = data.reply || 'Lumen is quiet. Stay with what you wrote.';
     lumenConvo.push({ role: 'assistant', content: reply });
     addMsg('lumen', reply);
-
-    // Save Lumen reply to Supabase + localStorage
     await updateEntryLumenReply(entries[0], reply);
     showFeedbackCard();
-
   } catch(e) {
     removeThinking();
     addMsg('lumen', 'Lumen is quiet right now. Your words are still here - sit with what you wrote.');
@@ -2312,14 +2019,10 @@ async function sendToLumen() {
   const text = ta.value.trim();
   if (!text) return;
   ta.value = '';
-
   addMsg('user', text);
   lumenConvo.push({ role: 'user', content: text });
   addThinking();
-
-  // Use the rich session system prompt - not a blank rebuild
   const system = lumenSystemPrompt || 'You are Lumen - the AI mirror companion for the Reframe platform by Simon Lamb. You are a mirror, not a coach. 2-3 sentences maximum. One observation, one question. No advice.';
-
   try {
     const res = await fetch('/api/lumen', {
       method: 'POST',
@@ -2342,10 +2045,7 @@ function addMsg(role, text) {
   const div = document.createElement('div');
   div.className = 'lumen-msg';
   const isLumen = role === 'lumen';
-  div.innerHTML = `
-    <div class="${isLumen ? 'lumen-av' : 'user-av'}">${isLumen ? 'L' : 'you'}</div>
-    <div class="${isLumen ? 'lumen-bubble' : 'user-bubble'}">${text.replace(/\n/g, '<br>')}</div>
-  `;
+  div.innerHTML = `<div class="${isLumen ? 'lumen-av' : 'user-av'}">${isLumen ? 'L' : 'you'}</div><div class="${isLumen ? 'lumen-bubble' : 'user-bubble'}">${text.replace(/\n/g, '<br>')}</div>`;
   container.appendChild(div);
   div.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
@@ -2364,82 +2064,56 @@ function removeThinking() {
   if (el) el.remove();
 }
 
-// ══════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════
-// FEEDBACK — Study outcome measure
-// ══════════════════════════════════════════════════════════
-
 let feedbackScore = null;
 
 function showFeedbackCard() {
   const card = document.getElementById('feedback-card');
-  if (card) {
-    card.classList.add('visible');
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
+  if (card) { card.classList.add('visible'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 }
 
 function selectFeedback(score) {
   feedbackScore = score;
-  document.querySelectorAll('.feedback-btn').forEach((btn, i) => {
-    btn.classList.toggle('selected', i + 1 === score);
-  });
+  document.querySelectorAll('.feedback-btn').forEach((btn, i) => { btn.classList.toggle('selected', i + 1 === score); });
 }
 
 async function submitFeedback() {
   if (!feedbackScore) {
     const scale = document.getElementById('feedback-scale');
-    scale.style.outline = '2px solid var(--orange)';
-    scale.style.borderRadius = '10px';
+    scale.style.outline = '2px solid var(--orange)'; scale.style.borderRadius = '10px';
     setTimeout(() => { scale.style.outline = ''; }, 1500);
     return;
   }
   const text = document.getElementById('feedback-text').value.trim();
   const entry = entries[0];
   if (entry) {
-    entry.feedbackScore = feedbackScore;
-    entry.feedbackText = text;
+    entry.feedbackScore = feedbackScore; entry.feedbackText = text;
     localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
   }
   if (sb && entry?.supabaseId) {
     try {
-      await sb.from('wearable_entries')
-        .update({ feedback_score: feedbackScore, feedback_text: text || null })
-        .eq('id', entry.supabaseId);
+      await sb.from('wearable_entries').update({ feedback_score: feedbackScore, feedback_text: text || null }).eq('id', entry.supabaseId);
     } catch(e) { console.warn('Feedback save failed:', e.message); }
   }
   document.getElementById('feedback-submit-btn').style.display = 'none';
   document.getElementById('feedback-done').style.display = 'block';
 }
 
-// HISTORY SCREEN
-// ══════════════════════════════════════════════════════════
-
-function showHistory() {
-  renderHistory();
-  showScreen('history');
-}
+function showHistory() { renderHistory(); showScreen('history'); }
 
 function renderHistory() {
   const container = document.getElementById('history-list');
   if (entries.length === 0) {
-    container.innerHTML = `
-      <div class="history-empty">
-        <p>No entries yet. Come back after you've checked in with today's signal.</p>
-      </div>`;
+    container.innerHTML = `<div class="history-empty"><p>No entries yet. Come back after you've checked in with today's signal.</p></div>`;
     return;
   }
-
   container.innerHTML = entries.map(e => {
-    const isGreen = e.mode === 'green';
     const date = new Date(e.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
     const firstAnswer = Object.values(e.answers).find(a => a && a.length > 0) || '';
     return `
       <div class="entry-card">
         <div class="entry-card-top">
           <span class="entry-mode-badge ${e.mode === 'green' ? 'badge-green' : e.mode === 'amber' ? 'badge-amber' : 'badge-red'}">
-            ${e.mode === 'green' ? '✦ Glimmer' : e.mode === 'amber' ? '◎ Check in' : '⚡ Trigger'}
+            ${e.mode === 'green' ? '\u2726 Glimmer' : e.mode === 'amber' ? '\u25ce Check in' : '\u26a1 Trigger'}
           </span>
           <span class="entry-date">${date}</span>
         </div>
@@ -2456,18 +2130,12 @@ function renderHistory() {
   }).join('');
 }
 
-// ══════════════════════════════════════════════════════════
-// SCREEN NAVIGATION
-// ══════════════════════════════════════════════════════════
-
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
-
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
   if (name === 'signal') document.getElementById('bnav-today').classList.add('active');
   if (name === 'history') document.getElementById('bnav-history').classList.add('active');
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2476,28 +2144,22 @@ function toggleIntro() {
   const btn = document.getElementById('how-it-works-btn');
   const isOpen = body.style.display !== 'none' && body.style.display !== '';
   if (isOpen) {
-    body.style.display = 'none';
-    btn.textContent = 'How this works ↓';
+    body.style.display = 'none'; btn.textContent = 'How this works \u2193';
   } else {
-    body.style.display = 'block';
-    btn.textContent = 'Close ↑';
+    body.style.display = 'block'; btn.textContent = 'Close \u2191';
     body.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
 function initIntroState() {
-  // Always start collapsed
   document.getElementById('intro-body-section').style.display = 'none';
 }
 
-// ══════════════════════════════════════════════════════════
-// START
-// ══════════════════════════════════════════════════════════
 initAuth().then(async () => {
   if (!authToken) return;
-  await loadWhoopToken();  // fetch fresh token from Supabase
+  await loadWhoopToken();
   await loadEntries();
-  await syncPendingEntries(); // retry any entries that failed to save last time
+  await syncPendingEntries();
   initIntroState();
   await init();
 });
