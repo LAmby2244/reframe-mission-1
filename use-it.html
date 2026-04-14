@@ -34,67 +34,39 @@
       overflow-x: hidden;
     }
 
-    /* ── TOP NAV ── */
-    .top-nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      background: rgba(245,230,205,0.97);
-      backdrop-filter: blur(12px);
-      border-bottom: 0.5px solid var(--border);
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--dark); padding: 12px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 200;
     }
-    .top-nav-inner {
-      padding: 14px 48px;
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 24px;
-    }
-    .nav-logo {
-      display: flex; align-items: center; gap: 10px;
-      text-decoration: none; flex-shrink: 0;
-    }
-    .nav-logo-mark {
-      width: 26px; height: 26px; border-radius: 50%;
+    .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .topbar-mark {
+      width: 28px; height: 28px; border-radius: 50%;
       background: var(--orange);
       display: flex; align-items: center; justify-content: center;
     }
-    .nav-logo-mark svg { width: 12px; height: 12px; fill: white; }
-    .nav-logo-text { font-size: 13px; font-weight: 500; color: var(--dark); }
-
-    .tab-nav {
-      display: flex; align-items: center; gap: 4px;
-      background: rgba(10,50,40,0.06);
-      border-radius: 10px; padding: 4px;
+    .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+    .topbar-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+    .topbar-right { display: flex; align-items: center; gap: 20px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .topbar-signout {
+      background: none; border: none; color: rgba(255,255,255,0.35);
+      font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif;
+      transition: color 0.2s;
     }
-    .tab-btn {
-      display: flex; align-items: center; gap: 7px;
-      padding: 8px 18px; border-radius: 7px;
-      font-size: 13px; font-weight: 500;
-      font-family: 'Rubik', sans-serif;
-      text-decoration: none; border: none;
-      cursor: pointer; transition: all 0.2s;
-      white-space: nowrap; background: transparent; color: var(--mid);
+    .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav-link {
+      font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none;
+      padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
     }
-    .tab-btn:hover { background: rgba(10,50,40,0.06); color: var(--dark); }
-    .tab-learn.active { background: var(--dark); color: white; }
-    .tab-use.active   { background: var(--orange); color: white; }
-    .tab-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .tab-learn.active .tab-dot { background: var(--yellow); }
-    .tab-use.active   .tab-dot { background: rgba(255,255,255,0.6); }
-    .tab-deepen { color: var(--sky-dark); opacity: 0.55; cursor: default; font-size: 12px; }
-    .tab-deepen:hover { background: transparent; color: var(--sky-dark); }
-    .tab-deepen .tab-dot { background: var(--sky); }
-    .tab-soon {
-      font-size: 9px; font-weight: 600; letter-spacing: 0.5px;
-      background: rgba(42,122,150,0.15); border-radius: 4px;
-      padding: 2px 5px; color: var(--sky-dark); text-transform: uppercase;
-    }
-    .nav-right {
-      font-size: 12px; color: var(--mid);
-      text-decoration: none; flex-shrink: 0; transition: color 0.2s;
-    }
-    .nav-right:hover { color: var(--dark); }
+    .topbar-nav-link:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+    .topbar-nav-link.active { color: var(--yellow); background: rgba(255,190,25,0.1); }
 
     /* ── PAGE HEADER ── */
     .page-header {
-      padding: 112px 48px 56px;
+      padding: 64px 48px 56px;
       background: var(--orange);
       position: relative; overflow: hidden;
     }
@@ -328,9 +300,7 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 720px) {
-      .top-nav-inner { padding: 14px 20px; }
-      .tab-nav { display: none; }
-      .page-header { padding: 100px 24px 44px; }
+      .page-header { padding: 48px 24px 44px; }
       .body { padding: 48px 24px 72px; }
       .live-tool { padding: 32px 28px; }
       .wearable-section { padding: 32px 28px; }
@@ -341,35 +311,20 @@
 </head>
 <body>
 
-  <!-- NAV -->
-  <div class="top-nav">
-    <div class="top-nav-inner">
-      <a href="/index.html" class="nav-logo">
-        <div class="nav-logo-mark">
-          <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"/></svg>
-        </div>
-        <span class="nav-logo-text">Rewrite Your Life</span>
-      </a>
-      <div class="tab-nav">
-        <a href="/dashboard.html" class="tab-btn tab-learn">
-          <div class="tab-dot"></div>
-          Learn It
-        </a>
-        <a href="/use-it.html" class="tab-btn tab-use active">
-          <div class="tab-dot"></div>
-          Use It
-        </a>
-        <div class="tab-btn tab-deepen">
-          <div class="tab-dot"></div>
-          Deepen It
-          <span class="tab-soon">Soon</span>
-        </div>
-        <a href="/study-dashboard.html" class="tab-btn" style="opacity:0.5;font-size:11px;letter-spacing:0.5px;">
-          <div class="tab-dot"></div>
-          Study
-        </a>
-      </div>
-      <a href="/dashboard.html" class="nav-right">My journey →</a>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="/" class="topbar-brand">
+      <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
+      <span class="topbar-name">Rewrite Your Life</span>
+    </a>
+    <nav class="topbar-nav">
+      <a href="/dashboard.html" class="topbar-nav-link">Learn It</a>
+      <a href="/use-it.html" class="topbar-nav-link active">Use It</a>
+      <a href="/rewrite.html" class="topbar-nav-link">Rewrite It</a>
+    </nav>
+    <div class="topbar-right">
+      <span class="topbar-user"></span>
+      <a href="/dashboard.html" style="font-size:12px;color:rgba(255,255,255,0.35);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.65)'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">My journey</a>
     </div>
   </div>
 
@@ -395,7 +350,7 @@
         </div>
         <h2>Tame a Trigger</h2>
         <p class="live-tool-body">Something just happened and you felt it. Use this while it's still fresh — capture what fired, what you felt in your body, what you were believing to be true underneath it. Then let Lumen show you what it sees.</p>
-        <span class="live-tool-cta">Open the tool →</span>
+        <span class="live-tool-cta">Open the tool &rarr;</span>
       </div>
     </a>
 
@@ -429,27 +384,27 @@
 
     <a href="/wearable.html" class="wearable-section" style="text-decoration:none;display:block;cursor:pointer;transition:transform 0.2s ease,box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 48px rgba(0,0,0,0.25)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
       <div class="wearable-inner">
-        <div class="wearable-badge">● Live — try it now</div>
+        <div class="wearable-badge">&#9679; Live &mdash; try it now</div>
         <h2>Connect Your Wearable<br><em>Your body knows before you do</em></h2>
-        <p class="wearable-body">Your WHOOP, Oura, or Garmin is already detecting stress spikes. But the signal is only half the story. This tool connects your biometric data to the Reframe methodology — so when your body flags something, you can understand what it's really about, and find the path through it.</p>
+        <p class="wearable-body">Your WHOOP, Oura, or Garmin is already detecting stress spikes. But the signal is only half the story. This tool connects your biometric data to the Reframe methodology &mdash; so when your body flags something, you can understand what it's really about, and find the path through it.</p>
         <div class="signal-preview">
           <div class="signal-row">
             <div class="signal-dot dot-pulse"></div>
-            <div class="signal-text"><strong>2:47pm</strong> — stress spike detected by WHOOP</div>
+            <div class="signal-text"><strong>2:47pm</strong> &mdash; stress spike detected by WHOOP</div>
           </div>
           <div class="signal-row">
             <div class="signal-dot dot-amber"></div>
-            <div class="signal-text">Lumen: <strong>"You named recognition again. Third time this week."</strong></div>
+            <div class="signal-text">Lumen: <strong>&ldquo;You named recognition again. Third time this week.&rdquo;</strong></div>
           </div>
           <div class="signal-row">
             <div class="signal-dot dot-green"></div>
-            <div class="signal-text">Pattern named → <strong>path to Mission 6 opened</strong></div>
+            <div class="signal-text">Pattern named &rarr; <strong>path to Mission 6 opened</strong></div>
           </div>
         </div>
         <div style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:500;color:white;font-family:'Rubik',sans-serif;">
-          Explore beneath the signal →
+          Explore beneath the signal &rarr;
         </div>
-        <p class="wearable-note" style="margin-top:16px;">Connects with WHOOP · Oura · Garmin · Apple Health</p>
+        <p class="wearable-note" style="margin-top:16px;">Connects with WHOOP &middot; Oura &middot; Garmin &middot; Apple Health</p>
       </div>
     </a>
 
@@ -457,7 +412,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <p><strong>Rewrite Your Life</strong> · A Purposeful Change product</p>
+    <p><strong>Rewrite Your Life</strong> &middot; A Purposeful Change product</p>
     <div class="footer-links">
       <a href="https://purposefulchange.com">purposefulchange.com</a>
       <a href="https://events.purposefulchange.com/apr26">Events</a>
