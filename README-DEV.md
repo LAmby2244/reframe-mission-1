@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last deploy trigger: 2026-04-13 22:25 UTC — Node.js pinned to 20.x
+## Last updated: 2026-04-14 — Nav consistency complete. Platform audit done. Next: Rewrite It restructure.
 
 ---
 
@@ -18,7 +18,7 @@
 | Layer | Description | URL |
 |---|---|---|
 | **Learn It** | 14 sequential Reframe missions | `/dashboard.html` |
-| **Use It** | Body Signal + daily tools | `/wearable.html` |
+| **Use It** | Hub: Tame a Trigger + Body Signal | `/use-it.html` |
 | **Rewrite It** | The living practice. Where it all lands. | `/rewrite.html` |
 
 ---
@@ -53,31 +53,44 @@ All 4 participants now in `study_participants` table (added 12 Apr 2026).
 
 ---
 
-## Site Navigation
+## Site Navigation — UPDATED 14 Apr 2026
+
+### Full structure
 ```
 index.html (public landing)
--> signin.html (auth gate — single sign-in point for all pages)
+-> signin.html (auth gate)
 -> start.html (choice: Learn It / Use It / Rewrite It)
--> dashboard.html (Learn It — 14 missions, three-tab nav)
--> wearable.html (Body Signal — Use It)
--> study-dashboard.html (researcher view — all participant data)
--> rewrite.html (Rewrite It — declaration, balcony, practices, history)
+-> dashboard.html (Learn It — 14 missions + Lumen sidebar)
+-> use-it.html (Use It hub — Tame a Trigger live, Body Signal, coming tools)
+   -> wearable.html (Body Signal — internal bottom nav: Today/Entries/Study)
+-> rewrite.html (Rewrite It — internal bottom nav: Tree/Balcony/Practices/History)
+-> study-dashboard.html (researcher view)
 privacy.html (required for WHOOP developer registration)
 ```
 
-**Three-tab nav** — consistent across dashboard.html, wearable.html, rewrite.html:
-- Learn It -> `/dashboard.html`
-- Use It -> `/wearable.html`
-- Rewrite It -> `/rewrite.html`
+### Three-tab topbar nav — NOW CONSISTENT across all four authenticated pages
+All four pages (`dashboard.html`, `use-it.html`, `wearable.html`, `rewrite.html`) have:
+- Identical dark topbar (`background: var(--dark)`, `position: sticky`)
+- Same three nav links: Learn It → `/dashboard.html` / Use It → `/use-it.html` / Rewrite It → `/rewrite.html`
+- Active link highlighted in yellow (`color: var(--yellow); background: rgba(255,190,25,0.1)`)
+- Right side: `topbar-user` (email) + Sign out button
+- `rewrite.html` additionally has `topbar-streak` span (shows "N day streak" in yellow when active, empty otherwise — rewrite-specific, does NOT overwrite email)
+
+**IMPORTANT:** Use It links go to `/use-it.html` (the hub), NOT `/wearable.html` directly.
+`wearable.html` has its own internal bottom nav (Today / Entries / Study) that navigates within Body Signal — this is separate and intentional.
+
+### use-it.html — has auth check
+`use-it.html` now has Supabase auth check + redirect to signin if not logged in + signOut() function. This was missing before 14 Apr.
 
 ---
 
 ## Key Files
 | File | Purpose | Notes |
 |---|---|---|
-| `wearable.html` | Body Signal main page | 107KB / 2507 lines. Passes `Authorization: Bearer [authToken]` to `/api/whoop-data`. `lumenSystemPrompt` persists rich context across full Lumen conversation (fixed 13 Apr). |
-| `rewrite.html` | Rewrite It — 4 screens | Tree / Balcony / Practices / History. Loads saved nudge settings on page load. |
-| `dashboard.html` | Learn It — missions | 14 missions, three-tab nav |
+| `wearable.html` | Body Signal main page | ~107KB. Sticky dark topbar (not fixed). No more `auth-user-bar` div. `lumenSystemPrompt` persists rich context across full conversation. |
+| `use-it.html` | Use It hub | Lists live tools (Tame a Trigger, Body Signal) + coming soon. Has auth check + sign out. |
+| `rewrite.html` | Rewrite It | 4 screens: Tree / Balcony / Practices / History. Separate `topbar-streak` span — email stays in `topbar-user`. |
+| `dashboard.html` | Learn It — missions | 14 missions, Lumen sidebar. Use It nav link → `/use-it.html`. |
 | `start.html` | Platform entry page | Three paths: Learn It / Use It / Rewrite It |
 | `whoop-callback.html` | WHOOP OAuth callback | Stores tokens in localStorage after redirect |
 | `signin.html` | Auth gate | Single sign-in for all pages. Shows confirm-email panel if email not yet confirmed. |
@@ -88,7 +101,7 @@ privacy.html (required for WHOOP developer registration)
 | `api/whoop-refresh.js` | Token refresh cron | **Node.js.** Runs every 45 min. Auth check removed 12 Apr (was causing 401 on every run). |
 | `api/lumen.js` | Lumen AI companion | **Edge. UPDATED 12 Apr 2026** — full six-move methodology prompt. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
-| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Only shows today's body signal (not stale). |
+| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Only shows today's body signal. |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
 | `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. **No `functions` block** — adding one breaks Edge runtime compilation. |
 | `README-DEV.md` | This file | Update at end of every session before closing |
@@ -128,7 +141,7 @@ All 5 rewrite tables have RLS enabled.
 |---|---|
 | `SUPABASE_URL` | `https://aoqjfqmlcccsosddqnws.supabase.co` |
 | `SUPABASE_SERVICE_KEY` | Service role key for server-side Supabase calls |
-| `SUPABASE_ANON_KEY` | **NOT SET** — do not use. Use SUPABASE_SERVICE_KEY for user resolution. |
+| `SUPABASE_ANON_KEY` | **NOT SET** — do not use. Use SUPABASE_SERVICE_KEY for server-side user resolution. |
 | `WHOOP_CLIENT_ID` | WHOOP OAuth app client ID |
 | `WHOOP_CLIENT_SECRET` | WHOOP OAuth app client secret |
 | `ANTHROPIC_API_KEY` | Claude API key for Lumen |
@@ -163,15 +176,18 @@ All 5 rewrite tables have RLS enabled.
 21. **nudge_time is UTC** — stored as `time without time zone`. Cron compares `HH:MM` against UTC. UK participants must subtract 1hr (BST). UI shows UTC label with hint.
 22. **nudge-whatsapp only shows today's body signal** — queries `wearable_entries` with `created_at >= today`. If no session done today, sends nudge without data line. Never shows stale data.
 23. **Vercel env var changes need a new deployment** — Redeploy via UI reuses the same build. Must push a GitHub commit to force a fresh build that picks up new env vars.
-24. **GitHub MCP — use the official GitHub server** — `github-mcp-server` binary (installed via `brew install github/github-mcp-server/github-mcp-server`). Config: `{"command": "github-mcp-server", "args": ["stdio"], "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "..."}}`. The old `@modelcontextprotocol/server-github` (npx) silently truncated large file pushes — do NOT use it. The official binary handles any file size correctly.
+24. **GitHub MCP — use the official GitHub server** — `github-mcp-server` binary (installed via `brew install github/github-mcp-server/github-mcp-server`). Config: `{"command": "github-mcp-server", "args": ["stdio"], "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "..."}}`. The old `@modelcontextprotocol/server-github` (npx) silently truncated large file pushes — do NOT use it.
 25. **lumenSystemPrompt persists across conversation (FIXED 13 Apr)** — `triggerLumenReflection()` stores the rich system prompt in `lumenSystemPrompt`. `sendToLumen()` uses it for all continuation messages. Lumen stays in full context for the whole session.
-26. **wearable.html is 107KB / 2507 lines — large file pushes now work fine** with the official GitHub MCP server (rule 24). `create_or_update_file` handles the full file without truncation.
-27. **wearable.html last known-good commit** — `d10f69448df278261fde2eba85e867aed317c995` (13 Apr, post lumenSystemPrompt fix, verified 109KB push via official MCP server).
-28. **ALWAYS FETCH BEFORE ANSWERING REVERT QUESTIONS** — if Simon asks "do we need to revert X?" or "is file Y still correct?", Claude must fetch the live file from GitHub before answering. Never rely on memory of what was pushed. The cost of a wrong answer is a cascade of broken deployments. This rule exists because Claude confidently said vercel.json did not need reverting during the Jaroslav session without checking — it did, and caused 6 consecutive failed builds. Fetch first. Always.
-29. **vercel.json must never have a `functions` block** — adding `"functions": {"api/lumen.js": {"runtime": "edge"}}` causes Vercel to attempt ESM-to-CommonJS compilation of Edge functions, which fails immediately with "Unhandled type: Identifier". Runtime is declared via `export const config = { runtime: 'edge' }` inside the file itself. vercel.json contains only `crons` and `rewrites`.
-30. **No package.json in the repo root** — this is a vanilla Vercel project with no build step. Adding `{"type": "module"}` to package.json breaks all Node.js API functions that use `module.exports`. If a package.json appears, delete it.
-31. **When Vercel is behind GitHub HEAD — force redeploy by touching README-DEV.md** — if a cascade of failed builds leaves Vercel pinned to an old commit, push a trivial README-DEV change to trigger a fresh build from current HEAD. Do NOT push code changes to force a deploy.
-32. **Node.js version is pinned to 20.x in Vercel project settings** — Node 24 causes "Unhandled type: Identifier" build errors on this project. Check `Vercel > Settings > Build & Deployment > Node.js Version` if builds start failing for no obvious reason. This was changed to 24.x during the bad Jaroslav session and caused all subsequent build failures.
+26. **wearable.html is ~107KB — large file pushes work fine** with the official GitHub MCP server (rule 24). `create_or_update_file` handles the full file without truncation.
+27. **wearable.html last known-good commit** — `5f46d9b` (14 Apr, sticky topbar, no auth-user-bar, consistent nav).
+28. **ALWAYS FETCH BEFORE ANSWERING REVERT QUESTIONS** — if Simon asks "do we need to revert X?" or "is file Y still correct?", Claude must fetch the live file from GitHub before answering. Never rely on memory. This rule exists because Claude confidently said vercel.json did not need reverting during the Jaroslav session without checking — it did, and caused 6 consecutive failed builds.
+29. **vercel.json must never have a `functions` block** — adding one causes Vercel to attempt ESM-to-CommonJS compilation of Edge functions, which fails with "Unhandled type: Identifier". Runtime is declared via `export const config = { runtime: 'edge' }` inside the file itself.
+30. **No package.json in the repo root** — vanilla Vercel project with no build step. Adding `{"type": "module"}` breaks all Node.js API functions that use `module.exports`.
+31. **When Vercel is behind GitHub HEAD — force redeploy by touching README-DEV.md** — push a trivial README-DEV change to trigger a fresh build from current HEAD. Do NOT push code changes to force a deploy.
+32. **Node.js version is pinned to 20.x in Vercel project settings** — Node 24 causes "Unhandled type: Identifier" build errors. Check `Vercel > Settings > Build & Deployment > Node.js Version` if builds start failing for no obvious reason.
+33. **Topbar rule — never overwrite `topbar-user` with anything other than email** — `rewrite.html` has a separate `topbar-streak` span for the streak count. The streak rendering function (`renderStreak()`) must only write to `topbar-streak`, not `topbar-user`. Before 14 Apr it was overwriting the email — now fixed.
+34. **`create_or_update_file` replaces the ENTIRE file** — never use it for single-line changes in large files. It sets the file to exactly the `content` field provided. For surgical changes to large files, use `push_files` with the full correct content, or `push_files` with the patched content from bash manipulation.
+35. **Use It nav goes to `/use-it.html` (the hub), not `/wearable.html`** — `wearable.html` is one tool inside Use It. Users land on the hub first and choose their tool.
 
 ---
 
@@ -231,9 +247,6 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 3. "What do you need to integrate?"
 4. "And what are you going to do — specifically?"
 
-### lumenSystemPrompt — FIXED 13 Apr 2026
-`triggerLumenReflection()` now stores the full rich system prompt in `lumenSystemPrompt` variable. `sendToLumen()` uses it for all continuation messages instead of rebuilding a blank 2-line prompt. Lumen stays fully in context (WHOOP data, signal state, answers, history, mode) for the entire conversation.
-
 ### Simon's Coaching Language — in Lumen prompt
 "Here's the irony..." / "Your code" / "The overplayed value always creates the opposite of the value" / "You can't escape it" / "Is it actually true?" / "That belief was built for a different chapter" / "Get on the balcony of this"
 
@@ -270,8 +283,82 @@ Signal -> Body -> Questions -> Belief Named -> Origin Surfaced -> Reframe -> Pra
 
 ## Rewrite It — Architecture
 **Five Supabase tables:** `rewrite_trees`, `rewrite_beliefs`, `rewrite_practices`, `rewrite_diary`, `rewrite_nudge_settings` — all with RLS.
-**Four screens:** Tree / Balcony / Practices / History
+**Four screens (current):** Tree / Balcony / Practices / History
 **Nudge settings UI:** pre-fills saved number + time on load. Shows "Nudge active" status badge. UTC label with BST hint.
+
+### Live data state (verified 14 Apr 2026 — Simon's account)
+- Declaration: "Believes rest is productive"
+- Running as: "I am lazy if I don't carry it all and I stop"
+- Becoming: "I rest to stay productive"
+- 1 practice: "I will check my mind talk and breathe when I feel the anger / When they arise"
+- 2 beliefs: productivity belief + sustainable productivity value
+- 1 balcony entry: 10 Apr — "I am being calmer, managing the thoughts in my mind"
+- Lumen reply on that entry was good: named the connection between the declaration and specific actions
+
+---
+
+## Platform Audit — 14 Apr 2026
+
+### What's working well
+- Nav consistency complete — dark topbar, identical across all 4 pages
+- Use It hub (`use-it.html`) — clear entry point to tools, right abstraction level
+- Body Signal — strongest product. Signal read → questions → Lumen reflection is a coherent loop
+- Dashboard mission list — clear, progress tracked, Lumen sidebar is the right idea
+- Rewrite It data model — solid. Declaration + beliefs + practices + diary + nudge all wired up
+- Lumen in rewrite.html is already pulling body signal state from last wearable entry — the integration exists, just not visible to user
+
+### Problems identified
+
+**1. Rewrite It structural confusion (MAIN ISSUE)**
+The four tabs flatten two different types of thing:
+- Tree = the identity artefact (destination, output of mission work)
+- Balcony + Practices = daily habits (separate layer)
+- History = retrospective
+A user arriving has no sense of what to do first or why. The two daily habit tabs (Balcony + Practices) should be one scroll, not two separate screens.
+
+**2. Learn It → Rewrite It handover gap**
+Someone completes Mission 1 (Case for Change) and writes a detailed commitment — but nothing connects this to Rewrite It. The declaration in Rewrite It should emerge from mission work but the platform doesn't say so or assist the transfer. Mission 1's commitment section should CTA directly to Rewrite It with pre-populated fields.
+
+**3. Body Signal → Rewrite It loop not visible**
+`rewrite_diary` already stores `body_signal_state` from last wearable entry — the data connection exists. But Lumen's balcony reflection doesn't name the signal. Making this explicit would make the two halves feel like one system.
+
+**4. WhatsApp nudge settings buried**
+Nudge settings live inside the Practices tab. Should be in a settings/profile area rather than inline in the tool.
+
+**5. Beliefs orphaned from practices**
+The data model links beliefs to practices but the UI shows "No practices yet" under each belief with no guidance on what to do.
+
+---
+
+## Next Build Priorities
+
+### 1. Rewrite It restructure (biggest impact, medium effort)
+**Goal:** Make it feel like one coherent thing, not four parallel tools.
+
+Proposed changes:
+- **Remove the four-tab structure.** Replace with a single scrolling view:
+  1. Declaration hero at top (large, prominent)
+  2. Identity shift card (Running as → Becoming)
+  3. Today's practices checklist (tick off inline)
+  4. Balcony reflection below (one form, daily)
+  5. Beliefs section below that
+- **First-time empty state:** explicit prompt that ties to mission work. "This is where your mission work lands. Start by naming your shift." Not a generic empty state.
+- **Keep History as a separate tab** — it's genuinely retrospective and different in nature
+- **Merge the Balcony + Practices into one daily "check in" experience** — one scroll, one save
+
+### 2. Mission 1 → Rewrite It handover (critical for coherence, lower effort)
+- At end of Mission 1 commitment section: CTA → "Take this to Rewrite It and set your declaration"
+- Link pre-populates declaration modal with their Case for Change answer
+- After Mission 2 (Immunity Map): "Running as" field pre-populates from their HALS answer
+- This is a data pass between `answers` table (mission work) and `rewrite_trees` (declaration)
+
+### 3. Body Signal → Rewrite It explicit loop (medium effort)
+- When Lumen reflects on a Balcony entry, explicitly reference the body signal state if one exists
+- Show "Your body was carrying something yesterday — here's what you wrote about how you showed up anyway" when signal was red/amber and balcony shows growth
+- Makes the biometric loop visible to the user
+
+### 4. Missions 4, 5, 7-14 (ongoing)
+Missions 1, 2, 3, 6 are live. The rest need building.
 
 ---
 
@@ -284,18 +371,20 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 ## Outstanding Work
 
 ### Immediate
-- [ ] Test new Lumen prompt with real session — does it feel like Simon or like a checklist?
 - [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens expired — needs OAuth reconnect from their devices)
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
-- [ ] Set Supabase confirmation email template to Rewrite Your Life branding (dashboard: Auth > Email Templates > Confirm signup)
+- [ ] Set Supabase confirmation email template to Rewrite Your Life branding (Auth > Email Templates > Confirm signup)
+- [ ] Verify `daily_state` table populating correctly (load wearable.html, check Supabase)
+
+### Next build
+- [ ] Rewrite It restructure — single scroll view (see Next Build Priorities above)
+- [ ] Mission 1 → Rewrite It handover CTA
+- [ ] Missions 4, 5, 7-14 to build (1, 2, 3, 6 live)
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
 - [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda: most history — due mid-April)
 - [ ] Jackson 30-day follow-up — does Body Signal confirm the identity shift?
-
-### Reframe workbook
-- [ ] Missions 3-5, 7-14 to build (1, 2, 6 live)
 
 ### Infrastructure
 - [ ] Submit Safe Browsing false positive: `safebrowsing.google.com/safebrowsing/report_error/`
@@ -312,9 +401,9 @@ Last updated: 10 Apr 2026
 
 ## How to Start a Session
 1. Fetch this file fresh: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md`
-2. Read outstanding issues
+2. Read outstanding issues and next build priorities
 3. Ask Simon what he wants to work on
-4. Before touching any file: fetch it fresh from GitHub raw URL
+4. Before touching any file: fetch it fresh from GitHub
 5. Run `node --check` on any JS before presenting
 6. Check for non-ASCII chars in any JS file before pushing
 7. Update this README at end of session before closing
@@ -340,10 +429,6 @@ content = open('file.js', 'rb').read().decode('utf-8')
 fixed = re.sub(r'[^\x00-\x7F]', '-', content)
 open('file.js', 'w').write(fixed)
 "
-
-# Convert transcripts locally (if needed)
-cd '/Users/simonlamb/Library/CloudStorage/OneDrive-PurposefulChange/coaching transcripts'
-for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f"; done
 ```
 
 ---
@@ -361,6 +446,7 @@ for f in *.docx; do pandoc "$f" -t plain -o "${f%.docx}.txt" && echo "Done: $f";
 | 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
 | 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
 | 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. Bad session (Jaroslav work) changed Node.js to 24.x and corrupted whoop-data.js with markdown fences — caused 10+ failed builds. Fixed: Node.js pinned back to 20.x in Vercel settings, whoop-data.js restored from clean container copy. Rules 28-32 added. |
+| 14 Apr 2026 | Nav consistency completed across all 4 pages. Dark sticky topbar, identical structure, all Use It links → /use-it.html. use-it.html got auth check + sign out. rewrite.html streak fixed (separate topbar-streak span, email stays in topbar-user). Rules 33-35 added. Full platform audit completed — structural issues with Rewrite It documented. Next build priorities set: Rewrite It restructure + Mission 1→Rewrite It handover. |
 
 ---
 
