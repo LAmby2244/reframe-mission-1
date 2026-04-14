@@ -1,3 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rewrite It — Purposeful Change</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --orange:   #F56914;
+    --yellow:   #FFBE19;
+    --dark:     #0A3228;
+    --mid:      #377364;
+    --light:    #F5E6CD;
+    --white:    #ffffff;
+    --border:   rgba(10,50,40,0.12);
+    --sky:      #9BD7E6;
+    --sky-dark: #2a7a96;
+    --blush:    #FFB9AA;
+    --teal:     #1D9E75;
+    --teal-bg:  #E8F7F1;
+    --purple:   #7F77DD;
+    --purple-bg:#F0EFFE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Rubik', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* -- TOPBAR -- */
+  .topbar {
+    background: var(--dark); padding: 12px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 200;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .topbar-mark {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--orange);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+  .topbar-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+  .topbar-right { display: flex; align-items: center; gap: 20px; }
+  .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+  .topbar-signout {
+    background: none; border: none; color: rgba(255,255,255,0.35);
+    font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif;
+    transition: color 0.2s;
+  }
+  .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+  .topbar-nav { display: flex; align-items: center; gap: 4px; }
+  .topbar-nav-link {
+    font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none;
+    padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+  }
+  .topbar-nav-link:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+  .topbar-nav-link.active { color: var(--yellow); background: rgba(255,190,25,0.1); }
+
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(245,230,205,0.97);
+    backdrop-filter: blur(12px);
+    border-top: 0.5px solid var(--border);
+    padding: 8px 20px 20px;
+    display: flex; gap: 4px;
+  }
+  .bnav-btn {
+    flex: 1; padding: 8px 4px;
+    border: none; background: none;
+    font-family: 'Rubik', sans-serif;
+    font-size: 11px; font-weight: 400;
+    color: var(--mid); cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+  }
+  .bnav-btn:hover { background: rgba(10,50,40,0.06); }
+  .bnav-btn.active { color: var(--dark); font-weight: 500; }
+  .screen { display: none; padding-top: 16px; padding-bottom: 90px; min-height: 100vh; }
+  .screen.active { display: block; }
+  .hidden { display: none !important; }
+  .hero {
+    background: var(--dark);
+    padding: 40px 24px 36px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,190,25,0.08);
+  }
+  .hero-eyebrow {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.12em;
+    color: var(--yellow); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-size: 26px; font-weight: 300; color: white;
+    line-height: 1.25; margin-bottom: 8px;
+  }
+  .hero h1 em { font-style: italic; color: var(--yellow); }
+  .hero-sub { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+  .section { padding: 20px 20px 0; }
+  .section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    color: var(--mid); text-transform: uppercase; margin-bottom: 12px;
+  }
+  .declaration-card {
+    background: var(--white);
+    border-radius: 16px;
+    border: 0.5px solid var(--border);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .declaration-from {
+    font-size: 12px; color: var(--mid); margin-bottom: 6px;
+    padding: 10px 12px; background: var(--light);
+    border-radius: 8px; line-height: 1.4;
+  }
+  .declaration-from span { font-weight: 500; color: rgba(10,50,40,0.5); font-size: 10px; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .declaration-toward {
+    font-size: 14px; color: var(--dark); font-weight: 400; line-height: 1.5;
+    padding: 12px; background: var(--teal-bg);
+    border-radius: 8px; border-left: 3px solid var(--teal);
+  }
+  .declaration-toward span { font-weight: 500; color: var(--teal); font-size: 10px; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .belief-card {
+    background: var(--white);
+    border-radius: 14px;
+    border: 0.5px solid var(--border);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .belief-pair {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
+  }
+  .belief-from-box, .belief-toward-box {
+    padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.4;
+  }
+  .belief-from-box { background: var(--light); color: rgba(10,50,40,0.6); }
+  .belief-toward-box { background: var(--teal-bg); color: var(--dark); }
+  .belief-box-label {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 4px; display: block;
+  }
+  .belief-from-box .belief-box-label { color: rgba(10,50,40,0.4); }
+  .belief-toward-box .belief-box-label { color: var(--teal); }
+  .practices-list { margin-top: 10px; }
+  .practice-pill {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--light); margin-bottom: 6px;
+    cursor: pointer; transition: all 0.15s;
+    border: 0.5px solid transparent;
+  }
+  .practice-pill:hover { border-color: var(--border); background: white; }
+  .practice-pill.done { opacity: 0.5; }
+  .practice-check {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--mid); flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .practice-pill.done .practice-check {
+    background: var(--teal); border-color: var(--teal); color: white; font-size: 10px;
+  }
+  .practice-text { font-size: 13px; line-height: 1.4; color: var(--dark); }
+  .practice-meta { font-size: 11px; color: var(--mid); margin-top: 2px; }
+  .streak-bar {
+    display: flex; gap: 4px; padding: 12px 20px 0;
+  }
+  .streak-day {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .streak-day.done { background: var(--teal); }
+  .streak-day.today { background: var(--yellow); }
+  .balcony-card {
+    background: var(--dark);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 0 20px 16px;
+    position: relative; overflow: hidden;
+  }
+  .balcony-card::before {
+    content: '';
+    position: absolute; bottom: -30px; right: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(255,190,25,0.06);
+  }
+  .balcony-card h3 {
+    font-size: 15px; font-weight: 500; color: white; margin-bottom: 4px;
+  }
+  .balcony-card p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+  .balcony-q { margin-bottom: 12px; }
+  .balcony-q label {
+    font-size: 11px; font-weight: 500; color: var(--yellow);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: block; margin-bottom: 6px;
+  }
+  .balcony-q textarea {
+    width: 100%; background: rgba(255,255,255,0.08);
+    border: 0.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 10px 12px;
+    font-family: 'Rubik', sans-serif; font-size: 13px;
+    color: white; resize: none; min-height: 72px;
+    line-height: 1.5;
+  }
+  .balcony-q textarea::placeholder { color: rgba(255,255,255,0.3); }
+  .balcony-q textarea:focus { outline: none; border-color: var(--yellow); }
+  .lumen-reply {
+    background: rgba(255,190,25,0.1);
+    border: 0.5px solid rgba(255,190,25,0.2);
+    border-radius: 10px; padding: 12px;
+    margin-top: 12px;
+  }
+  .lumen-reply-label {
+    font-size: 10px; font-weight: 500; color: var(--yellow);
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .lumen-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--yellow); animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .lumen-reply p { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+  .btn-primary {
+    width: 100%; padding: 14px;
+    background: var(--orange); color: white;
+    border: none; border-radius: 12px;
+    font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary:hover { background: #d95c10; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary {
+    width: 100%; padding: 12px;
+    background: none; color: var(--mid);
+    border: 0.5px solid var(--border); border-radius: 12px;
+    font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 400;
+    cursor: pointer; transition: all 0.2s; margin-top: 8px;
+  }
+  .btn-secondary:hover { background: rgba(10,50,40,0.05); }
+  .btn-small {
+    padding: 8px 14px; border-radius: 8px;
+    font-family: 'Rubik', sans-serif; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-small.teal { background: var(--teal-bg); color: var(--teal); }
+  .btn-small.orange { background: var(--orange); color: white; }
+  .form-field { margin-bottom: 16px; }
+  .form-field label {
+    font-size: 11px; font-weight: 500; color: var(--mid);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: block; margin-bottom: 6px;
+  }
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%; padding: 11px 14px;
+    background: var(--white); border: 0.5px solid var(--border);
+    border-radius: 10px; font-family: 'Rubik', sans-serif;
+    font-size: 14px; color: var(--dark); resize: none;
+    transition: border-color 0.2s;
+  }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus {
+    outline: none; border-color: var(--teal);
+  }
+  .form-field textarea { min-height: 64px; line-height: 1.5; }
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(10,50,40,0.5);
+    display: flex; align-items: flex-end;
+    backdrop-filter: blur(4px);
+  }
+  .modal {
+    background: var(--light); border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--border); margin: 0 auto 20px;
+  }
+  .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .modal-sub { font-size: 13px; color: var(--mid); margin-bottom: 20px; }
+  .history-card {
+    background: var(--white); border-radius: 12px;
+    border: 0.5px solid var(--border); padding: 16px;
+    margin-bottom: 10px;
+  }
+  .history-date { font-size: 11px; color: var(--mid); margin-bottom: 8px; }
+  .history-q { font-size: 12px; font-weight: 500; color: var(--mid); margin-bottom: 3px; }
+  .history-a { font-size: 13px; color: var(--dark); line-height: 1.5; margin-bottom: 10px; }
+  .signal-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 6px;
+    font-size: 10px; font-weight: 500;
+  }
+  .signal-badge.green { background: #EEF7F1; color: #27AE60; }
+  .signal-badge.amber { background: #FEF5EC; color: #E67E22; }
+  .signal-badge.red { background: #FDF0EE; color: #C0392B; }
+  .empty-state {
+    text-align: center; padding: 48px 32px;
+    color: var(--mid);
+  }
+  .empty-state h3 { font-size: 16px; font-weight: 500; color: var(--dark); margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+  .wa-card {
+    background: var(--white); border-radius: 14px;
+    border: 0.5px solid var(--border); padding: 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .wa-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #25D366; display: flex; align-items: center;
+    justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .wa-text h4 { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+  .wa-text p { font-size: 12px; color: var(--mid); line-height: 1.5; }
+  .divider { height: 0.5px; background: var(--border); margin: 16px 0; }
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .loading { text-align: center; padding: 40px; color: var(--mid); font-size: 13px; }
+  .spinner {
+    width: 24px; height: 24px; border: 2px solid var(--border);
+    border-top-color: var(--teal); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .wa-status {
+    font-size: 11px; color: var(--teal); margin-top: 6px;
+    display: none; padding: 6px 10px; background: var(--teal-bg);
+    border-radius: 8px;
+  }
+  .wa-status.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="topbar-brand">
+    <div class="topbar-mark"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5"/></svg></div>
+    <span class="topbar-name">Rewrite Your Life</span>
+  </a>
+  <nav class="topbar-nav">
     <a href="/dashboard.html" class="topbar-nav-link">Learn It</a>
     <a href="/use-it.html" class="topbar-nav-link">Use It</a>
     <a href="/rewrite.html" class="topbar-nav-link active">Rewrite It</a>
+  </nav>
+  <div class="topbar-right">
+    <span class="topbar-user" id="topbar-user"></span>
+    <button class="topbar-signout" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<!-- == SCREEN: TREE == -->
+<div class="screen active" id="screen-tree">
+  <div class="hero">
+    <div class="hero-eyebrow">Your declaration</div>
+    <h1 id="hero-declaration">The person you are <em>choosing to become</em></h1>
+  </div>
+  <div class="streak-bar" id="streak-bar"></div>
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">Today's practices</div>
+    <div id="todays-practices"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+  </div>
+  <div class="section" style="margin-top:8px;">
+    <div class="section-label">Identity shift</div>
+    <div class="declaration-card" id="identity-card"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+  <div class="section" style="margin-top:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="section-label" style="margin-bottom:0;">Beliefs and values in motion</div>
+      <button class="btn-small teal" onclick="showModal('modal-add-belief')">+ Add</button>
+    </div>
+    <div id="beliefs-list"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+  <div style="padding:16px 20px 0;">
+    <button class="btn-secondary" onclick="showModal('modal-setup')">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:middle;"><path d="M10 2l2 2-7 7H3v-2L10 2z"/><path d="M9 3l2 2"/></svg>Edit declaration
+    </button>
+  </div>
+</div>
+
+<!-- == SCREEN: BALCONY == -->
+<div class="screen" id="screen-balcony">
+  <div class="hero" style="padding-bottom:28px;">
+    <div class="hero-eyebrow">Daily practice</div>
+    <h1>The <em>balcony</em> view</h1>
+    <p class="hero-sub">Looking back and forward from a place of perspective.</p>
+  </div>
+  <div style="padding:20px 0 0;">
+    <div class="balcony-card fade-in" id="balcony-form">
+      <h3>Looking back</h3>
+      <p>From the balcony, you can see clearly.</p>
+      <div class="balcony-q">
+        <label>Where did I act from the more whole version of myself today?</label>
+        <textarea id="q-whole" placeholder="Even something small counts..."></textarea>
+      </div>
+      <div class="balcony-q">
+        <label>What do I appreciate about how I showed up?</label>
+        <textarea id="q-appreciate" placeholder="What was present today that matters..."></textarea>
+      </div>
+      <div class="divider" style="background:rgba(255,255,255,0.1);"></div>
+      <h3 style="margin-bottom:4px;margin-top:4px;">Looking forward</h3>
+      <div class="balcony-q" style="margin-top:12px;">
+        <label>One thing tomorrow I want to bring my declaration into</label>
+        <textarea id="q-forward" placeholder="One specific moment or context..."></textarea>
+      </div>
+      <div id="balcony-lumen" class="hidden">
+        <div class="lumen-reply">
+          <div class="lumen-reply-label"><div class="lumen-dot"></div> Lumen</div>
+          <p id="lumen-balcony-text"></p>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:16px;background:var(--yellow);color:var(--dark);" onclick="saveBalcony()">Save and reflect</button>
+    </div>
+    <div id="balcony-done" class="hidden" style="padding:0 20px;">
+      <div style="text-align:center;padding:32px 0 20px;">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><circle cx="16" cy="16" r="13"/><path d="M10 16l4 4 8-8"/></svg>
+        <div style="font-size:15px;font-weight:500;color:var(--dark);margin-bottom:4px;">Balcony practice complete</div>
+        <div style="font-size:13px;color:var(--mid);">You showed up today.</div>
+      </div>
+      <div id="todays-entry-display"></div>
+    </div>
+  </div>
+</div>
+
+<!-- == SCREEN: PRACTICES == -->
+<div class="screen" id="screen-practices">
+  <div style="padding:20px 20px 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <div style="font-size:18px;font-weight:500;">Your practices</div>
+        <div style="font-size:13px;color:var(--mid);">The votes you cast each day</div>
+      </div>
+      <button class="btn-small orange" onclick="showModal('modal-add-practice')">+ Practice</button>
+    </div>
+    <div id="all-practices-list"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+  </div>
+  <div class="section" style="margin-top:8px;">
+    <div class="section-label">Daily nudge</div>
+    <div class="wa-card">
+      <div class="wa-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 10c0 4.4-3.6 8-8 8a7.9 7.9 0 01-4.1-1.1L2 18l1.1-3.9A8 8 0 1118 10z"/>
+          <path d="M7 9h.01M10 9h.01M13 9h.01"/>
+        </svg>
+      </div>
+      <div class="wa-text">
+        <h4>WhatsApp balcony reminder</h4>
+        <p>Get your daily balcony practice prompt via WhatsApp at a time that works for you.</p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+      <div class="form-field" style="margin-bottom:0;">
+        <label>Your number</label>
+        <input type="tel" id="wa-number" placeholder="+44 7xxx" />
+      </div>
+      <div class="form-field" style="margin-bottom:0;">
+        <label>Daily time (UTC &mdash; BST add 1hr)</label>
+        <input type="time" id="wa-time" value="20:00" />
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--mid);margin-top:6px;padding:0 2px;">
+      UK users: set 1 hour earlier than you want. e.g. for 7pm BST, enter 18:00.
+    </div>
+    <div class="wa-status" id="wa-status"></div>
+    <button class="btn-small teal" style="margin-top:10px;width:100%;padding:10px;" onclick="saveWaSettings()">
+      Save nudge settings
+    </button>
+  </div>
+</div>
+
+<!-- == SCREEN: HISTORY == -->
+<div class="screen" id="screen-history">
+  <div style="padding:20px 20px 0;">
+    <div style="font-size:18px;font-weight:500;margin-bottom:4px;">Pattern over time</div>
+    <div style="font-size:13px;color:var(--mid);margin-bottom:20px;">Lumen reads across all of it.</div>
+    <div id="history-list"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="bnav-btn active" onclick="showScreen('tree',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17V8"/><path d="M10 8C10 8 7 5.5 5 4c1 2.5 2 4 5 4z"/><path d="M10 8C10 8 13 5.5 15 4c-1 2.5-2 4-5 4z"/><path d="M10 12C10 12 7 10 5 8.5c1 2 2.5 3.5 5 3.5z"/><path d="M10 12C10 12 13 10 15 8.5c-1 2-2.5 3.5-5 3.5z"/></svg>
+    <span>Tree</span>
+  </button>
+  <button class="bnav-btn" onclick="showScreen('balcony',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L2 10h3v7h4v-4h2v4h4v-7h3L10 3z"/></svg>
+    <span>Balcony</span>
+  </button>
+  <button class="bnav-btn" onclick="showScreen('practices',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 3"/></svg>
+    <span>Practices</span>
+  </button>
+  <button class="bnav-btn" onclick="showScreen('history',this)">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M7 2v4M13 2v4M3 9h14"/><path d="M7 13h2M7 16h4"/></svg>
+    <span>History</span>
+  </button>
+</nav>
+
+<!-- MODALS -->
+<div class="modal-backdrop hidden" id="modal-setup" onclick="closeModal(event,'modal-setup')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Your declaration</h2>
+    <p class="modal-sub">Define the identity shift at the heart of your Rewrite.</p>
+    <div class="form-field"><label>Who I have been running as (the HALS)</label><textarea id="setup-from" placeholder="e.g. Someone who proves worth through achievement..."></textarea></div>
+    <div class="form-field"><label>Who I am choosing to become</label><textarea id="setup-toward" placeholder="e.g. Someone who leads from security, not from fear..."></textarea></div>
+    <div class="form-field"><label>The declaration (I am choosing to be someone who...)</label><textarea id="setup-declaration" placeholder="I am choosing to be someone who..."></textarea></div>
+    <button class="btn-primary" onclick="saveDeclaration()">Save declaration</button>
+    <button class="btn-secondary" onclick="closeModalById('modal-setup')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="modal-add-belief" onclick="closeModal(event,'modal-add-belief')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Add a belief or value</h2>
+    <p class="modal-sub">Name what is shifting as you make this move.</p>
+    <div class="form-field"><label>Type</label><select id="belief-type"><option value="belief">Belief</option><option value="value">Value</option></select></div>
+    <div class="form-field"><label>From (the old)</label><textarea id="belief-from" placeholder="e.g. My worth is conditional on my performance..."></textarea></div>
+    <div class="form-field"><label>Toward (the new)</label><textarea id="belief-toward" placeholder="e.g. My presence has value independent of output..."></textarea></div>
+    <button class="btn-primary" onclick="saveBelief()">Save</button>
+    <button class="btn-secondary" onclick="closeModalById('modal-add-belief')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="modal-add-practice" onclick="closeModal(event,'modal-add-practice')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <h2>Add a practice</h2>
+    <p class="modal-sub">The specific vote you cast each day for the new identity.</p>
+    <div class="form-field"><label>What - the specific act</label><textarea id="p-what" placeholder="e.g. When I notice the urge to over-explain, I stop at two sentences..."></textarea></div>
+    <div class="form-field"><label>When - time or trigger</label><input type="text" id="p-when" placeholder="e.g. Daily 7am / When I'm about to go quiet in a meeting"/></div>
+    <div class="form-field"><label>Where - context</label><input type="text" id="p-where" placeholder="e.g. Leadership meetings / At home with family"/></div>
+    <div class="form-field"><label>How - the method</label><input type="text" id="p-how" placeholder="e.g. Pause, breathe, ask a question instead"/></div>
+    <div class="form-field"><label>Who knows / supports you</label><input type="text" id="p-who" placeholder="e.g. Christina / My coach"/></div>
+    <div class="form-field"><label>The HALS being revised</label><textarea id="p-hals" placeholder="e.g. The strategy of staying silent to avoid judgement..."></textarea></div>
+    <div class="form-field"><label>I will know it's working when...</label><textarea id="p-measure" placeholder="e.g. I stop rehearsing conversations before they happen..."></textarea></div>
+    <button class="btn-primary" onclick="savePractice()">Save practice</button>
+    <button class="btn-secondary" onclick="closeModalById('modal-add-practice')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="modal-practice-detail" onclick="closeModal(event,'modal-practice-detail')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="practice-detail-content"></div>
+    <button class="btn-secondary" onclick="closeModalById('modal-practice-detail')">Close</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let authToken = null;
+let userId = null;
+let currentTree = null;
+let beliefs = [];
+let practices = [];
+let diaryEntries = [];
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = '/signin.html';
+}
+
+async function loadAll() {
+  await loadTree();
+  await loadBeliefs();
+  await loadPractices();
+  await loadDiary();
+  await loadNudgeSettings();
+  renderTree();
+  renderPractices();
+  renderHistory();
+  renderBalcony();
+  renderStreak();
+}
+
+async function loadNudgeSettings() {
+  if (!userId) return;
+  try {
+    const { data } = await sb.from('rewrite_nudge_settings')
+      .select('*').eq('user_id', userId).limit(1);
+    if (data && data.length) {
+      document.getElementById('wa-number').value = data[0].whatsapp_number || '';
+      document.getElementById('wa-time').value = data[0].nudge_time ? data[0].nudge_time.slice(0,5) : '20:00';
+      const status = document.getElementById('wa-status');
+      status.textContent = 'Nudge active - set to ' + data[0].nudge_time.slice(0,5) + ' UTC';
+      status.classList.add('visible');
+    }
+  } catch(e) {}
+}
+
+async function loadTree() {
+  if (!userId) return;
+  const { data } = await sb.from('rewrite_trees')
+    .select('*').eq('user_id', userId).eq('status', 'active').limit(1);
+  currentTree = data && data.length ? data[0] : null;
+}
+
+async function loadBeliefs() {
+  if (!currentTree) return;
+  const { data } = await sb.from('rewrite_beliefs')
+    .select('*').eq('tree_id', currentTree.id).order('sort_order');
+  beliefs = data || [];
+}
+
+async function loadPractices() {
+  if (!currentTree) return;
+  const { data } = await sb.from('rewrite_practices')
+    .select('*').eq('tree_id', currentTree.id).eq('status', 'active');
+  practices = data || [];
+}
+
+async function loadDiary() {
+  if (!userId) return;
+  const { data } = await sb.from('rewrite_diary')
+    .select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
+  diaryEntries = data || [];
+}
+
+function renderTree() {
+  const decEl = document.getElementById('hero-declaration');
+  if (currentTree) {
+    decEl.innerHTML = currentTree.declaration || 'The person you are <em>choosing to become</em>';
+  } else {
+    decEl.innerHTML = 'The person you are <em>choosing to become</em>';
+  }
+
+  const card = document.getElementById('identity-card');
+  if (currentTree) {
+    card.innerHTML = `
+      <div class="declaration-from"><span>Running as</span>${currentTree.identity_from || '-'}</div>
+      <div style="text-align:center;color:var(--mid);font-size:18px;padding:6px 0;">&#8595;</div>
+      <div class="declaration-toward"><span>Becoming</span>${currentTree.identity_toward || '-'}</div>
+    `;
+  } else {
+    card.innerHTML = `
+      <div class="empty-state" style="padding:24px 0;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><path d="M20 34V16"/><path d="M20 16C20 16 14 11 10 8c2 5 4 8 10 8z"/><path d="M20 16C20 16 26 11 30 8c-2 5-4 8-10 8z"/><path d="M20 24C20 24 14 20 10 17c2 4 5 7 10 7z"/><path d="M20 24C20 24 26 20 30 17c-2 4-5 7-10 7z"/></svg>
+        <h3>Start your declaration</h3><p>Name the shift you are making.</p>
+      </div>
+      <button class="btn-primary" onclick="showModal('modal-setup')">Create declaration</button>
+    `;
+  }
+
+  const bl = document.getElementById('beliefs-list');
+  if (!beliefs.length) {
+    bl.innerHTML = `<div style="padding:12px 0;color:var(--mid);font-size:13px;">No beliefs or values added yet.</div>`;
+  } else {
+    bl.innerHTML = beliefs.map(b => `
+      <div class="belief-card fade-in">
+        <div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:10px;">${b.type}</div>
+        <div class="belief-pair">
+          <div class="belief-from-box"><span class="belief-box-label">From</span>${b.belief_from}</div>
+          <div class="belief-toward-box"><span class="belief-box-label">Toward</span>${b.belief_toward}</div>
+        </div>
+        <div class="practices-list">${renderBeliefPractices(b.id)}</div>
+      </div>
+    `).join('');
+  }
+
+  renderTodaysPractices();
+}
+
+function renderBeliefPractices(beliefId) {
+  const bps = practices.filter(p => p.belief_id === beliefId);
+  if (!bps.length) return '<div style="font-size:12px;color:var(--mid);padding:4px 0;">No practices yet</div>';
+  return bps.map(p => `
+    <div class="practice-pill" onclick="showPracticeDetail('${p.id}')">
+      <div class="practice-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="3.5"/><path d="M5 3v2l1.5 1.5"/></svg></div>
+      <div><div class="practice-text">${p.what}</div><div class="practice-meta">${p.when_trigger || ''}</div></div>
+    </div>
+  `).join('');
+}
+
+function renderTodaysPractices() {
+  const container = document.getElementById('todays-practices');
+  if (!practices.length) {
+    container.innerHTML = `<div style="font-size:13px;color:var(--mid);padding:4px 0;">No practices yet.</div>`;
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  container.innerHTML = practices.map(p => {
+    const checkedToday = diaryEntries.some(d => d.practice_id === p.id && d.created_at && d.created_at.startsWith(today));
+    return `
+      <div class="practice-pill ${checkedToday ? 'done' : ''}" onclick="togglePractice('${p.id}',${checkedToday})">
+        <div class="practice-check">${checkedToday ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5l2.5 2.5L8 3"/></svg>' : ''}</div>
+        <div><div class="practice-text">${p.what}</div><div class="practice-meta">${p.when_trigger || ''}</div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStreak() {
+  const bar = document.getElementById('streak-bar');
+  const today = new Date().toISOString().split('T')[0];
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().split('T')[0]); }
+  bar.innerHTML = days.map(d => {
+    const hasEntry = diaryEntries.some(e => e.created_at && e.created_at.startsWith(d));
+    const isToday = d === today;
+    return `<div class="streak-day ${hasEntry ? 'done' : ''} ${isToday && !hasEntry ? 'today' : ''}"></div>`;
+  }).join('');
+  let streak = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    if (diaryEntries.some(e => e.created_at && e.created_at.startsWith(ds))) streak++;
+    else break;
+  }
+  document.getElementById('topbar-user').textContent = streak > 0 ? streak + ' day streak' : '';
+}
+
+function renderBalcony() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayEntry = diaryEntries.find(e => e.created_at && e.created_at.startsWith(today) && e.looked_back);
+  if (todayEntry) {
+    document.getElementById('balcony-form').classList.add('hidden');
+    document.getElementById('balcony-done').classList.remove('hidden');
+    document.getElementById('todays-entry-display').innerHTML = `
+      <div class="history-card">
+        <div class="history-q">Where I acted from my more whole self</div>
+        <div class="history-a">${todayEntry.looked_back || '-'}</div>
+        <div class="history-q">What I appreciated</div>
+        <div class="history-a">${todayEntry.appreciated || '-'}</div>
+        <div class="history-q">Looking forward</div>
+        <div class="history-a">${todayEntry.looked_forward || '-'}</div>
+        ${todayEntry.lumen_reply ? `<div class="lumen-reply" style="background:rgba(55,115,100,0.08);border-color:rgba(55,115,100,0.2);"><div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);"></div> Lumen</div><p style="color:var(--dark);">${todayEntry.lumen_reply}</p></div>` : ''}
+      </div>
+    `;
+  }
+}
+
+async function saveBalcony() {
+  const whole = document.getElementById('q-whole').value.trim();
+  const appreciate = document.getElementById('q-appreciate').value.trim();
+  const forward = document.getElementById('q-forward').value.trim();
+  if (!whole && !appreciate) return;
+  const btn = document.querySelector('#balcony-form .btn-primary');
+  btn.textContent = 'Reflecting...'; btn.disabled = true;
+  let signalState = null;
+  try {
+    const { data } = await sb.from('wearable_entries').select('signal_state').eq('user_id', userId).order('created_at', { ascending: false }).limit(1);
+    if (data && data.length) signalState = data[0].signal_state;
+  } catch(e) {}
+  const { data: entry } = await sb.from('rewrite_diary').insert({
+    user_id: userId, tree_id: currentTree?.id,
+    looked_back: whole, appreciated: appreciate, looked_forward: forward,
+    body_signal_state: signalState, created_at: new Date().toISOString()
+  }).select().single();
+  try {
+    const recent = diaryEntries.slice(0, 5).map(e => `[${e.created_at?.split('T')[0]}] ${e.looked_back || ''} / ${e.appreciated || ''}`).join('\n');
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      body: JSON.stringify({
+        systemExtra: `You are Lumen - the AI mirror companion for the Reframe platform.\n\nThis is a Balcony Practice entry.\n\nTheir declaration: "${currentTree?.declaration || 'not yet set'}"\nIdentity shift: From "${currentTree?.identity_from || '-'}" toward "${currentTree?.identity_toward || '-'}"\nBody Signal state: ${signalState || 'unknown'}\n\nRecent entries:\n${recent || 'First entry.'}\n\nToday:\nMore whole self: "${whole}"\nAppreciated: "${appreciate}"\nLooking forward: "${forward}"\n\nRULES: 2-3 sentences. One observation across entries. One reflection using their own words. No advice. Mirror only.`,
+        messages: [{ role: 'user', content: 'Please reflect on what I have written.' }]
+      })
+    });
+    const lumenData = await res.json();
+    const reply = lumenData.reply || '';
+    if (reply && entry) {
+      await sb.from('rewrite_diary').update({ lumen_reply: reply }).eq('id', entry.id);
+      document.getElementById('balcony-lumen').classList.remove('hidden');
+      document.getElementById('lumen-balcony-text').textContent = reply;
+      setTimeout(async () => { await loadDiary(); renderBalcony(); renderStreak(); }, 2000);
+    } else { await loadDiary(); renderBalcony(); renderStreak(); }
+  } catch(e) { await loadDiary(); renderBalcony(); renderStreak(); }
+}
+
+async function togglePractice(practiceId, isDone) {
+  if (isDone) return;
+  await sb.from('rewrite_diary').insert({ user_id: userId, tree_id: currentTree?.id, practice_id: practiceId, created_at: new Date().toISOString() });
+  await loadDiary(); renderTodaysPractices(); renderStreak();
+}
+
+async function saveDeclaration() {
+  const from = document.getElementById('setup-from').value.trim();
+  const toward = document.getElementById('setup-toward').value.trim();
+  const declaration = document.getElementById('setup-declaration').value.trim();
+  if (!declaration) return;
+  if (currentTree) {
+    await sb.from('rewrite_trees').update({ identity_from: from, identity_toward: toward, declaration }).eq('id', currentTree.id);
+  } else {
+    await sb.from('rewrite_trees').insert({ user_id: userId, identity_from: from, identity_toward: toward, declaration, status: 'active' });
+  }
+  await loadTree(); renderTree(); closeModalById('modal-setup');
+}
+
+async function saveBelief() {
+  if (!currentTree) return;
+  const type = document.getElementById('belief-type').value;
+  const from = document.getElementById('belief-from').value.trim();
+  const toward = document.getElementById('belief-toward').value.trim();
+  if (!from || !toward) return;
+  await sb.from('rewrite_beliefs').insert({ tree_id: currentTree.id, user_id: userId, belief_from: from, belief_toward: toward, type, sort_order: beliefs.length });
+  await loadBeliefs(); renderTree(); closeModalById('modal-add-belief');
+  document.getElementById('belief-from').value = '';
+  document.getElementById('belief-toward').value = '';
+}
+
+async function savePractice() {
+  if (!currentTree) return;
+  const what = document.getElementById('p-what').value.trim();
+  if (!what) return;
+  await sb.from('rewrite_practices').insert({
+    tree_id: currentTree.id, user_id: userId, what,
+    when_trigger: document.getElementById('p-when').value.trim(),
+    where_context: document.getElementById('p-where').value.trim(),
+    how_method: document.getElementById('p-how').value.trim(),
+    who_accountability: document.getElementById('p-who').value.trim(),
+    hals_being_revised: document.getElementById('p-hals').value.trim(),
+    measure: document.getElementById('p-measure').value.trim(),
+    status: 'active'
+  });
+  await loadPractices(); renderTree(); renderPractices(); closeModalById('modal-add-practice');
+  ['p-what','p-when','p-where','p-how','p-who','p-hals','p-measure'].forEach(id => { document.getElementById(id).value = ''; });
+}
+
+function renderPractices() {
+  const list = document.getElementById('all-practices-list');
+  if (!practices.length) {
+    list.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><circle cx="20" cy="20" r="14"/><path d="M20 12v8l5 5"/></svg><h3>No practices yet</h3><p>Add the specific acts that cast votes for your new identity.</p></div>`;
+    return;
+  }
+  list.innerHTML = practices.map(p => `
+    <div class="history-card fade-in" onclick="showPracticeDetail('${p.id}')">
+      <div style="font-size:14px;font-weight:500;margin-bottom:6px;">${p.what}</div>
+      ${p.when_trigger ? `<div style="font-size:12px;color:var(--mid);margin-bottom:4px;">${p.when_trigger}</div>` : ''}
+      ${p.hals_being_revised ? `<div style="font-size:12px;color:var(--mid);">Revising: ${p.hals_being_revised.slice(0,80)}${p.hals_being_revised.length > 80 ? '...' : ''}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function showPracticeDetail(id) {
+  const p = practices.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('practice-detail-content').innerHTML = `
+    <h2 style="margin-bottom:4px;">Practice</h2>
+    <p class="modal-sub" style="margin-bottom:16px;">${p.what}</p>
+    ${p.when_trigger ? `<div class="form-field"><label>When</label><div style="font-size:14px;padding:10px 0;">${p.when_trigger}</div></div>` : ''}
+    ${p.where_context ? `<div class="form-field"><label>Where</label><div style="font-size:14px;padding:10px 0;">${p.where_context}</div></div>` : ''}
+    ${p.how_method ? `<div class="form-field"><label>How</label><div style="font-size:14px;padding:10px 0;">${p.how_method}</div></div>` : ''}
+    ${p.who_accountability ? `<div class="form-field"><label>Who knows</label><div style="font-size:14px;padding:10px 0;">${p.who_accountability}</div></div>` : ''}
+    ${p.hals_being_revised ? `<div class="form-field"><label>HALS being revised</label><div style="font-size:14px;padding:10px 0;">${p.hals_being_revised}</div></div>` : ''}
+    ${p.measure ? `<div style="background:var(--teal-bg);border-radius:10px;padding:12px;border-left:3px solid var(--teal);"><div style="font-size:10px;font-weight:500;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">I will know it's working when...</div><div style="font-size:14px;color:var(--dark);">${p.measure}</div></div>` : ''}
+  `;
+  showModal('modal-practice-detail');
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const balconyEntries = diaryEntries.filter(e => e.looked_back);
+  if (!balconyEntries.length) {
+    list.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="var(--mid)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><rect x="6" y="8" width="28" height="26" rx="3"/><path d="M14 4v8M26 4v8M6 18h28"/><path d="M14 26h6M14 32h10"/></svg><h3>No entries yet</h3><p>Complete your first balcony practice and the pattern will begin to form here.</p></div>`;
+    return;
+  }
+  list.innerHTML = balconyEntries.map(e => `
+    <div class="history-card fade-in">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="history-date">${formatDate(e.created_at)}</div>
+        ${e.body_signal_state ? `<div class="signal-badge ${getSignalClass(e.body_signal_state)}">${formatState(e.body_signal_state)}</div>` : ''}
+      </div>
+      <div class="history-q">More whole self</div>
+      <div class="history-a">${e.looked_back || '-'}</div>
+      ${e.appreciated ? `<div class="history-q">Appreciated</div><div class="history-a">${e.appreciated}</div>` : ''}
+      ${e.lumen_reply ? `<div class="lumen-reply" style="background:rgba(55,115,100,0.06);border-color:rgba(55,115,100,0.15);"><div class="lumen-reply-label" style="color:var(--mid);"><div class="lumen-dot" style="background:var(--mid);animation:none;"></div> Lumen</div><p style="color:var(--dark);">${e.lumen_reply}</p></div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function saveWaSettings() {
+  const number = document.getElementById('wa-number').value.trim();
+  const time = document.getElementById('wa-time').value;
+  if (!number || !userId) return;
+  await sb.from('rewrite_nudge_settings').upsert({
+    user_id: userId, whatsapp_number: number, nudge_time: time,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+  const status = document.getElementById('wa-status');
+  status.textContent = 'Saved - nudge active at ' + time + ' UTC';
+  status.classList.add('visible');
+  const btn = document.querySelector('[onclick="saveWaSettings()"]');
+  btn.textContent = 'Saved';
+  setTimeout(() => { btn.textContent = 'Save nudge settings'; }, 2000);
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function getSignalClass(state) {
+  if (!state) return '';
+  if (state.startsWith('grn_')) return 'green';
+  if (state.startsWith('amb_')) return 'amber';
+  if (state.startsWith('red_')) return 'red';
+  return '';
+}
+
+function formatState(state) {
+  const map = {
+    'grn_thriving': 'Thriving', 'grn_bounce': 'Bouncing back', 'grn_streak': 'Green streak',
+    'amb_load': 'Carrying something', 'amb_trend': 'Building quietly',
+    'amb_recovery': 'Coming back', 'amb_volatile': 'Volatile signal',
+    'red_psych': 'Psychological load', 'red_trend': 'Sustained load', 'red_strain': 'High strain'
+  };
+  return map[state] || state;
+}
+
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+function showModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  if (id === 'modal-setup' && currentTree) {
+    document.getElementById('setup-from').value = currentTree.identity_from || '';
+    document.getElementById('setup-toward').value = currentTree.identity_toward || '';
+    document.getElementById('setup-declaration').value = currentTree.declaration || '';
+  }
+}
+
+function closeModal(event, id) { if (event.target === document.getElementById(id)) closeModalById(id); }
+function closeModalById(id) { document.getElementById(id).classList.add('hidden'); }
+
+window.addEventListener('load', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    authToken = session.access_token;
+    userId = session.user.id;
+    document.getElementById('topbar-user').textContent = session.user.email;
+    await loadAll();
+  } else {
+    window.location.href = '/signin.html?next=/rewrite.html';
+  }
+});
+</script>
+</body>
+</html>
