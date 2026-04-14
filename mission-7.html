@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mission 07 — Feedback is a Gift | Reframe</title>
+  <title>Mission 07 - Feedback is a Gift | Reframe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
@@ -32,27 +32,6 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'Rubik', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
-    /* AUTH */
-    .auth-screen { position: fixed; inset: 0; z-index: 1000; background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .auth-screen.hidden { display: none; }
-    .auth-box { background: var(--light); border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; position: relative; overflow: hidden; }
-    .auth-box::before { content: ''; position: absolute; top: -60px; right: -60px; width: 160px; height: 160px; background: var(--accent); border-radius: 50%; opacity: 0.25; }
-    .auth-logo { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--dark); text-transform: uppercase; margin-bottom: 24px; position: relative; z-index: 1; }
-    .auth-box h2 { font-size: 28px; font-weight: 700; color: var(--dark); margin-bottom: 8px; position: relative; z-index: 1; }
-    .auth-box p { font-size: 14px; font-weight: 300; color: var(--mid); line-height: 1.7; margin-bottom: 28px; position: relative; z-index: 1; }
-    .auth-field { margin-bottom: 16px; position: relative; z-index: 1; }
-    .auth-field label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 6px; }
-    .auth-field input { width: 100%; border: 2px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: 'Rubik', sans-serif; font-size: 15px; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s; }
-    .auth-field input:focus { border-color: var(--accent-dark); }
-    .auth-submit { width: 100%; background: var(--dark); color: white; border: none; border-radius: 20px; padding: 14px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; margin-top: 8px; transition: opacity 0.2s; position: relative; z-index: 1; }
-    .auth-submit:hover { opacity: 0.87; }
-    .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--mid); position: relative; z-index: 1; }
-    .auth-toggle button { background: none; border: none; color: var(--dark); cursor: pointer; font-size: 13px; font-weight: 500; font-family: 'Rubik', sans-serif; }
-    .auth-error { background: #fee; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #C0392B; margin-bottom: 16px; display: none; position: relative; z-index: 1; }
-    .auth-error.show { display: block; }
-    .auth-saving { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: rgba(255,255,255,0.7); font-size: 12px; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
-    .auth-saving.show { opacity: 1; }
-
     /* USER BAR */
     .auth-user-bar { background: var(--dark); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; }
     .auth-user-left { display: flex; align-items: center; gap: 20px; }
@@ -61,6 +40,8 @@
     .auth-user-email { font-size: 12px; color: rgba(255,255,255,0.35); }
     .auth-signout { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
     .auth-signout:hover { color: rgba(255,255,255,0.7); }
+    .auth-saving { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: rgba(255,255,255,0.7); font-size: 12px; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+    .auth-saving.show { opacity: 1; }
 
     /* HERO */
     .hero { background: var(--dark); padding: 64px 40px 52px; position: relative; overflow: hidden; }
@@ -120,9 +101,7 @@
     .feedback-header-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-dark); }
     .feedback-header-line { flex: 1; height: 1px; background: var(--border); }
     .feedback-count { font-size: 12px; color: var(--mid); }
-
     .feedback-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
-
     .feedback-card { background: var(--white); border-radius: 16px; border: 2px solid var(--border); overflow: hidden; transition: border-color 0.2s; }
     .feedback-card:hover { border-color: var(--accent); }
     .feedback-card-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; background: var(--accent-light); cursor: pointer; }
@@ -133,10 +112,8 @@
     .feedback-card-status.pending { background: var(--light); color: var(--mid); }
     .feedback-card-status.received { background: #e8f7ef; color: #2D7A4F; }
     .feedback-card-toggle { font-size: 11px; color: var(--accent-dark); font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-
     .feedback-card-body { padding: 24px; display: none; border-top: 1px solid var(--border); }
     .feedback-card-body.open { display: block; }
-
     .feedback-field { margin-bottom: 20px; }
     .feedback-field:last-of-type { margin-bottom: 0; }
     .feedback-field-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 8px; display: block; }
@@ -144,19 +121,16 @@
     .feedback-field input[type="text"] { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 12px 16px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 300; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s; }
     .feedback-field input[type="text"]:focus { border-color: var(--accent-dark); }
     .feedback-field input[type="text"]::placeholder { color: rgba(10,50,40,0.25); }
-
     .ebi-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
     .ebi-col { }
     .ebi-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
     .ebi-plus { background: #e8f7ef; color: #2D7A4F; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
     .ebi-delta { background: var(--yellow-light); color: #8a6200; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
     .ebi-col textarea { min-height: 100px; font-size: 13px; }
-
     .status-toggle { display: flex; gap: 8px; margin-top: 8px; }
     .status-btn { background: var(--light); border: 1.5px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; color: var(--mid); }
     .status-btn.active-pending { background: var(--light); border-color: var(--mid); color: var(--mid); }
     .status-btn.active-received { background: #e8f7ef; border-color: #2D7A4F; color: #2D7A4F; }
-
     .feedback-card-footer { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .feedback-lumen-btn { background: var(--yellow-light); border: 1.5px solid var(--yellow); color: var(--dark); border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
     .feedback-lumen-btn:hover { background: var(--yellow); }
@@ -261,22 +235,6 @@
 </head>
 <body>
 
-  <!-- AUTH -->
-  <div class="auth-screen" id="auth-screen">
-    <div class="auth-box">
-      <div class="auth-logo">Purposeful Change - Reframe</div>
-      <h2 id="auth-title">Welcome back</h2>
-      <p id="auth-desc">Sign in to continue your journey. Your reflections are saved and waiting.</p>
-      <div class="auth-error" id="auth-error"></div>
-      <div class="auth-field"><label>Email</label><input type="email" id="auth-email" placeholder="your@email.com" /></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="auth-password" placeholder="..." onkeydown="if(event.key==='Enter') authSubmit()" /></div>
-      <button class="auth-submit" id="auth-btn" onclick="authSubmit()">Sign in</button>
-      <div class="auth-toggle">
-        <span id="auth-toggle-text">Don't have an account?</span>
-        <button onclick="toggleAuth()" id="auth-toggle-btn">Create one</button>
-      </div>
-    </div>
-  </div>
   <div class="auth-saving" id="auth-saving">Saving...</div>
 
   <!-- USER BAR -->
@@ -334,7 +292,7 @@
 
   <div class="body">
 
-    <!-- PART 1 - PREPARE -->
+    <!-- PART 1 -->
     <div class="step-panel active" id="panel-1">
       <div class="part-badge">Part 1</div>
       <div class="part-title">Experiment - Prepare and Ask for Feedback</div>
@@ -374,14 +332,14 @@
       </div>
     </div>
 
-    <!-- PART 2 - REFLECT -->
+    <!-- PART 2 -->
     <div class="step-panel" id="panel-2">
       <div class="part-badge">Part 2</div>
       <div class="part-title">Reflect - Sit with What You Heard</div>
       <p class="part-body">After completing all five conversations, step back and look at everything together. What is the data actually telling you?</p>
 
       <div class="insight-box">
-        <div class="insight-icon">o</div>
+        <div class="insight-icon">?</div>
         <div>
           <div class="insight-title">The question before the questions</div>
           <div class="insight-body">What is the one piece of feedback you already know to be true - but no one has had the courage to say to you directly?</div>
@@ -436,11 +394,11 @@
       </div>
     </div>
 
-    <!-- PART 3 - SHARE -->
+    <!-- PART 3 -->
     <div class="step-panel" id="panel-3">
       <div class="part-badge">Part 3</div>
       <div class="part-title">Share - Another Perspective on What You Heard</div>
-      <p class="part-body">After reflecting alone, take your insights to a friend or trusted partner who can offer an outside view. Someone who knows you well enough to see what you might still be missing.</p>
+      <p class="part-body">After reflecting alone, take your insights to a friend or trusted partner who can offer an outside view.</p>
 
       <div class="share-prompt">
         <div class="share-prompt-label">Talk to them about:</div>
@@ -485,7 +443,7 @@
       </div>
     </div>
 
-    <!-- PART 4 - WHAT NEXT -->
+    <!-- PART 4 -->
     <div class="step-panel" id="panel-4">
       <div class="part-badge">Part 4</div>
       <div class="part-title">What Next - Name the Shift</div>
@@ -548,40 +506,19 @@
 
     window.addEventListener('load', async () => {
       const { data: { session } } = await sb.auth.getSession();
-      if (session) { currentUser = session.user; showWorkbook(); await loadAnswers(); await loadFeedbackCards(); await loadPrevMissionContext(); }
+      if (session) {
+        currentUser = session.user;
+        document.getElementById('user-bar').style.display = 'flex';
+        document.getElementById('user-email').textContent = currentUser.email;
+        await loadAnswers();
+        await loadFeedbackCards();
+        await loadPrevMissionContext();
+      } else {
+        window.location.href = '/signin.html?next=/mission-7.html';
+      }
     });
 
-    let isSignUp = false;
-    function toggleAuth() {
-      isSignUp = !isSignUp;
-      document.getElementById('auth-title').textContent = isSignUp ? 'Create your account' : 'Welcome back';
-      document.getElementById('auth-desc').textContent = isSignUp ? 'Your reflections will be saved so you can return anytime.' : 'Sign in to continue your journey.';
-      document.getElementById('auth-btn').textContent = isSignUp ? 'Create account' : 'Sign in';
-      document.getElementById('auth-toggle-text').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
-      document.getElementById('auth-toggle-btn').textContent = isSignUp ? 'Sign in' : 'Create one';
-      document.getElementById('auth-error').classList.remove('show');
-    }
-
-    async function authSubmit() {
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
-      const btn = document.getElementById('auth-btn');
-      const errEl = document.getElementById('auth-error');
-      errEl.classList.remove('show'); btn.textContent = 'Please wait...'; btn.disabled = true;
-      try {
-        const result = isSignUp ? await sb.auth.signUp({ email, password }) : await sb.auth.signInWithPassword({ email, password });
-        if (result.error) { errEl.textContent = result.error.message; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
-        else { currentUser = result.data.user; showWorkbook(); await loadAnswers(); await loadFeedbackCards(); await loadPrevMissionContext(); }
-      } catch(e) { errEl.textContent = 'Something went wrong.'; errEl.classList.add('show'); btn.textContent = isSignUp ? 'Create account' : 'Sign in'; btn.disabled = false; }
-    }
-
-    function showWorkbook() {
-      document.getElementById('auth-screen').classList.add('hidden');
-      document.getElementById('user-bar').style.display = 'flex';
-      document.getElementById('user-email').textContent = currentUser.email;
-    }
-
-    async function signOut() { await sb.auth.signOut(); window.location.href = '/dashboard.html'; }
+    async function signOut() { await sb.auth.signOut(); window.location.href = '/signin.html'; }
 
     async function getAuthHeaders() {
       const { data: { session } } = await sb.auth.getSession();
@@ -720,7 +657,6 @@
       const data = card.entry_data || {};
       const name = data.person_name || '';
       const status = data.status || 'pending';
-
       return '<div class="feedback-card" id="' + card.id + '">' +
         '<div class="feedback-card-header" onclick="toggleFeedbackCard(\'' + card.id + '\')">' +
           '<div class="feedback-card-num">' + num + '</div>' +
@@ -729,68 +665,41 @@
           '<div class="feedback-card-toggle" id="toggle-' + card.id + '">Open</div>' +
         '</div>' +
         '<div class="feedback-card-body" id="body-' + card.id + '">' +
-
-          '<div class="feedback-field">' +
-            '<label class="feedback-field-label">Who are you asking?</label>' +
-            '<input type="text" data-field="person_name" placeholder="Their name and relationship to you (e.g. Sarah, my manager)..." />' +
-          '</div>' +
-
-          '<div class="feedback-field">' +
-            '<label class="feedback-field-label">Why did you choose them?</label>' +
-            '<textarea data-field="why" placeholder="What made you choose this person? What do you think they see that others might not?" rows="2" style="min-height:72px"></textarea>' +
-          '</div>' +
-
-          '<div class="feedback-field">' +
-            '<label class="feedback-field-label">What are you asking feedback on?</label>' +
-            '<textarea data-field="focus_area" placeholder="Be specific about the area you want their perspective on..." rows="2" style="min-height:72px"></textarea>' +
-          '</div>' +
-
+          '<div class="feedback-field"><label class="feedback-field-label">Who are you asking?</label>' +
+            '<input type="text" data-field="person_name" placeholder="Their name and relationship to you (e.g. Sarah, my manager)..." /></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">Why did you choose them?</label>' +
+            '<textarea data-field="why" placeholder="What made you choose this person? What do you think they see that others might not?" style="min-height:72px"></textarea></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">What are you asking feedback on?</label>' +
+            '<textarea data-field="focus_area" placeholder="Be specific about the area you want their perspective on..." style="min-height:72px"></textarea></div>' +
           '<div class="ebi-split">' +
-            '<div class="ebi-col">' +
-              '<div class="ebi-label"><div class="ebi-plus">+</div>What is working well?</div>' +
-              '<textarea data-field="plus" placeholder="What they said is working..."></textarea>' +
-            '</div>' +
-            '<div class="ebi-col">' +
-              '<div class="ebi-label"><div class="ebi-delta">+</div>Even Better If...</div>' +
-              '<textarea data-field="ebi" placeholder="What they said could be even better..."></textarea>' +
-            '</div>' +
+            '<div class="ebi-col"><div class="ebi-label"><div class="ebi-plus">+</div>What is working well?</div>' +
+              '<textarea data-field="plus" placeholder="What they said is working..."></textarea></div>' +
+            '<div class="ebi-col"><div class="ebi-label"><div class="ebi-delta">+</div>Even Better If...</div>' +
+              '<textarea data-field="ebi" placeholder="What they said could be even better..."></textarea></div>' +
           '</div>' +
-
-          '<div class="feedback-field">' +
-            '<label class="feedback-field-label">What landed for you?</label>' +
-            '<textarea data-field="landed" placeholder="What from this conversation do you want to carry forward? What surprised you?" rows="2" style="min-height:72px"></textarea>' +
-          '</div>' +
-
-          '<div class="feedback-field">' +
-            '<label class="feedback-field-label">Status</label>' +
+          '<div class="feedback-field"><label class="feedback-field-label">What landed for you?</label>' +
+            '<textarea data-field="landed" placeholder="What from this conversation do you want to carry forward? What surprised you?" style="min-height:72px"></textarea></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">Status</label>' +
             '<div class="status-toggle">' +
               '<button class="status-btn" id="status-pending-' + card.id + '" onclick="setStatus(\'' + card.id + '\', \'pending\')">Pending</button>' +
               '<button class="status-btn" id="status-received-' + card.id + '" onclick="setStatus(\'' + card.id + '\', \'received\')">Received</button>' +
-            '</div>' +
-          '</div>' +
-
+            '</div></div>' +
           '<div class="feedback-card-footer">' +
             '<button class="feedback-lumen-btn" onclick="openCardLumen(\'' + card.id + '\')">' +
-              '<div style="width:18px;height:18px;border-radius:50%;background:var(--yellow);color:var(--dark);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;">L</div>' +
-              ' Reflect on this with Lumen' +
-            '</button>' +
+              '<div style="width:18px;height:18px;border-radius:50%;background:var(--yellow);color:var(--dark);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;">L</div>' +
+              ' Reflect on this with Lumen</button>' +
             '<button class="feedback-card-delete" onclick="deleteFeedbackCard(\'' + card.id + \')">Delete</button>' +
           '</div>' +
-
           '<div class="lumen-panel" id="clp-' + card.id + '" style="margin-top:12px">' +
             '<div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>' +
             '<button class="lumen-panel-close" onclick="closeCardLumen(\'' + card.id + \')">x</button></div>' +
             '<div class="lumen-messages" id="clm-' + card.id + '"></div>' +
             '<div class="lumen-input-row">' +
-              '<textarea class="lumen-reply" id="clr-' + card.id + '" placeholder="Reply to Lumen..." ' +
-                'onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendCardLumenReply(\'' + card.id + '\');}"></textarea>' +
+              '<textarea class="lumen-reply" id="clr-' + card.id + '" placeholder="Reply to Lumen..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendCardLumenReply(\'' + card.id + '\');}"></textarea>' +
               '<button class="lumen-send" onclick="sendCardLumenReply(\'' + card.id + '\')">' +
-                '<svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>' +
-              '</button>' +
-            '</div>' +
+                '<svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>' +
             '<div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeCardLumen(\'' + card.id + \')">Close conversation</button></div>' +
           '</div>' +
-
         '</div>' +
       '</div>';
     }
@@ -891,19 +800,12 @@
       if (!cardLumenConvos[cardId]) {
         cardLumenConvos[cardId] = [];
         const data = getCardData(cardId);
-        const ctx = 'Person: "' + (data.person_name || 'unnamed') + '"\n' +
-          'Why chosen: "' + (data.why || '') + '"\n' +
-          'Focus area: "' + (data.focus_area || '') + '"\n' +
-          'What is working: "' + (data.plus || '') + '"\n' +
-          'Even Better If: "' + (data.ebi || '') + '"\n' +
-          'What landed: "' + (data.landed || '') + '"';
+        const ctx = 'Person: "' + (data.person_name || 'unnamed') + '"\nWhy chosen: "' + (data.why || '') + '"\nFocus area: "' + (data.focus_area || '') + '"\nWhat is working: "' + (data.plus || '') + '"\nEven Better If: "' + (data.ebi || '') + '"\nWhat landed: "' + (data.landed || '') + '"';
         sendCardLumenMessage(cardId, null, ctx);
       }
     }
 
-    function closeCardLumen(cardId) {
-      const p = document.getElementById('clp-' + cardId); if (p) p.classList.remove('open');
-    }
+    function closeCardLumen(cardId) { const p = document.getElementById('clp-' + cardId); if (p) p.classList.remove('open'); }
 
     async function sendCardLumenMessage(cardId, userText, entryCtx) {
       if (!cardLumenConvos[cardId]) cardLumenConvos[cardId] = [];
@@ -925,8 +827,7 @@
       const input = document.getElementById('clr-' + cardId); if (!input) return;
       const text = input.value.trim(); if (!text) return;
       input.value = '';
-      const data = getCardData(cardId);
-      sendCardLumenMessage(cardId, text, JSON.stringify(data));
+      sendCardLumenMessage(cardId, text, JSON.stringify(getCardData(cardId)));
     }
 
     function appendCardMsg(cardId, role, text) {
@@ -949,17 +850,13 @@
       const prText = document.getElementById('pr-text-1');
       const prActions = document.getElementById('pr-actions-1');
       pr.classList.add('show'); prText.textContent = 'Reading across all your feedback...';
-
       const allCards = feedbackCards.map((fc, i) => {
         const d = fc.entry_data || {};
         return 'Person ' + (i+1) + ' (' + (d.person_name || 'unnamed') + '): working="' + (d.plus || '') + '" ebi="' + (d.ebi || '') + '" landed="' + (d.landed || '') + '"';
       }).join('\n');
-
       const growthEl = document.getElementById('p1q1');
       const growth = growthEl ? growthEl.value.trim() : '';
-
       const sys = 'You are Lumen. The person set out to gather feedback on these growth areas:\n\n"' + growth + '"\n\nHere is the feedback they received across ' + feedbackCards.length + ' people:\n\n' + allCards + '\n\nLook across all the cards. Name one precise pattern in what others are seeing - the theme that keeps appearing across multiple people, or the gap between what they hoped to hear and what they actually received. Ask one question that names what they might be resisting or not fully taking in. 2-3 sentences. No advice. No praise.';
-
       try {
         const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'What do you notice across all my feedback?' }] }) });
         const d = await res.json();
@@ -1011,19 +908,15 @@
       const arcBlock = document.getElementById('arc-block');
       const arcText = document.getElementById('arc-text');
       arcBlock.classList.add('show'); arcText.textContent = 'Reading everything you wrote...';
-
       const allCtx = ALL_QUESTIONS.map(id => {
         const el = document.getElementById(id);
         return el && el.value.trim() ? id + ': "' + el.value.trim().substring(0, 200) + '"' : null;
       }).filter(Boolean).join('\n');
-
       const cardCtx = feedbackCards.map((fc, i) => {
         const d = fc.entry_data || {};
         return 'Person ' + (i+1) + ': working="' + (d.plus || '') + '" ebi="' + (d.ebi || '') + '"';
       }).join('\n');
-
       const sys = 'You are Lumen. The person has completed Mission 7: Feedback is a Gift. They gathered feedback from ' + feedbackCards.length + ' people and have now reflected fully. Here is their work:\n\n' + allCtx + '\n\nFeedback summary:\n' + cardCtx + '\n\nOffer one precise observation that names the shift this mission is pointing to - what others see that the person is now beginning to own. Ask the one question that names what will be different if they carry this forward. 2-3 sentences. No summary. No praise.';
-
       try {
         const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
         const d = await res.json();
