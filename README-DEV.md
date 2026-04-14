@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last updated: 2026-04-14 — Nav consistency complete. Platform audit done. Next: Rewrite It restructure.
+## Last updated: 2026-04-14 PM — Mission 7 built and live. Dashboard updated. Auth pattern standardised.
 
 ---
 
@@ -68,10 +68,10 @@ index.html (public landing)
 privacy.html (required for WHOOP developer registration)
 ```
 
-### Three-tab topbar nav — NOW CONSISTENT across all four authenticated pages
+### Three-tab topbar nav — CONSISTENT across all four authenticated pages
 All four pages (`dashboard.html`, `use-it.html`, `wearable.html`, `rewrite.html`) have:
 - Identical dark topbar (`background: var(--dark)`, `position: sticky`)
-- Same three nav links: Learn It → `/dashboard.html` / Use It → `/use-it.html` / Rewrite It → `/rewrite.html`
+- Same three nav links: Learn It -> `/dashboard.html` / Use It -> `/use-it.html` / Rewrite It -> `/rewrite.html`
 - Active link highlighted in yellow (`color: var(--yellow); background: rgba(255,190,25,0.1)`)
 - Right side: `topbar-user` (email) + Sign out button
 - `rewrite.html` additionally has `topbar-streak` span (shows "N day streak" in yellow when active, empty otherwise — rewrite-specific, does NOT overwrite email)
@@ -79,8 +79,8 @@ All four pages (`dashboard.html`, `use-it.html`, `wearable.html`, `rewrite.html`
 **IMPORTANT:** Use It links go to `/use-it.html` (the hub), NOT `/wearable.html` directly.
 `wearable.html` has its own internal bottom nav (Today / Entries / Study) that navigates within Body Signal — this is separate and intentional.
 
-### use-it.html — has auth check
-`use-it.html` now has Supabase auth check + redirect to signin if not logged in + signOut() function. This was missing before 14 Apr.
+### Mission pages — auth pattern
+All mission pages (2, 3, 6, 7) redirect to `signin.html?next=/mission-X.html` if no session. They do NOT have inline auth forms. Mission 1 (workbook.html) still has its own inline auth — this is intentional as the entry point.
 
 ---
 
@@ -90,10 +90,11 @@ All four pages (`dashboard.html`, `use-it.html`, `wearable.html`, `rewrite.html`
 | `wearable.html` | Body Signal main page | ~107KB. Sticky dark topbar (not fixed). No more `auth-user-bar` div. `lumenSystemPrompt` persists rich context across full conversation. |
 | `use-it.html` | Use It hub | Lists live tools (Tame a Trigger, Body Signal) + coming soon. Has auth check + sign out. |
 | `rewrite.html` | Rewrite It | 4 screens: Tree / Balcony / Practices / History. Separate `topbar-streak` span — email stays in `topbar-user`. |
-| `dashboard.html` | Learn It — missions | 14 missions, Lumen sidebar. Use It nav link → `/use-it.html`. |
+| `dashboard.html` | Learn It — missions | 14 missions, Lumen sidebar. Use It nav link -> `/use-it.html`. Mission 7 now live. |
+| `mission-7.html` | Mission 7 — Feedback is a Gift | **LIVE 14 Apr 2026.** Feedback cards (one per person), +EBI split, Pending/Received status. Lumen reads across all cards for pattern. Redirects to signin.html if no session. |
 | `start.html` | Platform entry page | Three paths: Learn It / Use It / Rewrite It |
 | `whoop-callback.html` | WHOOP OAuth callback | Stores tokens in localStorage after redirect |
-| `signin.html` | Auth gate | Single sign-in for all pages. Shows confirm-email panel if email not yet confirmed. |
+| `signin.html` | Auth gate | Single sign-in for all pages. Shows confirm-email panel if email not yet confirmed. Supabase confirmation email now branded as Rewrite Your Life. |
 | `study-dashboard.html` | Researcher view | All participant data, PRR charts, Lumen stages |
 | `privacy.html` | Privacy policy | Required for WHOOP dev registration |
 | `api/whoop-data.js` | WHOOP fetch + scoring engine | **Edge function.** Composite load index, guardrails, 9 states. Writes to daily_state on every load. |
@@ -109,6 +110,20 @@ All four pages (`dashboard.html`, `use-it.html`, `wearable.html`, `rewrite.html`
 
 ---
 
+## Missions Status
+| Mission | Title | Status |
+|---|---|---|
+| 1 | Your Case for Change | Live (`/workbook.html`) |
+| 2 | The Immunity Map | Live (`/mission-2.html`) |
+| 3 | Your Story Lifeline | Live (`/mission-3.html`) |
+| 4 | The Stories Behind the Stories | Not built |
+| 5 | The Value of Your Values | Not built |
+| 6 | Taming Your Triggers | Live (`/mission-6.html`) |
+| 7 | Feedback is a Gift | **Live (`/mission-7.html`) — built 14 Apr 2026** |
+| 8-14 | Various | Not built |
+
+---
+
 ## Supabase Tables (all 16, `public` schema)
 ### wearable_entries columns (actual — verified 10 Apr 2026)
 `id, user_id, created_at, mode, pattern_id, pattern_title, recovery, hrv, strain, sleep_score, answers (jsonb), lumen_reply, tags, feedback_score, feedback_text`
@@ -120,7 +135,7 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 | `wearable_entries` | Body Signal sessions — see column list above |
 | `daily_state` | Raw scored WHOOP metrics per user per day. Written on every whoop-data.js call. |
 | `answers` | Reframe mission answers (RLS enabled) |
-| `entries` | Reframe mission entries |
+| `entries` | Reframe mission entries — used by trigger diary (mission-6) and feedback cards (mission-7, tool='feedback-card') |
 | `lumen_instructions` | Per-user Lumen system context |
 | `lumen_stage` | Lumen arc stage tracking (Stage 1->2->3) |
 | `pattern_recurrence_rate` | Primary study metric |
@@ -188,6 +203,8 @@ All 5 rewrite tables have RLS enabled.
 33. **Topbar rule — never overwrite `topbar-user` with anything other than email** — `rewrite.html` has a separate `topbar-streak` span for the streak count. The streak rendering function (`renderStreak()`) must only write to `topbar-streak`, not `topbar-user`. Before 14 Apr it was overwriting the email — now fixed.
 34. **`create_or_update_file` replaces the ENTIRE file** — never use it for single-line changes in large files. It sets the file to exactly the `content` field provided. For surgical changes to large files, use `push_files` with the full correct content, or `push_files` with the patched content from bash manipulation.
 35. **Use It nav goes to `/use-it.html` (the hub), not `/wearable.html`** — `wearable.html` is one tool inside Use It. Users land on the hub first and choose their tool.
+36. **Mission pages auth pattern** — all mission pages redirect to `signin.html?next=/mission-X.html` if no Supabase session. They do NOT have inline auth forms. Never add an inline auth form to a mission page — it won't work correctly with existing sessions.
+37. **Mission 7 feedback cards use `entries` table with `tool='feedback-card'`** — same pattern as Mission 6 trigger diary (`tool='trigger-diary'`). One row per person/card. `entry_data` jsonb stores: `person_name`, `why`, `focus_area`, `plus`, `ebi`, `landed`, `status` (pending/received).
 
 ---
 
@@ -250,6 +267,12 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 ### Simon's Coaching Language — in Lumen prompt
 "Here's the irony..." / "Your code" / "The overplayed value always creates the opposite of the value" / "You can't escape it" / "Is it actually true?" / "That belief was built for a different chapter" / "Get on the balcony of this"
 
+### Mission 7 Lumen — four moments
+1. Bridge from Mission 6 (reads trigger they named, reflects it back)
+2. Per-card: names the gap between what was heard and what was expected. Per-card conversations saved in memory.
+3. Cross-card pattern: reads all cards together, names the theme appearing across multiple people
+4. Arc close: names the shift others see that the person is beginning to own
+
 ---
 
 ## WhatsApp Nudge — LIVE 12 Apr 2026
@@ -302,7 +325,7 @@ Signal -> Body -> Questions -> Belief Named -> Origin Surfaced -> Reframe -> Pra
 ### What's working well
 - Nav consistency complete — dark topbar, identical across all 4 pages
 - Use It hub (`use-it.html`) — clear entry point to tools, right abstraction level
-- Body Signal — strongest product. Signal read → questions → Lumen reflection is a coherent loop
+- Body Signal — strongest product. Signal read -> questions -> Lumen reflection is a coherent loop
 - Dashboard mission list — clear, progress tracked, Lumen sidebar is the right idea
 - Rewrite It data model — solid. Declaration + beliefs + practices + diary + nudge all wired up
 - Lumen in rewrite.html is already pulling body signal state from last wearable entry — the integration exists, just not visible to user
@@ -316,10 +339,10 @@ The four tabs flatten two different types of thing:
 - History = retrospective
 A user arriving has no sense of what to do first or why. The two daily habit tabs (Balcony + Practices) should be one scroll, not two separate screens.
 
-**2. Learn It → Rewrite It handover gap**
+**2. Learn It -> Rewrite It handover gap**
 Someone completes Mission 1 (Case for Change) and writes a detailed commitment — but nothing connects this to Rewrite It. The declaration in Rewrite It should emerge from mission work but the platform doesn't say so or assist the transfer. Mission 1's commitment section should CTA directly to Rewrite It with pre-populated fields.
 
-**3. Body Signal → Rewrite It loop not visible**
+**3. Body Signal -> Rewrite It loop not visible**
 `rewrite_diary` already stores `body_signal_state` from last wearable entry — the data connection exists. But Lumen's balcony reflection doesn't name the signal. Making this explicit would make the two halves feel like one system.
 
 **4. WhatsApp nudge settings buried**
@@ -338,7 +361,7 @@ The data model links beliefs to practices but the UI shows "No practices yet" un
 Proposed changes:
 - **Remove the four-tab structure.** Replace with a single scrolling view:
   1. Declaration hero at top (large, prominent)
-  2. Identity shift card (Running as → Becoming)
+  2. Identity shift card (Running as -> Becoming)
   3. Today's practices checklist (tick off inline)
   4. Balcony reflection below (one form, daily)
   5. Beliefs section below that
@@ -346,19 +369,19 @@ Proposed changes:
 - **Keep History as a separate tab** — it's genuinely retrospective and different in nature
 - **Merge the Balcony + Practices into one daily "check in" experience** — one scroll, one save
 
-### 2. Mission 1 → Rewrite It handover (critical for coherence, lower effort)
-- At end of Mission 1 commitment section: CTA → "Take this to Rewrite It and set your declaration"
+### 2. Mission 1 -> Rewrite It handover (critical for coherence, lower effort)
+- At end of Mission 1 commitment section: CTA -> "Take this to Rewrite It and set your declaration"
 - Link pre-populates declaration modal with their Case for Change answer
 - After Mission 2 (Immunity Map): "Running as" field pre-populates from their HALS answer
 - This is a data pass between `answers` table (mission work) and `rewrite_trees` (declaration)
 
-### 3. Body Signal → Rewrite It explicit loop (medium effort)
+### 3. Body Signal -> Rewrite It explicit loop (medium effort)
 - When Lumen reflects on a Balcony entry, explicitly reference the body signal state if one exists
 - Show "Your body was carrying something yesterday — here's what you wrote about how you showed up anyway" when signal was red/amber and balcony shows growth
 - Makes the biometric loop visible to the user
 
-### 4. Missions 4, 5, 7-14 (ongoing)
-Missions 1, 2, 3, 6 are live. The rest need building.
+### 4. Missions 4, 5, 8-14 (ongoing)
+Missions 1, 2, 3, 6, 7 are live. The rest need building.
 
 ---
 
@@ -373,13 +396,13 @@ Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
 ### Immediate
 - [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens expired — needs OAuth reconnect from their devices)
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
-- [ ] Set Supabase confirmation email template to Rewrite Your Life branding (Auth > Email Templates > Confirm signup)
+- [x] Supabase confirmation email template — DONE 14 Apr (Rewrite Your Life branding)
 - [ ] Verify `daily_state` table populating correctly (load wearable.html, check Supabase)
 
 ### Next build
 - [ ] Rewrite It restructure — single scroll view (see Next Build Priorities above)
-- [ ] Mission 1 → Rewrite It handover CTA
-- [ ] Missions 4, 5, 7-14 to build (1, 2, 3, 6 live)
+- [ ] Mission 1 -> Rewrite It handover CTA
+- [ ] Missions 4, 5, 8-14 to build (1, 2, 3, 6, 7 live)
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
@@ -446,7 +469,8 @@ open('file.js', 'w').write(fixed)
 | 12 Apr 2026 PM | GitHub MCP server installed. whoop-refresh cron fixed. All 4 participants added to study_participants. Twilio set up and all env vars set. nudge-whatsapp live — first nudge received 18:25 UTC. Nudge message: today's body signal only, links to wearable.html. rewrite.html: nudge settings pre-fill on load, UTC label. |
 | 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
 | 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. Bad session (Jaroslav work) changed Node.js to 24.x and corrupted whoop-data.js with markdown fences — caused 10+ failed builds. Fixed: Node.js pinned back to 20.x in Vercel settings, whoop-data.js restored from clean container copy. Rules 28-32 added. |
-| 14 Apr 2026 | Nav consistency completed across all 4 pages. Dark sticky topbar, identical structure, all Use It links → /use-it.html. use-it.html got auth check + sign out. rewrite.html streak fixed (separate topbar-streak span, email stays in topbar-user). Rules 33-35 added. Full platform audit completed — structural issues with Rewrite It documented. Next build priorities set: Rewrite It restructure + Mission 1→Rewrite It handover. |
+| 14 Apr 2026 AM | Nav consistency completed across all 4 pages. Dark sticky topbar, identical structure, all Use It links -> /use-it.html. use-it.html got auth check + sign out. rewrite.html streak fixed (separate topbar-streak span, email stays in topbar-user). Rules 33-35 added. Full platform audit completed — structural issues with Rewrite It documented. Next build priorities set: Rewrite It restructure + Mission 1->Rewrite It handover. |
+| 14 Apr 2026 PM | Supabase confirmation email branded as Rewrite Your Life. Mission 7 (Feedback is a Gift) built and deployed — feedback cards (one per person), +EBI split, Pending/Received status toggle, Lumen reads across all cards for pattern analysis. Dashboard updated: Mission 7 link activated, mission-7 added to MISSION_QUESTIONS for progress tracking. Auth bug fixed: mission-7 now redirects to signin.html if no session (inline auth form removed). Rules 36-37 added. |
 
 ---
 
