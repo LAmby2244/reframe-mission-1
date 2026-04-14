@@ -38,7 +38,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── AUTH GATE ── */
+    /* -- AUTH GATE -- */
     .auth-gate {
       position: fixed; inset: 0; z-index: 1000;
       background: var(--dark);
@@ -107,7 +107,7 @@
     }
     .auth-error.show { display: block; }
 
-    /* ── TOP BAR ── */
+    /* -- TOP BAR -- */
     .topbar {
       background: var(--dark); padding: 12px 32px;
       display: flex; align-items: center; justify-content: space-between;
@@ -139,7 +139,7 @@
     .topbar-nav-link:hover { color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.06); }
     .topbar-nav-link.active { color:var(--yellow); background:rgba(255,190,25,0.1); }
 
-    /* ── LAYOUT ── */
+    /* -- LAYOUT -- */
     .layout {
       display: grid;
       grid-template-columns: 1fr 360px;
@@ -147,11 +147,11 @@
       align-items: start;
     }
 
-    /* ── MAIN COLUMN ── */
+    /* -- MAIN COLUMN -- */
     .main { padding: 0 0 80px; }
     .main-inner { padding: 32px 48px 0; }
 
-    /* ── WELCOME STRIP ── */
+    /* -- WELCOME STRIP -- */
     .welcome {
       background: var(--dark);
       padding: 24px 48px;
@@ -197,7 +197,7 @@
       transition: width 0.5s ease;
     }
 
-    /* ── HOW IT WORKS TOGGLE ── */
+    /* -- HOW IT WORKS TOGGLE -- */
     .how-toggle {
       display: flex; align-items: center;
       padding: 14px 0; cursor: pointer; user-select: none;
@@ -252,7 +252,7 @@
     .pc-4 { border-color: var(--grow); }
     .pc-4 .phase-card-num { color: var(--grow); }
 
-    /* ── MISSION LIST ── */
+    /* -- MISSION LIST -- */
     .missions-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 16px;
@@ -277,7 +277,6 @@
     .mission-item.locked { cursor: default; opacity: 0.6; }
     .mission-item.locked:hover { transform: none; box-shadow: none; }
 
-    /* Mission colours — cycling through full brand palette */
     .mc-1  { background: #FEF0E6; border: 2px solid #FAB882; }
     .mc-2  { background: var(--yellow-light); border: 2px solid #FFD966; }
     .mc-3  { background: var(--trust-light); border: 2px solid #8EB0D8; }
@@ -293,7 +292,6 @@
     .mc-13 { background: #FEF0E6; border: 2px solid #FAB882; }
     .mc-14 { background: #EAF4F1; border: 2px solid var(--mid); }
 
-    /* Number badge colours */
     .mn-1,.mn-7,.mn-13  { background: var(--orange); color: white; }
     .mn-2,.mn-8          { background: var(--yellow); color: var(--dark); }
     .mn-3,.mn-9          { background: var(--trust); color: white; }
@@ -344,7 +342,7 @@
     }
     .progress-bar-fill.complete { background: var(--grow); }
 
-    /* ── LUMEN SIDEBAR ── */
+    /* -- LUMEN SIDEBAR -- */
     .sidebar {
       background: var(--trust);
       height: calc(100vh - 52px);
@@ -447,11 +445,11 @@
       <span class="topbar-name">Rewrite Your Life</span>
     </a>
     <nav class="topbar-nav">
-          <a href="/dashboard.html" class="topbar-nav-link active">Learn It</a>
-          <a href="/wearable.html" class="topbar-nav-link">Use It</a>
-          <a href="/rewrite.html" class="topbar-nav-link">Rewrite It</a>
-        </nav>
-        <div class="topbar-right">
+      <a href="/dashboard.html" class="topbar-nav-link active">Learn It</a>
+      <a href="/use-it.html" class="topbar-nav-link">Use It</a>
+      <a href="/rewrite.html" class="topbar-nav-link">Rewrite It</a>
+    </nav>
+    <div class="topbar-right">
       <span class="topbar-user" id="topbar-user"></span>
       <button class="topbar-signout" onclick="signOut()">Sign out</button>
     </div>
@@ -485,16 +483,16 @@
         <!-- HOW IT WORKS TOGGLE -->
         <div class="how-toggle" onclick="toggleHow()">
           <span class="how-toggle-label">How missions work</span>
-          <span class="how-toggle-arrow" id="how-arrow">▼</span>
+          <span class="how-toggle-arrow" id="how-arrow">&#9660;</span>
         </div>
 
         <div class="how-panel" id="how-panel">
-          <p class="how-intro">Each mission is a small, self-organised personal development project. Read the chapter first, then do the mission. They build on each other — each one begins with a Bridge connecting where you just came from to where you are going next, so the whole arc builds on itself rather than starting fresh each time.</p>
+          <p class="how-intro">Each mission is a small, self-organised personal development project. Read the chapter first, then do the mission. They build on each other - each one begins with a Bridge connecting where you just came from to where you are going next, so the whole arc builds on itself rather than starting fresh each time.</p>
           <div class="explainer-phases">
             <div class="phase-card pc-1">
               <div class="phase-card-num">01</div>
               <div class="phase-card-title">Experiment</div>
-              <div class="phase-card-desc">Notice your stories and self-talk in the moments that matter. Test things in the real world — this is where new wiring begins.</div>
+              <div class="phase-card-desc">Notice your stories and self-talk in the moments that matter. Test things in the real world - this is where new wiring begins.</div>
             </div>
             <div class="phase-card pc-2">
               <div class="phase-card-num">02</div>
@@ -509,7 +507,7 @@
             <div class="phase-card pc-4">
               <div class="phase-card-num">04</div>
               <div class="phase-card-title">What next</div>
-              <div class="phase-card-desc">Choose one small shift and stay with it until it begins to take root. Change doesn't come from thinking differently — it comes from being different.</div>
+              <div class="phase-card-desc">Choose one small shift and stay with it until it begins to take root. Change doesn't come from thinking differently - it comes from being different.</div>
             </div>
           </div>
         </div>
@@ -533,13 +531,13 @@
         <div class="sidebar-shape-2"></div>
         <div class="lumen-label"><div class="lumen-dot"></div>Lumen</div>
         <div class="sidebar-title">Your companion</div>
-        <div class="sidebar-sub">Lumen has read everything you've written. Bring anything here — a question, a thought, something that's sitting with you.</div>
+        <div class="sidebar-sub">Lumen has read everything you've written. Bring anything here - a question, a thought, something that's sitting with you.</div>
       </div>
       <div class="lumen-messages" id="lumen-msgs"></div>
       <div class="lumen-context-note" id="lumen-context-note"></div>
       <div class="lumen-input">
         <textarea class="lumen-ta" id="lumen-input" placeholder="Talk to Lumen..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToLumen();}"></textarea>
-        <button class="lumen-send-btn" onclick="sendToLumen()">Send →</button>
+        <button class="lumen-send-btn" onclick="sendToLumen()">Send &#8594;</button>
       </div>
     </div>
 
@@ -564,23 +562,22 @@
     let lumenConvo = [];
 
     const MISSIONS = [
-      { id: 1,  ch: 'Chapter 3',          title: 'Your Case for Change',           tagline: 'You already know something needs to shift. This mission makes the cost of staying put undeniable — and names the version of you that is already waiting.', url: '/workbook.html' },
-      { id: 2,  ch: 'Chapter 4',          title: 'The Immunity Map',               tagline: 'You are not failing to change. You are succeeding at something else — something hidden. This mission maps what you are protecting and why.', url: '/mission-2.html' },
-      { id: 3,  ch: 'Chapter 5',          title: 'Your Story Lifeline',            tagline: 'Your life is not a random sequence of events. It is a pattern with a logic. This mission traces that pattern — and begins to show you what was driving it.', url: '/mission-3.html' },
-      { id: 4,  ch: 'Chapter 6¾',         title: 'The Stories Behind the Stories', tagline: 'The patterns in your life didn\'t start with you. This mission finds where they came from — and begins to lift the weight of carrying them.', url: null },
+      { id: 1,  ch: 'Chapter 3',          title: 'Your Case for Change',           tagline: 'You already know something needs to shift. This mission makes the cost of staying put undeniable - and names the version of you that is already waiting.', url: '/workbook.html' },
+      { id: 2,  ch: 'Chapter 4',          title: 'The Immunity Map',               tagline: 'You are not failing to change. You are succeeding at something else - something hidden. This mission maps what you are protecting and why.', url: '/mission-2.html' },
+      { id: 3,  ch: 'Chapter 5',          title: 'Your Story Lifeline',            tagline: 'Your life is not a random sequence of events. It is a pattern with a logic. This mission traces that pattern - and begins to show you what was driving it.', url: '/mission-3.html' },
+      { id: 4,  ch: 'Chapter 6',          title: 'The Stories Behind the Stories', tagline: 'The patterns in your life didn\'t start with you. This mission finds where they came from - and begins to lift the weight of carrying them.', url: null },
       { id: 5,  ch: 'Chapter 7',          title: 'The Value of Your Values',       tagline: 'Your values are not a list of aspirations. They are the living record of what life has taught you matters. Some were forged in joy. Some in survival.', url: null },
       { id: 6,  ch: 'Chapter 9',          title: 'Taming Your Triggers',           tagline: 'A trigger is not a weakness. It is the moment your body decides the past is happening again. This mission builds your map of those moments.', url: '/mission-6.html' },
       { id: 7,  ch: 'Chapter 10',         title: 'Feedback is a Gift',             tagline: 'The patterns you\'ve been uncovering are patterns other people have already noticed. This mission gives you a structured way to hear them.', url: null },
-      { id: 8,  ch: 'Chapter 11 · L1',    title: 'Zoom Out: Check the Facts',      tagline: 'Some of what you\'ve believed to be true was formed by a younger version of you working with incomplete information. This mission begins to check it.', url: null },
-      { id: 9,  ch: 'Chapter 11 · L2',    title: 'Zoom Out: Place the Pattern',    tagline: 'Not just questioning whether the story was accurate — but understanding why it made perfect sense at the time. Your younger self wasn\'t wrong.', url: null },
-      { id: 10, ch: 'Chapter 11 · L3',    title: 'Zoom Out: Name the Shift',       tagline: 'You\'ve given the old story some grace. Now comes the question that follows: who do you get to be now that you\'re not carrying it in the same way?', url: null },
+      { id: 8,  ch: 'Chapter 11 - L1',    title: 'Zoom Out: Check the Facts',      tagline: 'Some of what you\'ve believed to be true was formed by a younger version of you working with incomplete information. This mission begins to check it.', url: null },
+      { id: 9,  ch: 'Chapter 11 - L2',    title: 'Zoom Out: Place the Pattern',    tagline: 'Not just questioning whether the story was accurate - but understanding why it made perfect sense at the time. Your younger self wasn\'t wrong.', url: null },
+      { id: 10, ch: 'Chapter 11 - L3',    title: 'Zoom Out: Name the Shift',       tagline: 'You\'ve given the old story some grace. Now comes the question that follows: who do you get to be now that you\'re not carrying it in the same way?', url: null },
       { id: 11, ch: 'Chapter 12',         title: 'Who Do You Get to Be Now?',      tagline: 'Purpose is not a destination or a title. It is the quality of presence you bring to every room, every conversation, every choice. This mission finds yours.', url: null },
       { id: 12, ch: 'Chapter 13',         title: 'Be In Choice',                   tagline: 'Having a purpose changes something. It means you now have a reference point for every decision, every challenge, every moment the old patterns try to reassert.', url: null },
       { id: 13, ch: 'Chapter 14',         title: 'Courageous Conversations',       tagline: 'Purpose without the courage to speak honestly is just a nice idea. This mission gives you a structure for the conversations you have been avoiding.', url: null },
-      { id: 14, ch: 'Chapter 15',         title: 'Committing to the Practice',     tagline: 'This is not the end. There is no end. This is the moment you decide that the person you have been becoming is worth showing up for — again and again.', url: null },
+      { id: 14, ch: 'Chapter 15',         title: 'Committing to the Practice',     tagline: 'This is not the end. There is no end. This is the moment you decide that the person you have been becoming is worth showing up for - again and again.', url: null },
     ];
 
-    // Question IDs per mission — add each mission as it's built
     const MISSION_QUESTIONS = {
       'mission-1': ['p1q1','p1q2','p1q3','p1q4','p1q5','p1q6','p1q7','p2q1','p2q2','p2q3','p2q4','p3q1','p3q2','p3q3','p4q1','p4q2','p4q3','ta-commit'],
       'mission-2': ['p1q1','p1q2','p1q3','p1q4','p1q5','p2q1','p2q2','p3q1','p3q2','p4q1','p4q2','ta-commit'],
@@ -591,10 +588,7 @@
     function getMissionProgress(missionId) {
       const key = 'mission-' + missionId;
       const questions = MISSION_QUESTIONS[key];
-
-      // No questions defined = not yet built
       if (!questions) return { pct: 0, status: 'soon' };
-
       const mAnswers = allAnswers[key] || {};
       const answered = questions.filter(q => mAnswers[q] && mAnswers[q].trim().length > 0).length;
       const pct = Math.round((answered / questions.length) * 100);
@@ -610,7 +604,6 @@
       arrow.classList.toggle('open');
     }
 
-    // ── Auth ──
     window.addEventListener('load', async () => {
       const { data: { session } } = await sb.auth.getSession();
       if (session) {
@@ -621,35 +614,6 @@
       }
     });
 
-    async function authSubmit() {
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
-      const btn = document.getElementById('auth-btn');
-      const errEl = document.getElementById('auth-error');
-      errEl.classList.remove('show');
-      btn.textContent = 'Please wait...';
-      btn.disabled = true;
-      try {
-        const result = isSignUp
-          ? await sb.auth.signUp({ email, password })
-          : await sb.auth.signInWithPassword({ email, password });
-        if (result.error) {
-          errEl.textContent = result.error.message;
-          errEl.classList.add('show');
-          btn.textContent = isSignUp ? 'Create account' : 'Sign in';
-          btn.disabled = false;
-        } else {
-          currentUser = result.data.user;
-          await init();
-        }
-      } catch(e) {
-        errEl.textContent = 'Something went wrong. Please try again.';
-        errEl.classList.add('show');
-        btn.textContent = isSignUp ? 'Create account' : 'Sign in';
-        btn.disabled = false;
-      }
-    }
-
     async function signOut() {
       await sb.auth.signOut();
       window.location.href = '/signin.html';
@@ -659,12 +623,9 @@
       document.getElementById('topbar').style.display = 'flex';
       document.getElementById('main-layout').style.display = 'grid';
       document.getElementById('topbar-user').textContent = currentUser.email;
-
-      // Personalise welcome
       const hour = new Date().getHours();
       const greeting = hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : 'Good evening.';
       document.getElementById('welcome-heading').textContent = greeting;
-
       await loadAnswers();
       renderMissions();
       initLumen();
@@ -727,19 +688,15 @@
 
       list.innerHTML = html;
 
-      document.getElementById('missions-count').textContent =
-        `${completeCount} of 14 complete`;
-
+      document.getElementById('missions-count').textContent = `${completeCount} of 14 complete`;
       const pct = Math.round((completeCount / 14) * 100);
       document.getElementById('welcome-progress-fill').style.width = pct + '%';
       document.getElementById('welcome-progress-text').textContent = `${completeCount} of 14`;
     }
 
-    // ── Lumen ──
     function buildLumenContext() {
       const m1 = allAnswers['mission-1'];
       if (!m1 || Object.keys(m1).length === 0) return null;
-
       const qLabels = {
         'p1q1': 'Moments feeling most alive',
         'p1q2': 'Moments feeling drained',
@@ -753,26 +710,22 @@
         'p3q1': 'Who they will share with',
         'p3q2': 'What they most need to say out loud',
         'p3q3': 'What they heard from the conversation',
-        'p4q1': 'Version 1 — the tension / BUT statement',
-        'p4q2': 'Version 2 — the identity shift',
+        'p4q1': 'Version 1 - the tension / BUT statement',
+        'p4q2': 'Version 2 - the identity shift',
         'p4q3': 'How they will honour the work',
         'ta-commit': 'Their commitment'
       };
-
       const entries = Object.entries(m1)
         .filter(([k, v]) => v && v.trim().length > 0)
         .map(([k, v]) => `${qLabels[k] || k}: "${v.trim()}"`)
         .join('\n');
-
-      return `MISSION 1 — Your Case for Change:\n${entries}`;
+      return `MISSION 1 - Your Case for Change:\n${entries}`;
     }
 
     async function initLumen() {
       const context = buildLumenContext();
       const note = document.getElementById('lumen-context-note');
-
       const hasHistory = await loadDashboardLumen();
-
       if (!hasHistory) {
         if (context) {
           const answered = Object.values(allAnswers['mission-1'] || {}).filter(v => v && v.trim().length > 0).length;
@@ -780,7 +733,7 @@
           addMsg('lumen', 'I\'ve been reading what you wrote in Mission 1. What\'s been sitting with you since?');
         } else {
           note.textContent = 'Complete Mission 1 and Lumen will have context for your whole journey.';
-          addMsg('lumen', 'When you\'ve done some work in the missions, I\'ll be able to reflect it back to you here. For now — what brings you to this work?');
+          addMsg('lumen', 'When you\'ve done some work in the missions, I\'ll be able to reflect it back to you here. For now - what brings you to this work?');
         }
       } else {
         if (context) {
@@ -821,16 +774,13 @@
       const text = input.value.trim();
       if (!text) return;
       input.value = '';
-
       addMsg('user', text);
       lumenConvo.push({ role: 'user', content: text });
       addThinking();
-
       const context = buildLumenContext();
       const sys = context
-        ? `You are Lumen — the AI mirror companion for the Reframe workbook by Simon Lamb. The person is on the dashboard between missions. You have read everything they wrote across their missions. Here is what you know about them:\n\n${context}\n\nYou are a mirror, not a coach. You do not give advice. You notice patterns, reflect observations, and ask one question at a time. You are warm, unhurried, and precise. The conversation is theirs to direct — follow their lead. 2–3 sentences maximum per response.`
-        : `You are Lumen — the AI mirror companion for the Reframe workbook by Simon Lamb. This person hasn't completed any missions yet. Be warm and inviting. Ask one question that helps them name what brings them to this work. 2–3 sentences maximum.`;
-
+        ? `You are Lumen - the AI mirror companion for the Reframe workbook by Simon Lamb. The person is on the dashboard between missions. You have read everything they wrote across their missions. Here is what you know about them:\n\n${context}\n\nYou are a mirror, not a coach. You do not give advice. You notice patterns, reflect observations, and ask one question at a time. You are warm, unhurried, and precise. The conversation is theirs to direct - follow their lead. 2-3 sentences maximum per response.`
+        : `You are Lumen - the AI mirror companion for the Reframe workbook by Simon Lamb. This person hasn't completed any missions yet. Be warm and inviting. Ask one question that helps them name what brings them to this work. 2-3 sentences maximum.`;
       try {
         const res = await fetch(LUMEN_API_URL, {
           method: 'POST',
@@ -872,14 +822,13 @@
           const saved = JSON.parse(data.answer);
           if (saved && saved.length > 1) {
             lumenConvo = saved;
-            // Show last 4 exchanges (8 messages), with a divider if there's more
             const exchanges = saved.filter(m => m.role === 'user' || m.role === 'assistant');
             const lastN = 8;
             if (exchanges.length > lastN) {
               const container = document.getElementById('lumen-msgs');
               const divider = document.createElement('div');
               divider.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.2);text-align:center;padding:8px 0;letter-spacing:0.05em;cursor:pointer;';
-              divider.textContent = '↑ earlier in this conversation';
+              divider.textContent = 'earlier in this conversation';
               divider.onclick = () => {
                 divider.remove();
                 exchanges.slice(0, exchanges.length - lastN).forEach(m => {
