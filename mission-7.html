@@ -825,6 +825,8 @@
       if (!cardLumenConvos[cardId]) cardLumenConvos[cardId] = [];
       const msgs = cardLumenConvos[cardId];
       if (userText) { msgs.push({ role: 'user', content: userText }); appendCardMsg(cardId, 'user', userText); }
+      // Anthropic requires at least one user message - add silent context message if auto-firing
+      if (msgs.length === 0) { msgs.push({ role: 'user', content: 'Please reflect on this feedback record.' }); }
       appendCardThinking(cardId);
       const sys = 'You are Lumen. The person has received feedback from one person. Here is the record:\n\n' + (entryCtx || '') + '\n\nName one precise thing you notice in the gap between what this person observed and what the reader expected or hoped to hear. Ask one question that takes them into what they are resisting or avoiding in this feedback. 2 sentences. No advice. No summary.';
       try {
