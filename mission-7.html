@@ -1,1 +1,918 @@
-ADD_TWO_FIELDS
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission 07 - Feedback is a Gift | Reframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #F56914;
+      --yellow: #FFBE19;
+      --yellow-light: #FFF8E0;
+      --dark: #0A3228;
+      --mid: #377364;
+      --light: #F5E6CD;
+      --beige-mid: #EDD9B5;
+      --white: #ffffff;
+      --blush: #FFB9AA;
+      --sky: #9BD7E6;
+      --sky-light: #EAF7FB;
+      --trust: #2D5A91;
+      --border: rgba(10,50,40,0.12);
+      --max: 680px;
+      --accent: #9BD7E6;
+      --accent-dark: #2D8FAA;
+      --accent-light: #EAF7FB;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Rubik', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    .auth-user-bar { background: var(--dark); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; }
+    .auth-user-left { display: flex; align-items: center; gap: 20px; }
+    .auth-dashboard-link { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+    .auth-dashboard-link:hover { color: rgba(255,255,255,0.8); }
+    .auth-user-email { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .auth-signout { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .auth-signout:hover { color: rgba(255,255,255,0.7); }
+    .auth-saving { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: rgba(255,255,255,0.7); font-size: 12px; padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+    .auth-saving.show { opacity: 1; }
+
+    .hero { background: var(--dark); padding: 64px 40px 52px; position: relative; overflow: hidden; }
+    .hero-shape-1 { position: absolute; top: -80px; right: -80px; width: 280px; height: 280px; background: var(--blush); border-radius: 50%; opacity: 0.12; }
+    .hero-shape-2 { position: absolute; bottom: -50px; right: 100px; width: 160px; height: 160px; background: var(--accent); border-radius: 50%; opacity: 0.1; }
+    .hero-inner { max-width: var(--max); position: relative; z-index: 1; }
+    .mission-label { font-size: 11px; font-weight: 500; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(36px, 6vw, 58px); font-weight: 700; color: var(--white); line-height: 1.02; margin-bottom: 18px; }
+    .hero-sub { font-size: 16px; font-weight: 300; color: rgba(255,255,255,0.65); line-height: 1.75; max-width: 480px; }
+
+    .bridge { background: var(--white); border-bottom: 1px solid var(--border); padding: 28px 40px; }
+    .bridge-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+    .bridge p { font-size: 15px; line-height: 1.8; color: var(--dark); max-width: var(--max); margin-bottom: 10px; }
+    .bridge p:last-child { font-weight: 300; color: var(--mid); margin-bottom: 0; }
+
+    .lumen-bridge { background: var(--trust); padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .lumen-bridge-inner { max-width: var(--max); display: flex; gap: 16px; align-items: flex-start; }
+    .lumen-bridge-av { width: 28px; height: 28px; border-radius: 50%; background: var(--sky); color: var(--trust); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .lumen-bridge-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sky); margin-bottom: 6px; }
+    .lumen-bridge-text { font-size: 14px; font-weight: 300; font-style: italic; color: rgba(255,255,255,0.85); line-height: 1.7; }
+    .lumen-bridge-placeholder { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+
+    .progress-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 14px 40px; display: flex; gap: 8px; align-items: center; position: sticky; top: 0; z-index: 100; width: 100%; }
+    .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.25s; border: 2px solid var(--border); background: var(--white); color: var(--mid); flex-shrink: 0; }
+    .step-dot.active { background: var(--accent-dark); color: var(--white); border-color: var(--accent-dark); }
+    .step-dot.done { background: var(--dark); color: var(--white); border-color: var(--dark); }
+    .step-connector { flex: 1; height: 1px; background: var(--border); }
+    .step-label { font-size: 12px; color: var(--mid); margin-left: 12px; white-space: nowrap; font-weight: 500; }
+
+    .body { padding: 36px 40px 64px; max-width: calc(var(--max) + 80px); }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .part-badge { display: inline-block; background: var(--accent-dark); color: var(--white); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 12px; }
+    .part-title { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 10px; line-height: 1.2; }
+    .part-body { font-size: 15px; font-weight: 300; line-height: 1.8; color: var(--mid); margin-bottom: 28px; max-width: 560px; }
+
+    .q-block { margin-bottom: 28px; }
+    .q-row { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 10px; }
+    .q-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-dark); flex-shrink: 0; margin-top: 7px; }
+    .q-text { font-size: 15px; font-weight: 500; line-height: 1.65; color: var(--dark); }
+    .q-hint { font-size: 13px; font-weight: 300; font-style: italic; color: var(--mid); line-height: 1.6; margin: 4px 0 10px 19px; }
+
+    textarea { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 14px 18px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.75; color: var(--dark); background: var(--white); resize: vertical; min-height: 96px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; display: block; }
+    textarea:focus { border-color: var(--accent-dark); box-shadow: 0 0 0 3px rgba(45,143,170,0.1); }
+    textarea::placeholder { color: rgba(10,50,40,0.25); }
+    .wc { font-size: 11px; color: rgba(10,50,40,0.3); text-align: right; margin-top: 5px; }
+
+    .feedback-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .feedback-header-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-dark); }
+    .feedback-header-line { flex: 1; height: 1px; background: var(--border); }
+    .feedback-count { font-size: 12px; color: var(--mid); }
+    .feedback-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+    .feedback-card { background: var(--white); border-radius: 16px; border: 2px solid var(--border); overflow: hidden; transition: border-color 0.2s; }
+    .feedback-card:hover { border-color: var(--accent); }
+    .feedback-card-header { padding: 14px 20px; display: flex; align-items: center; gap: 12px; background: var(--accent-light); cursor: pointer; }
+    .feedback-card-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-dark); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .feedback-card-name { font-size: 14px; font-weight: 500; color: var(--dark); flex: 1; }
+    .feedback-card-name-empty { font-size: 14px; font-weight: 300; color: var(--mid); font-style: italic; flex: 1; }
+    .feedback-card-status { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; }
+    .feedback-card-status.pending { background: var(--light); color: var(--mid); }
+    .feedback-card-status.received { background: #e8f7ef; color: #2D7A4F; }
+    .feedback-card-toggle { font-size: 11px; color: var(--accent-dark); font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .feedback-card-body { padding: 24px; display: none; border-top: 1px solid var(--border); }
+    .feedback-card-body.open { display: block; }
+    .feedback-field { margin-bottom: 20px; }
+    .feedback-field:last-of-type { margin-bottom: 0; }
+    .feedback-field-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 8px; display: block; }
+    .feedback-field textarea { min-height: 72px; font-size: 14px; }
+    .feedback-field input[type="text"] { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 12px 16px; font-family: 'Rubik', sans-serif; font-size: 15px; font-weight: 300; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.2s; }
+    .feedback-field input[type="text"]:focus { border-color: var(--accent-dark); }
+    .feedback-field input[type="text"]::placeholder { color: rgba(10,50,40,0.25); }
+    .ebi-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .ebi-col { }
+    .ebi-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mid); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .ebi-plus { background: #e8f7ef; color: #2D7A4F; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .ebi-delta { background: var(--yellow-light); color: #8a6200; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .ebi-col textarea { min-height: 100px; font-size: 13px; }
+    .status-toggle { display: flex; gap: 8px; margin-top: 8px; }
+    .status-btn { background: var(--light); border: 1.5px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; color: var(--mid); }
+    .status-btn.active-pending { background: var(--light); border-color: var(--mid); color: var(--mid); }
+    .status-btn.active-received { background: #e8f7ef; border-color: #2D7A4F; color: #2D7A4F; }
+    .feedback-card-footer { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .feedback-lumen-btn { background: var(--yellow-light); border: 1.5px solid var(--yellow); color: var(--dark); border-radius: 20px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .feedback-lumen-btn:hover { background: var(--yellow); }
+    .feedback-card-delete { background: none; border: none; color: rgba(10,50,40,0.25); font-size: 11px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .feedback-card-delete:hover { color: #C0392B; }
+
+    .lumen-panel { margin-top: 12px; border-left: 3px solid var(--yellow); border-radius: 0 14px 14px 0; background: var(--dark); display: none; animation: fadeUp 0.3s ease; }
+    .lumen-panel.open { display: block; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+    .lumen-panel-header { padding: 12px 18px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .lumen-panel-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); display: flex; align-items: center; gap: 8px; }
+    .lumen-panel-close { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 20px; cursor: pointer; line-height: 1; padding: 0 2px; transition: color 0.2s; font-family: 'Rubik', sans-serif; }
+    .lumen-panel-close:hover { color: rgba(255,255,255,0.7); }
+    .lumen-messages { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; max-height: 400px; overflow-y: auto; }
+    .msg { display: flex; gap: 10px; align-items: flex-start; animation: fadeUp 0.25s ease; }
+    .msg-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; margin-top: 2px; }
+    .lumen-av { background: var(--yellow); color: var(--dark); }
+    .user-av { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); font-size: 8px; }
+    .msg-bubble { font-size: 14px; font-weight: 300; line-height: 1.75; }
+    .lumen-bubble { color: rgba(255,255,255,0.85); font-style: italic; }
+    .user-bubble { color: rgba(255,255,255,0.55); }
+    .thinking-bubble { color: rgba(255,255,255,0.3); font-style: italic; }
+    .lumen-input-row { padding: 10px 18px 12px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; gap: 8px; align-items: flex-end; }
+    textarea.lumen-reply { flex: 1; min-height: 40px; max-height: 120px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 13px; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 300; color: var(--white); resize: none; line-height: 1.5; }
+    textarea.lumen-reply:focus { border-color: rgba(255,190,25,0.5); box-shadow: none; }
+    textarea.lumen-reply::placeholder { color: rgba(255,255,255,0.2); }
+    .lumen-send { background: var(--yellow); border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
+    .lumen-send:hover { opacity: 0.85; }
+    .lumen-send svg { width: 13px; height: 13px; fill: var(--dark); }
+    .lumen-done-row { padding: 0 18px 12px; display: flex; justify-content: flex-end; }
+    .lumen-done-btn { background: none; border: none; color: rgba(255,255,255,0.28); font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; padding: 4px 0; }
+    .lumen-done-btn:hover { color: rgba(255,255,255,0.55); }
+
+    .add-card-btn { background: var(--white); border: 2px dashed var(--border); border-radius: 16px; padding: 16px; width: 100%; font-family: 'Rubik', sans-serif; font-size: 14px; font-weight: 500; color: var(--mid); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .add-card-btn:hover { border-color: var(--accent-dark); color: var(--accent-dark); background: var(--accent-light); }
+    .add-card-btn-icon { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-dark); color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 300; flex-shrink: 0; }
+
+    .insight-box { background: var(--accent-light); border-radius: 14px; padding: 20px 24px; margin: 24px 0; display: flex; gap: 16px; align-items: flex-start; border: 1.5px solid var(--accent); }
+    .insight-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dark); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .insight-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-dark); margin-bottom: 6px; }
+    .insight-body { font-size: 14px; font-weight: 300; line-height: 1.75; color: var(--dark); }
+
+    .share-prompt { background: var(--white); border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; border: 1.5px solid var(--border); }
+    .share-prompt-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 12px; }
+    .share-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; font-size: 14px; font-weight: 300; color: var(--dark); line-height: 1.6; }
+    .share-item:last-child { margin-bottom: 0; }
+    .share-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-dark); flex-shrink: 0; margin-top: 8px; }
+
+    .part-reflection { background: var(--dark); border-radius: 16px; padding: 24px 28px; margin: 24px 0; border-left: 4px solid var(--yellow); display: none; animation: fadeUp 0.4s ease; }
+    .part-reflection.show { display: block; }
+    .pr-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .pr-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yellow); }
+    .pr-text { font-size: 15px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.85); font-style: italic; }
+    .pr-actions { margin-top: 18px; display: none; gap: 12px; align-items: center; }
+    .pr-actions.show { display: flex; }
+    .pr-continue { background: var(--accent-dark); color: var(--white); border: none; border-radius: 20px; padding: 11px 24px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: opacity 0.2s; }
+    .pr-continue:hover { opacity: 0.87; }
+    .pr-skip { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 14px; cursor: pointer; font-family: 'Rubik', sans-serif; transition: color 0.2s; }
+    .pr-skip:hover { color: rgba(255,255,255,0.6); }
+
+    .arc-block { background: var(--dark); border-radius: 20px; padding: 28px 32px; margin-bottom: 20px; position: relative; overflow: hidden; display: none; animation: fadeUp 0.4s ease; }
+    .arc-block.show { display: block; }
+    .arc-shape { position: absolute; bottom: -24px; right: -24px; width: 120px; height: 120px; background: var(--blush); border-radius: 50%; opacity: 0.12; }
+    .arc-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .arc-text { font-size: 15px; font-weight: 300; line-height: 1.85; color: rgba(255,255,255,0.85); font-style: italic; margin-bottom: 24px; }
+    .arc-divider { height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 20px; }
+    .commit-title { font-size: 22px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+    .commit-desc { font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.55); line-height: 1.75; margin-bottom: 18px; }
+    textarea.commit-input { background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); color: var(--white); min-height: 80px; }
+    textarea.commit-input:focus { border-color: rgba(155,215,230,0.5); box-shadow: none; }
+    textarea.commit-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .complete-banner { background: var(--accent-light); border-radius: 14px; padding: 24px 28px; text-align: center; margin-top: 20px; border: 2px solid var(--accent); display: none; }
+    .complete-banner.show { display: block; animation: fadeUp 0.3s ease; }
+    .complete-banner h4 { font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .complete-banner p { font-size: 14px; color: var(--mid); font-weight: 400; margin-bottom: 16px; }
+
+    .nav-buttons { display: flex; gap: 10px; margin-top: 32px; }
+    .btn-back { background: var(--white); color: var(--mid); border: 2px solid var(--border); border-radius: 20px; padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Rubik', sans-serif; transition: background 0.2s; }
+    .btn-back:hover { background: var(--beige-mid); }
+    .btn-next { background: var(--accent-dark); color: var(--white); border: none; border-radius: 20px; padding: 12px 28px; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1; font-family: 'Rubik', sans-serif; transition: opacity 0.2s; }
+    .btn-next:hover { opacity: 0.87; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 48px 24px 40px; }
+      .bridge, .lumen-bridge { padding: 20px 24px; }
+      .progress-bar { padding: 12px 24px; }
+      .body { padding: 28px 24px 48px; }
+      .step-label { display: none; }
+      .auth-user-bar { padding: 10px 24px; }
+      .ebi-split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-saving" id="auth-saving">Saving...</div>
+
+  <div class="auth-user-bar" id="user-bar" style="display:none">
+    <div class="auth-user-left">
+      <a href="/dashboard.html" class="auth-dashboard-link">Back to dashboard</a>
+      <span class="auth-user-email" id="user-email"></span>
+    </div>
+    <button class="auth-signout" onclick="signOut()">Sign out</button>
+  </div>
+
+  <div class="hero">
+    <div class="hero-shape-1"></div>
+    <div class="hero-shape-2"></div>
+    <div class="hero-inner">
+      <div class="mission-label">Mission 07 - Chapter 10</div>
+      <h1>Feedback is a Gift</h1>
+      <p class="hero-sub">The patterns you've been uncovering in yourself are patterns other people have already noticed. This mission gives you a structured way to hear them - not as criticism, but as data.</p>
+    </div>
+  </div>
+
+  <div class="bridge">
+    <div style="max-width:var(--max)">
+      <div class="bridge-label">Where you're coming from</div>
+      <p>In Mission 6 you built your trigger map. You tracked the moments of activation, looked for the patterns, and began to understand what is really driving your responses. You practised pressing pause.</p>
+      <p>Now the work turns outward. Everything you have been discovering about yourself - the patterns, the values, the triggers, the stories - other people have already been noticing. We try hard to hide things from the outer world and fail, because we leak. This mission gives you a structured way to hear them. Not as criticism. As data.</p>
+    </div>
+  </div>
+
+  <div class="lumen-bridge">
+    <div class="lumen-bridge-inner">
+      <div class="lumen-bridge-av">L</div>
+      <div>
+        <div class="lumen-bridge-label">Lumen - What you brought forward from Mission 6</div>
+        <div class="lumen-bridge-text" id="lumen-bridge-text">The trigger you named - and what is really being threatened when it fires.</div>
+        <div class="lumen-bridge-placeholder" id="lumen-bridge-placeholder">Your reflection will appear here when Lumen has read your Mission 6 answers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="step-dot active" id="dot-1" onclick="goTo(1)">1</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-2" onclick="goTo(2)">2</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-3" onclick="goTo(3)">3</div>
+    <div class="step-connector"></div>
+    <div class="step-dot" id="dot-4" onclick="goTo(4)">4</div>
+    <span class="step-label" id="step-label">Prepare</span>
+  </div>
+
+  <div class="body">
+
+    <div class="step-panel active" id="panel-1">
+      <div class="part-badge">Part 1</div>
+      <div class="part-title">Experiment - Prepare and Ask for Feedback</div>
+      <p class="part-body">Choose five people to gather feedback from. At least three should work closely with you. At least one should be outside work. Add a card for each person and record what you hear.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What are your areas for growth going into this?</span></div>
+        <p class="q-hint">Look back at the patterns from your earlier missions. What keeps appearing? What have you heard before but not fully taken on board?</p>
+        <textarea id="p1q1" placeholder="Name your areas for growth honestly - not what you should say, what you actually sense..." oninput="handleInput('p1q1')"></textarea>
+        <div class="wc" id="wc-p1q1">0 words</div>
+      </div>
+
+      <div class="feedback-header" style="margin-top:32px">
+        <div class="feedback-header-label">Feedback cards</div>
+        <div class="feedback-header-line"></div>
+        <div class="feedback-count" id="feedback-count">0 people</div>
+      </div>
+
+      <div class="feedback-cards" id="feedback-cards-container"></div>
+
+      <button class="add-card-btn" onclick="createFeedbackCard()">
+        <div class="add-card-btn-icon">+</div>
+        Add a person
+      </button>
+
+      <div class="part-reflection" id="pr-1">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen - across your feedback cards</div>
+        <div class="pr-text" id="pr-text-1"></div>
+        <div class="pr-actions" id="pr-actions-1">
+          <button class="pr-continue" onclick="goTo(2)">Continue to Reflect</button>
+          <button class="pr-skip" onclick="goTo(2)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-next" onclick="feedbackPatternReflect()">See what Lumen notices across your feedback</button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="panel-2">
+      <div class="part-badge">Part 2</div>
+      <div class="part-title">Reflect - Sit with What You Heard</div>
+      <p class="part-body">After completing all five conversations, step back and look at everything together. What is the data actually telling you?</p>
+
+      <div class="insight-box">
+        <div class="insight-icon">?</div>
+        <div>
+          <div class="insight-title">The question before the questions</div>
+          <div class="insight-body">What is the one piece of feedback you already know to be true - but no one has had the courage to say to you directly?</div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What are you feeling about the feedback? Name your top three feelings.</span></div>
+        <textarea id="p2q1" placeholder="Name them honestly - not the feelings you should have, the ones you actually have..." oninput="handleInput('p2q1')"></textarea>
+        <div class="wc" id="wc-p2q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What is the truth in what you heard - and what is the story you are creating around it?</span></div>
+        <p class="q-hint">Separate the data from the narrative you're building about what it means.</p>
+        <textarea id="p2q2" placeholder="The truth is... / The story I'm making up is..." oninput="handleInput('p2q2')"></textarea>
+        <div class="wc" id="wc-p2q2">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What patterns are emerging across all the conversations?</span></div>
+        <p class="q-hint">Multiple people naming the same thing. A theme you keep running from. Something that surprised you by how often it came up.</p>
+        <textarea id="p2q3" placeholder="Look across all your cards - what keeps appearing?" oninput="handleInput('p2q3')"></textarea>
+        <div class="wc" id="wc-p2q3">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What didn't you hear - and what stories are you making up about why?</span></div>
+        <textarea id="p2q4" placeholder="What were you expecting that didn't land? What silence are you interpreting?" oninput="handleInput('p2q4')"></textarea>
+        <div class="wc" id="wc-p2q4">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What are the gifts in the feedback you received?</span></div>
+        <p class="q-hint">Not just the useful critiques - the affirmations too. What did people see in you that you find hard to accept?</p>
+        <textarea id="p2q5" placeholder="Name the gifts - both the hard ones and the ones you struggled to receive..." oninput="handleInput('p2q5')"></textarea>
+        <div class="wc" id="wc-p2q5">0 words</div>
+      </div>
+
+      <div class="part-reflection" id="pr-2">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-2"></div>
+        <div class="pr-actions" id="pr-actions-2">
+          <button class="pr-continue" onclick="goTo(3)">Continue to Share</button>
+          <button class="pr-skip" onclick="goTo(3)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(1)">Back</button>
+        <button class="btn-next" onclick="partReflect(2)">Reflect with Lumen</button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="panel-3">
+      <div class="part-badge">Part 3</div>
+      <div class="part-title">Share - Another Perspective on What You Heard</div>
+      <p class="part-body">After reflecting alone, take your insights to a friend or trusted partner who can offer an outside view.</p>
+
+      <div class="share-prompt">
+        <div class="share-prompt-label">Talk to them about:</div>
+        <div class="share-item"><div class="share-dot"></div>How you feel about the experience overall</div>
+        <div class="share-item"><div class="share-dot"></div>The patterns you have noticed across all the conversations</div>
+        <div class="share-item"><div class="share-dot"></div>The hidden benefits - to you and others - of not changing this behaviour</div>
+        <div class="share-item"><div class="share-dot"></div>The hidden costs - to you and others - of not changing this behaviour</div>
+      </div>
+
+      <div class="share-prompt" style="margin-top:12px">
+        <div class="share-prompt-label">Ask them:</div>
+        <div class="share-item"><div class="share-dot"></div>What can you see that I'm not seeing?</div>
+        <div class="share-item"><div class="share-dot"></div>What assumptions might I be making?</div>
+        <div class="share-item"><div class="share-dot"></div>What might be more true than what I'm currently believing?</div>
+      </div>
+
+      <div class="q-block" style="margin-top:24px">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Who will you share this with - and when?</span></div>
+        <textarea id="p3q1" placeholder="Name them. Name the moment. Make it real." oninput="handleInput('p3q1')" style="min-height:72px"></textarea>
+        <div class="wc" id="wc-p3q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">Notes from your conversation:</span></div>
+        <p class="q-hint">Come back here after you've had the conversation. What did they see? What landed differently once it was said out loud?</p>
+        <textarea id="p3q2" placeholder="Return here after the conversation..." oninput="handleInput('p3q2')"></textarea>
+        <div class="wc" id="wc-p3q2">0 words</div>
+      </div>
+
+      <div class="part-reflection" id="pr-3">
+        <div class="pr-label"><div class="pr-dot"></div>Lumen</div>
+        <div class="pr-text" id="pr-text-3"></div>
+        <div class="pr-actions" id="pr-actions-3">
+          <button class="pr-continue" onclick="goTo(4)">Continue to What Next</button>
+          <button class="pr-skip" onclick="goTo(4)">Skip for now</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(2)">Back</button>
+        <button class="btn-next" onclick="partReflect(3)">Reflect with Lumen</button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="panel-4">
+      <div class="part-badge">Part 4</div>
+      <div class="part-title">What Next - Name the Shift</div>
+      <p class="part-body">The most meaningful shift in how you show up - the one this feedback is pointing to most clearly. Not a list of things to fix. One thing, done differently, consistently.</p>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">The most meaningful shift in how I show up - the one this feedback is pointing to most clearly - is:</span></div>
+        <textarea id="p4q1" placeholder="Name it specifically. Not a vague aspiration - an actual change in how you behave..." oninput="handleInput('p4q1')"></textarea>
+        <div class="wc" id="wc-p4q1">0 words</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-row"><div class="q-dot"></div><span class="q-text">What would it make possible - for you and others - if you made this shift?</span></div>
+        <textarea id="p4q2" placeholder="Name the possibility, not just the improvement..." oninput="handleInput('p4q2')"></textarea>
+        <div class="wc" id="wc-p4q2">0 words</div>
+      </div>
+
+      <div class="arc-block" id="arc-block">
+        <div class="arc-shape"></div>
+        <div class="arc-label"><div class="pr-dot"></div>Lumen - closing the arc</div>
+        <div class="arc-text" id="arc-text"></div>
+        <div class="arc-divider"></div>
+        <div class="commit-title">My commitment</div>
+        <div class="commit-desc">The most meaningful shift this feedback is pointing to - and what it would make possible.</div>
+        <textarea class="commit-input" id="ta-commit"
+          placeholder="The most meaningful shift in how I show up is _____________. What it would make possible for me and others is _____________."
+          oninput="saveAnswer('ta-commit'); checkComplete()"></textarea>
+      </div>
+
+      <div class="complete-banner" id="complete-banner">
+        <h4>Mission 7 complete.</h4>
+        <p>You heard what others see. Now you carry it forward.</p>
+        <a href="/dashboard.html" style="display:inline-block;background:var(--accent-dark);color:white;text-decoration:none;padding:12px 28px;border-radius:20px;font-size:14px;font-weight:500;font-family:'Rubik',sans-serif;">Return to your journey</a>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="goTo(3)">Back</button>
+        <button class="btn-next" id="arc-btn" onclick="arcReflect()">Close the arc with Lumen</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://aoqjfqmlcccsosddqnws.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvcWpmcW1sY2Njc29zZGRxbndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMDM1MDMsImV4cCI6MjA5MDc3OTUwM30.oJUvoD8q2UI3kstkgOudwYKAm4Uet2KyY8CNAHSkP-g';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const LUMEN_API_URL = '/api/lumen';
+    const MISSION_ID = 'mission-7';
+    const PREV_MISSION_ID = 'mission-6';
+    const ALL_QUESTIONS = ['p1q1','p2q1','p2q2','p2q3','p2q4','p2q5','p3q1','p3q2','p4q1','p4q2','ta-commit'];
+    const PART_QUESTIONS = { 2: ['p2q1','p2q2','p2q3','p2q4','p2q5'], 3: ['p3q1','p3q2'], 4: ['p4q1','p4q2'] };
+    const STEP_LABELS = ['Prepare','Reflect','Share','What Next'];
+    const LUMEN_CONVO_KEYS = ['lumen-feedback-pattern','lumen-part-2','lumen-part-3','lumen-arc'];
+
+    let currentUser = null, currentStep = 1, saveTimer = null;
+    let feedbackCards = [];
+    let cardLumenConvos = {};
+
+    window.addEventListener('load', async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        document.getElementById('user-bar').style.display = 'flex';
+        document.getElementById('user-email').textContent = currentUser.email;
+        await loadAnswers();
+        await loadFeedbackCards();
+        await loadPrevMissionContext();
+      } else {
+        window.location.href = '/signin.html?next=/mission-7.html';
+      }
+    });
+
+    async function signOut() { await sb.auth.signOut(); window.location.href = '/signin.html'; }
+
+    async function getAuthHeaders() {
+      const { data: { session } } = await sb.auth.getSession();
+      return { 'Content-Type': 'application/json', ...(session ? { 'Authorization': 'Bearer ' + session.access_token } : {}) };
+    }
+
+    async function loadAnswers() {
+      const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', MISSION_ID);
+      if (data) data.forEach(row => {
+        if (LUMEN_CONVO_KEYS.includes(row.question)) return;
+        const el = document.getElementById(row.question);
+        if (el) { el.value = row.answer; updateWordCount(row.question); }
+      });
+      await loadLumenConvos();
+    }
+
+    async function saveLumenConvo(key, messages) {
+      if (!currentUser) return;
+      await sb.from('answers').upsert({ user_id: currentUser.id, mission: MISSION_ID, question: key, answer: JSON.stringify(messages) }, { onConflict: 'user_id,mission,question' });
+    }
+
+    async function loadLumenConvos() {
+      const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', MISSION_ID).in('question', LUMEN_CONVO_KEYS);
+      if (!data) return;
+      data.forEach(row => {
+        try {
+          const messages = JSON.parse(row.answer);
+          if (!messages || !messages.length) return;
+          renderLumenRecord(row.question, messages);
+        } catch(e) {}
+      });
+    }
+
+    function renderLumenRecord(key, messages) {
+      const lumenMsg = messages.find(m => m.role === 'assistant');
+      if (!lumenMsg) return;
+      if (key === 'lumen-feedback-pattern') {
+        const pr = document.getElementById('pr-1');
+        const textEl = document.getElementById('pr-text-1');
+        const actions = document.getElementById('pr-actions-1');
+        if (!pr || !textEl) return;
+        pr.classList.add('show'); textEl.textContent = lumenMsg.content;
+        if (actions) actions.classList.add('show');
+      } else if (key.startsWith('lumen-part-')) {
+        const part = key.replace('lumen-part-', '');
+        const pr = document.getElementById('pr-' + part);
+        const textEl = document.getElementById('pr-text-' + part);
+        const actions = document.getElementById('pr-actions-' + part);
+        if (!pr || !textEl) return;
+        pr.classList.add('show'); textEl.textContent = lumenMsg.content;
+        if (actions) actions.classList.add('show');
+      } else if (key === 'lumen-arc') {
+        const arcBlock = document.getElementById('arc-block');
+        const arcText = document.getElementById('arc-text');
+        if (!arcBlock || !arcText) return;
+        arcBlock.classList.add('show'); arcText.textContent = lumenMsg.content;
+        const arcBtn = document.getElementById('arc-btn');
+        if (arcBtn) arcBtn.style.display = 'none';
+      }
+    }
+
+    function saveAnswer(questionId) {
+      if (!currentUser) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        const el = document.getElementById(questionId); if (!el) return;
+        const saving = document.getElementById('auth-saving'); saving.classList.add('show');
+        await sb.from('answers').upsert({ user_id: currentUser.id, mission: MISSION_ID, question: questionId, answer: el.value }, { onConflict: 'user_id,mission,question' });
+        setTimeout(() => saving.classList.remove('show'), 1200);
+      }, 800);
+    }
+
+    function updateWordCount(id) {
+      const el = document.getElementById(id); const wc = document.getElementById('wc-' + id);
+      if (!el || !wc) return;
+      const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+      wc.textContent = w + ' word' + (w !== 1 ? 's' : '');
+    }
+
+    function handleInput(id) { updateWordCount(id); saveAnswer(id); }
+
+    async function loadPrevMissionContext() {
+      try {
+        const { data } = await sb.from('answers').select('question, answer').eq('user_id', currentUser.id).eq('mission', PREV_MISSION_ID);
+        if (data && data.length > 0) {
+          const answered = data.filter(r => r.answer && r.answer.trim().length > 0);
+          if (answered.length > 0) generateLumenBridge(answered);
+        }
+      } catch(e) {}
+    }
+
+    async function generateLumenBridge(prevAnswers) {
+      const ctx = prevAnswers.slice(0, 6).map(r => r.question + ': "' + r.answer.trim().substring(0, 200) + '"').join('\n');
+      const sys = 'You are Lumen. Read what this person wrote in Mission 6 (Taming Your Triggers) and offer 2-3 sentences that reflect back the trigger they named most honestly and what it was really protecting. This is recognition, not a question. Speak directly to what they wrote.';
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Mission 6 reflections:\n' + ctx }] }) });
+        const d = await res.json();
+        if (d.reply) { document.getElementById('lumen-bridge-text').textContent = d.reply; document.getElementById('lumen-bridge-placeholder').style.display = 'none'; }
+      } catch(e) {}
+    }
+
+    async function loadFeedbackCards() {
+      const { data } = await sb.from('entries').select('*').eq('user_id', currentUser.id).eq('mission', MISSION_ID).eq('tool', 'feedback-card').order('created_at', { ascending: true });
+      if (data && data.length > 0) { feedbackCards = data; renderFeedbackCards(); }
+      updateFeedbackCount();
+    }
+
+    function createFeedbackCard() {
+      const tempId = 'card-' + Date.now();
+      const card = { id: tempId, created_at: new Date().toISOString(), entry_data: { status: 'pending' } };
+      feedbackCards.push(card);
+      renderFeedbackCards();
+      updateFeedbackCount();
+      setTimeout(() => {
+        const el = document.getElementById(tempId);
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); toggleFeedbackCard(tempId); }
+      }, 100);
+    }
+
+    function updateFeedbackCount() {
+      const n = feedbackCards.length;
+      const received = feedbackCards.filter(c => c.entry_data && c.entry_data.status === 'received').length;
+      document.getElementById('feedback-count').textContent = n + ' ' + (n === 1 ? 'person' : 'people') + (received > 0 ? ' - ' + received + ' received' : '');
+    }
+
+    function renderFeedbackCards() {
+      const container = document.getElementById('feedback-cards-container');
+      container.innerHTML = feedbackCards.map((card, i) => renderFeedbackCard(card, i + 1)).join('');
+      feedbackCards.forEach(card => {
+        attachCardListeners(card.id);
+        if (card.entry_data) restoreCardData(card.id, card.entry_data);
+      });
+    }
+
+    function renderFeedbackCard(card, num) {
+      const data = card.entry_data || {};
+      const name = data.person_name || '';
+      const status = data.status || 'pending';
+      return '<div class="feedback-card" id="' + card.id + '">' +
+        '<div class="feedback-card-header" onclick="toggleFeedbackCard(\'' + card.id + '\')">' +
+          '<div class="feedback-card-num">' + num + '</div>' +
+          (name ? '<div class="feedback-card-name">' + name + '</div>' : '<div class="feedback-card-name-empty">Add a name...</div>') +
+          '<div class="feedback-card-status ' + status + '" id="status-badge-' + card.id + '">' + (status === 'received' ? 'Received' : 'Pending') + '</div>' +
+          '<div class="feedback-card-toggle" id="toggle-' + card.id + '">Open</div>' +
+        '</div>' +
+        '<div class="feedback-card-body" id="body-' + card.id + '">' +
+          '<div class="feedback-field"><label class="feedback-field-label">Who are you asking?</label>' +
+            '<input type="text" data-field="person_name" placeholder="Their name and relationship to you (e.g. Sarah, my manager)..." /></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">Why did you choose them?</label>' +
+            '<textarea data-field="why" placeholder="What made you choose this person? What do you think they see that others might not?" style="min-height:72px"></textarea></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">What are you asking feedback on?</label>' +
+            '<textarea data-field="focus_area" placeholder="Be specific about the area you want their perspective on..." style="min-height:72px"></textarea></div>' +
+          '<div class="ebi-split">' +
+            '<div class="ebi-col"><div class="ebi-label"><div class="ebi-plus">+</div>What is working well?</div>' +
+              '<textarea data-field="plus" placeholder="What they said is working..."></textarea></div>' +
+            '<div class="ebi-col"><div class="ebi-label"><div class="ebi-delta">+</div>Even Better If...</div>' +
+              '<textarea data-field="ebi" placeholder="What they said could be even better..."></textarea></div>' +
+          '</div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">What has landed?</label>' +
+            '<textarea data-field="landed" placeholder="What from this conversation do you want to carry forward? What surprised you?" style="min-height:72px"></textarea></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">What has not landed yet?</label>' +
+            '<textarea data-field="not_landed" placeholder="What are you still sitting with, resisting, or not fully taking in?" style="min-height:72px"></textarea></div>' +
+          '<div class="feedback-field"><label class="feedback-field-label">Status</label>' +
+            '<div class="status-toggle">' +
+              '<button class="status-btn" id="status-pending-' + card.id + '" onclick="setStatus(\'' + card.id + '\', \'pending\')">Pending</button>' +
+              '<button class="status-btn" id="status-received-' + card.id + '" onclick="setStatus(\'' + card.id + '\', \'received\')">Received</button>' +
+            '</div></div>' +
+          '<div class="feedback-card-footer">' +
+            '<button class="feedback-lumen-btn" onclick="openCardLumen(\'' + card.id + '\')">' +
+              '<div style="width:18px;height:18px;border-radius:50%;background:var(--yellow);color:var(--dark);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;">L</div>' +
+              ' Reflect on this with Lumen</button>' +
+            '<button class="feedback-card-delete" onclick="deleteFeedbackCard(\'' + card.id + '\')">Delete</button>' +
+          '</div>' +
+          '<div class="lumen-panel" id="clp-' + card.id + '" style="margin-top:12px">' +
+            '<div class="lumen-panel-header"><div class="lumen-panel-label"><div class="pr-dot" style="background:var(--yellow)"></div>Lumen</div>' +
+            '<button class="lumen-panel-close" onclick="closeCardLumen(\'' + card.id + '\')">x</button></div>' +
+            '<div class="lumen-messages" id="clm-' + card.id + '"></div>' +
+            '<div class="lumen-input-row">' +
+              '<textarea class="lumen-reply" id="clr-' + card.id + '" placeholder="Reply to Lumen..."></textarea>' +
+              '<button class="lumen-send" onclick="sendCardLumenReply(\'' + card.id + '\')">' +
+                '<svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>' +
+            '<div class="lumen-done-row"><button class="lumen-done-btn" onclick="closeCardLumen(\'' + card.id + '\')">Close conversation</button></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function toggleFeedbackCard(id) {
+      const body = document.getElementById('body-' + id);
+      const toggle = document.getElementById('toggle-' + id);
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open');
+      if (toggle) toggle.textContent = isOpen ? 'Open' : 'Close';
+    }
+
+    function attachCardListeners(cardId) {
+      const card = document.getElementById(cardId); if (!card) return;
+      card.querySelectorAll('textarea[data-field], input[data-field]').forEach(el => {
+        el.addEventListener('input', () => saveFeedbackCard(cardId));
+      });
+      const replyTa = document.getElementById('clr-' + cardId);
+      if (replyTa) {
+        replyTa.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCardLumenReply(cardId); }
+        });
+      }
+    }
+
+    function restoreCardData(cardId, data) {
+      const card = document.getElementById(cardId); if (!card || !data) return;
+      card.querySelectorAll('textarea[data-field], input[data-field]').forEach(el => {
+        if (data[el.dataset.field] !== undefined) el.value = data[el.dataset.field];
+      });
+      const status = data.status || 'pending';
+      const pendingBtn = document.getElementById('status-pending-' + cardId);
+      const receivedBtn = document.getElementById('status-received-' + cardId);
+      if (pendingBtn && receivedBtn) {
+        pendingBtn.classList.toggle('active-pending', status === 'pending');
+        receivedBtn.classList.toggle('active-received', status === 'received');
+      }
+    }
+
+    function setStatus(cardId, status) {
+      const fc = feedbackCards.find(c => c.id === cardId);
+      if (!fc) return;
+      if (!fc.entry_data) fc.entry_data = {};
+      fc.entry_data.status = status;
+      const badge = document.getElementById('status-badge-' + cardId);
+      if (badge) { badge.textContent = status === 'received' ? 'Received' : 'Pending'; badge.className = 'feedback-card-status ' + status; }
+      const pendingBtn = document.getElementById('status-pending-' + cardId);
+      const receivedBtn = document.getElementById('status-received-' + cardId);
+      if (pendingBtn) pendingBtn.className = 'status-btn' + (status === 'pending' ? ' active-pending' : '');
+      if (receivedBtn) receivedBtn.className = 'status-btn' + (status === 'received' ? ' active-received' : '');
+      saveFeedbackCard(cardId);
+      updateFeedbackCount();
+    }
+
+    function getCardData(cardId) {
+      const card = document.getElementById(cardId); if (!card) return {};
+      const data = {};
+      card.querySelectorAll('textarea[data-field], input[data-field]').forEach(el => { data[el.dataset.field] = el.value.trim(); });
+      const fc = feedbackCards.find(c => c.id === cardId);
+      data.status = (fc && fc.entry_data && fc.entry_data.status) ? fc.entry_data.status : 'pending';
+      return data;
+    }
+
+    let cardTimer = {};
+    async function saveFeedbackCard(cardId) {
+      if (!currentUser) return;
+      clearTimeout(cardTimer[cardId]);
+      cardTimer[cardId] = setTimeout(async () => {
+        const entryData = getCardData(cardId);
+        const fc = feedbackCards.find(c => c.id === cardId);
+        if (fc && fc.entry_data) entryData.status = fc.entry_data.status || 'pending';
+        const saving = document.getElementById('auth-saving'); saving.classList.add('show');
+        const isTemp = cardId.startsWith('card-');
+        if (isTemp) {
+          const { data } = await sb.from('entries').insert({ user_id: currentUser.id, mission: MISSION_ID, tool: 'feedback-card', entry_data: entryData }).select().single();
+          if (data) {
+            const fcEntry = feedbackCards.find(c => c.id === cardId);
+            if (fcEntry) {
+              fcEntry.id = data.id; fcEntry.entry_data = entryData;
+              const cardEl = document.getElementById(cardId); if (cardEl) cardEl.id = data.id;
+              const bodyEl = document.getElementById('body-' + cardId); if (bodyEl) bodyEl.id = 'body-' + data.id;
+            }
+          }
+        } else {
+          const fcEntry = feedbackCards.find(c => c.id === cardId);
+          if (fcEntry) fcEntry.entry_data = entryData;
+          await sb.from('entries').update({ entry_data: entryData }).eq('id', cardId).eq('user_id', currentUser.id);
+        }
+        updateFeedbackCount();
+        setTimeout(() => saving.classList.remove('show'), 1200);
+      }, 800);
+    }
+
+    async function deleteFeedbackCard(cardId) {
+      if (!confirm('Delete this feedback card?')) return;
+      if (!cardId.startsWith('card-')) await sb.from('entries').delete().eq('id', cardId).eq('user_id', currentUser.id);
+      feedbackCards = feedbackCards.filter(c => c.id !== cardId);
+      renderFeedbackCards(); updateFeedbackCount();
+    }
+
+    function openCardLumen(cardId) {
+      const panel = document.getElementById('clp-' + cardId); if (!panel) return;
+      panel.classList.add('open');
+      if (!cardLumenConvos[cardId]) {
+        cardLumenConvos[cardId] = [];
+        const data = getCardData(cardId);
+        const ctx = 'Person: "' + (data.person_name || 'unnamed') + '"\nWhy chosen: "' + (data.why || '') + '"\nFocus area: "' + (data.focus_area || '') + '"\nWhat is working: "' + (data.plus || '') + '"\nEven Better If: "' + (data.ebi || '') + '"\nWhat landed: "' + (data.landed || '') + '"';
+        sendCardLumenMessage(cardId, null, ctx);
+      }
+    }
+
+    function closeCardLumen(cardId) { const p = document.getElementById('clp-' + cardId); if (p) p.classList.remove('open'); }
+
+    async function sendCardLumenMessage(cardId, userText, entryCtx) {
+      if (!cardLumenConvos[cardId]) cardLumenConvos[cardId] = [];
+      const msgs = cardLumenConvos[cardId];
+      if (userText) { msgs.push({ role: 'user', content: userText }); appendCardMsg(cardId, 'user', userText); }
+      appendCardThinking(cardId);
+      const sys = 'You are Lumen. The person has received feedback from one person. Here is the record:\n\n' + (entryCtx || '') + '\n\nName one precise thing you notice in the gap between what this person observed and what the reader expected or hoped to hear. Ask one question that takes them into what they are resisting or avoiding in this feedback. 2 sentences. No advice. No summary.';
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: msgs }) });
+        const d = await res.json();
+        removeCardThinking(cardId);
+        const reply = d.reply || 'Lumen is quiet. Keep going.';
+        msgs.push({ role: 'assistant', content: reply });
+        appendCardMsg(cardId, 'lumen', reply);
+      } catch(e) { removeCardThinking(cardId); appendCardMsg(cardId, 'lumen', 'Lumen is quiet right now.'); }
+    }
+
+    function sendCardLumenReply(cardId) {
+      const input = document.getElementById('clr-' + cardId); if (!input) return;
+      const text = input.value.trim(); if (!text) return;
+      input.value = '';
+      sendCardLumenMessage(cardId, text, JSON.stringify(getCardData(cardId)));
+    }
+
+    function appendCardMsg(cardId, role, text) {
+      const c = document.getElementById('clm-' + cardId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg';
+      const isL = role === 'lumen';
+      div.innerHTML = '<div class="msg-avatar ' + (isL ? 'lumen-av' : 'user-av') + '">' + (isL ? 'L' : 'you') + '</div><div class="msg-bubble ' + (isL ? 'lumen-bubble' : 'user-bubble') + '">' + text + '</div>';
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+    function appendCardThinking(cardId) {
+      const c = document.getElementById('clm-' + cardId); if (!c) return;
+      const div = document.createElement('div'); div.className = 'msg'; div.id = 'cthink-' + cardId;
+      div.innerHTML = '<div class="msg-avatar lumen-av">L</div><div class="msg-bubble thinking-bubble">Reading what you wrote...</div>';
+      c.appendChild(div); c.scrollTop = c.scrollHeight;
+    }
+    function removeCardThinking(cardId) { const el = document.getElementById('cthink-' + cardId); if (el) el.remove(); }
+
+    async function feedbackPatternReflect() {
+      const pr = document.getElementById('pr-1');
+      const prText = document.getElementById('pr-text-1');
+      const prActions = document.getElementById('pr-actions-1');
+      pr.classList.add('show'); prText.textContent = 'Reading across all your feedback...';
+      const allCards = feedbackCards.map((fc, i) => {
+        const d = fc.entry_data || {};
+        return 'Person ' + (i+1) + ' (' + (d.person_name || 'unnamed') + '): working="' + (d.plus || '') + '" ebi="' + (d.ebi || '') + '" landed="' + (d.landed || '') + '" not_landed="' + (d.not_landed || '') + '"';
+      }).join('\n');
+      const growthEl = document.getElementById('p1q1');
+      const growth = growthEl ? growthEl.value.trim() : '';
+      const sys = 'You are Lumen. The person set out to gather feedback on these growth areas:\n\n"' + growth + '"\n\nHere is the feedback they received across ' + feedbackCards.length + ' people:\n\n' + allCards + '\n\nLook across all the cards. Name one precise pattern in what others are seeing - the theme that keeps appearing across multiple people, or the gap between what they hoped to hear and what they actually received. Ask one question that names what they might be resisting or not fully taking in. 2-3 sentences. No advice. No praise.';
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'What do you notice across all my feedback?' }] }) });
+        const d = await res.json();
+        const reply = d.reply || 'Lumen is quiet. Move to the Reflect section when ready.';
+        prText.textContent = reply;
+        if (prActions) prActions.classList.add('show');
+        saveLumenConvo('lumen-feedback-pattern', [{ role: 'assistant', content: reply }]);
+      } catch(e) { prText.textContent = 'Lumen is quiet right now. Continue when ready.'; if (prActions) prActions.classList.add('show'); }
+    }
+
+    function goTo(step) {
+      document.getElementById('panel-' + currentStep).classList.remove('active');
+      document.getElementById('dot-' + currentStep).classList.remove('active');
+      if (currentStep < step) document.getElementById('dot-' + currentStep).classList.add('done');
+      currentStep = step;
+      document.getElementById('panel-' + step).classList.add('active');
+      document.getElementById('dot-' + step).classList.add('active');
+      document.getElementById('step-label').textContent = STEP_LABELS[step - 1];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function buildContext(partNum) {
+      return (PART_QUESTIONS[partNum] || []).map(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() ? id + ': "' + el.value.trim().substring(0, 300) + '"' : null;
+      }).filter(Boolean).join('\n');
+    }
+
+    async function partReflect(partNum) {
+      const pr = document.getElementById('pr-' + partNum);
+      const prText = document.getElementById('pr-text-' + partNum);
+      const prActions = document.getElementById('pr-actions-' + partNum);
+      if (!pr || !prText) return;
+      pr.classList.add('show'); prText.textContent = 'Reading what you wrote...';
+      const ctx = buildContext(partNum);
+      const partNames = { 2: 'Reflect', 3: 'Share', 4: 'What Next' };
+      const sys = 'You are Lumen. The person has completed Part ' + partNum + ' (' + partNames[partNum] + ') of Mission 7: Feedback is a Gift. Here is what they wrote:\n\n' + ctx + '\n\nOffer one precise observation about what you notice. Ask one question that takes them deeper into what they are not yet seeing. 2-3 sentences. No praise. No advice.';
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Reflect on my answers.' }] }) });
+        const d = await res.json();
+        const partReply = d.reply || 'Lumen is quiet. Continue when ready.';
+        prText.textContent = partReply;
+        if (prActions) prActions.classList.add('show');
+        saveLumenConvo('lumen-part-' + partNum, [{ role: 'assistant', content: partReply }]);
+      } catch(e) { prText.textContent = 'Lumen is quiet right now. Continue when ready.'; if (prActions) prActions.classList.add('show'); }
+    }
+
+    async function arcReflect() {
+      const arcBlock = document.getElementById('arc-block');
+      const arcText = document.getElementById('arc-text');
+      arcBlock.classList.add('show'); arcText.textContent = 'Reading everything you wrote...';
+      const allCtx = ALL_QUESTIONS.map(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() ? id + ': "' + el.value.trim().substring(0, 200) + '"' : null;
+      }).filter(Boolean).join('\n');
+      const cardCtx = feedbackCards.map((fc, i) => {
+        const d = fc.entry_data || {};
+        return 'Person ' + (i+1) + ': working="' + (d.plus || '') + '" ebi="' + (d.ebi || '') + '"';
+      }).join('\n');
+      const sys = 'You are Lumen. The person has completed Mission 7: Feedback is a Gift. They gathered feedback from ' + feedbackCards.length + ' people and have now reflected fully. Here is their work:\n\n' + allCtx + '\n\nFeedback summary:\n' + cardCtx + '\n\nOffer one precise observation that names the shift this mission is pointing to - what others see that the person is now beginning to own. Ask the one question that names what will be different if they carry this forward. 2-3 sentences. No summary. No praise.';
+      try {
+        const res = await fetch(LUMEN_API_URL, { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify({ systemExtra: sys, messages: [{ role: 'user', content: 'Close the arc.' }] }) });
+        const d = await res.json();
+        const arcReply = d.reply || 'Name the shift. Name your commitment.';
+        arcText.textContent = arcReply;
+        saveLumenConvo('lumen-arc', [{ role: 'assistant', content: arcReply }]);
+      } catch(e) { arcText.textContent = 'Name your commitment below.'; }
+      document.getElementById('arc-btn').style.display = 'none';
+    }
+
+    function checkComplete() {
+      const commit = document.getElementById('ta-commit');
+      if (commit && commit.value.trim().length > 20) document.getElementById('complete-banner').classList.add('show');
+    }
+  </script>
+</body>
+</html>
