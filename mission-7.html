@@ -791,11 +791,14 @@
     function openCardLumen(cardId) {
       const panel = document.getElementById('clp-' + cardId); if (!panel) return;
       panel.classList.add('open');
-      if (!cardLumenConvos[cardId]) {
+      const data = getCardData(cardId);
+      const hasContent = (data.plus || data.ebi || data.landed || data.not_landed || data.focus_area || '').trim().length > 0;
+      // Start fresh if no convo yet, or if previous convo was just the empty-card placeholder
+      const existingConvo = cardLumenConvos[cardId];
+      const wasStale = existingConvo && existingConvo.length === 1 && existingConvo[0].role === 'assistant';
+        const wasEmpty = wasStale && (existingConvo[0].content.startsWith('Fill in some') || existingConvo[0].content.startsWith('Lumen is quiet'));
+      if (!existingConvo || wasEmpty) {
         cardLumenConvos[cardId] = [];
-        const data = getCardData(cardId);
-        // Only auto-fire if there is something to read
-        const hasContent = (data.plus || data.ebi || data.landed || data.not_landed || data.focus_area || '').trim().length > 0;
         if (hasContent) {
           const ctx = 'Person: "' + (data.person_name || 'unnamed') + '"\nWhy chosen: "' + (data.why || '') + '"\nFocus area: "' + (data.focus_area || '') + '"\nWhat is working: "' + (data.plus || '') + '"\nEven Better If: "' + (data.ebi || '') + '"\nWhat has landed: "' + (data.landed || '') + '"\nWhat has not landed yet: "' + (data.not_landed || '') + '"';
           sendCardLumenMessage(cardId, null, ctx);
