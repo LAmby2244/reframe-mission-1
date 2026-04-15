@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last updated: 2026-04-14 PM — Mission 7 built and live. Dashboard updated. Auth pattern standardised.
+## Last updated: 2026-04-15 — Mission 7 feedback cards fully working. Lumen on cards fixed. Rewrite It new structure live.
 
 ---
 
@@ -63,7 +63,7 @@ index.html (public landing)
 -> dashboard.html (Learn It — 14 missions + Lumen sidebar)
 -> use-it.html (Use It hub — Tame a Trigger live, Body Signal, coming tools)
    -> wearable.html (Body Signal — internal bottom nav: Today/Entries/Study)
--> rewrite.html (Rewrite It — internal bottom nav: Tree/Balcony/Practices/History)
+-> rewrite.html (Rewrite It — Today/Plan/History tabs — UPDATED 15 Apr 2026)
 -> study-dashboard.html (researcher view)
 privacy.html (required for WHOOP developer registration)
 ```
@@ -89,9 +89,9 @@ All mission pages (2, 3, 6, 7) redirect to `signin.html?next=/mission-X.html` if
 |---|---|---|
 | `wearable.html` | Body Signal main page | ~107KB. Sticky dark topbar (not fixed). No more `auth-user-bar` div. `lumenSystemPrompt` persists rich context across full conversation. |
 | `use-it.html` | Use It hub | Lists live tools (Tame a Trigger, Body Signal) + coming soon. Has auth check + sign out. |
-| `rewrite.html` | Rewrite It | 4 screens: Tree / Balcony / Practices / History. Separate `topbar-streak` span — email stays in `topbar-user`. |
+| `rewrite.html` | Rewrite It | **UPDATED 15 Apr 2026** — new three-tab structure: Today / Plan / History. Declaration always at top. Today tab: practices checklist + balcony check-in. Plan tab: weekly intention + planned moments (action/frequency/nudge per moment + Lumen per moment). History tab: read-only balcony entries. Two new Supabase tables: `rewrite_weekly_plans`, `rewrite_planned_moments`. |
 | `dashboard.html` | Learn It — missions | 14 missions, Lumen sidebar. Use It nav link -> `/use-it.html`. Mission 7 now live. |
-| `mission-7.html` | Mission 7 — Feedback is a Gift | **LIVE 14 Apr 2026.** Feedback cards (one per person), +EBI split, Pending/Received status. Lumen reads across all cards for pattern. Redirects to signin.html if no session. |
+| `mission-7.html` | Mission 7 — Feedback is a Gift | **FULLY FIXED 15 Apr 2026.** Feedback cards (one per person). Fields: Who/Why/Focus + EBI split (What's working / Even Better If) + What has landed / What has not landed yet + Status (Pending/Received). Lumen per card reads all fields. Lumen cross-card pattern reflect. Full event delegation via `data-action` attributes + `ref` object — survives temp→UUID ID swap. |
 | `start.html` | Platform entry page | Three paths: Learn It / Use It / Rewrite It |
 | `whoop-callback.html` | WHOOP OAuth callback | Stores tokens in localStorage after redirect |
 | `signin.html` | Auth gate | Single sign-in for all pages. Shows confirm-email panel if email not yet confirmed. Supabase confirmation email now branded as Rewrite Your Life. |
@@ -100,9 +100,9 @@ All mission pages (2, 3, 6, 7) redirect to `signin.html?next=/mission-X.html` if
 | `api/whoop-data.js` | WHOOP fetch + scoring engine | **Edge function.** Composite load index, guardrails, 9 states. Writes to daily_state on every load. |
 | `api/whoop-auth.js` | WHOOP OAuth flow | Uses SUPABASE_SERVICE_KEY. Check-then-PATCH-or-INSERT. No upsert. |
 | `api/whoop-refresh.js` | Token refresh cron | **Node.js.** Runs every 45 min. Auth check removed 12 Apr (was causing 401 on every run). |
-| `api/lumen.js` | Lumen AI companion | **Edge. UPDATED 12 Apr 2026** — full six-move methodology prompt. |
+| `api/lumen.js` | Lumen AI companion | **Edge. UPDATED 12 Apr 2026** — full six-move methodology prompt. Requires at least one user message in `messages` array — empty array returns fallback. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
-| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Only shows today's body signal. |
+| `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js. LIVE 12 Apr 2026.** Runs every minute. Fires balcony reminders AND planned moment nudges (respecting frequency/days). |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
 | `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. **No `functions` block** — adding one breaks Edge runtime compilation. |
 | `README-DEV.md` | This file | Update at end of every session before closing |
@@ -119,12 +119,12 @@ All mission pages (2, 3, 6, 7) redirect to `signin.html?next=/mission-X.html` if
 | 4 | The Stories Behind the Stories | Not built |
 | 5 | The Value of Your Values | Not built |
 | 6 | Taming Your Triggers | Live (`/mission-6.html`) |
-| 7 | Feedback is a Gift | **Live (`/mission-7.html`) — built 14 Apr 2026** |
+| 7 | Feedback is a Gift | **Live (`/mission-7.html`) — fully fixed 15 Apr 2026** |
 | 8-14 | Various | Not built |
 
 ---
 
-## Supabase Tables (all 16, `public` schema)
+## Supabase Tables
 ### wearable_entries columns (actual — verified 10 Apr 2026)
 `id, user_id, created_at, mode, pattern_id, pattern_title, recovery, hrv, strain, sleep_score, answers (jsonb), lumen_reply, tags, feedback_score, feedback_text`
 Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_opening`.
@@ -147,7 +147,9 @@ Note: column is `mode` NOT `signal_state`. Column is `pattern_title` NOT `lumen_
 | `rewrite_practices` | Rewrite It — practices (what/when/where/how/who/HALS/measure) |
 | `rewrite_diary` | Rewrite It — daily balcony entries + practice check-ins |
 | `rewrite_nudge_settings` | Rewrite It — WhatsApp nudge number + time (UTC). Simon set to 18:00 UTC. |
-All 5 rewrite tables have RLS enabled.
+| `rewrite_weekly_plans` | **NEW 15 Apr 2026** — weekly intention + Lumen reflection per user per week_start |
+| `rewrite_planned_moments` | **NEW 15 Apr 2026** — planned moments (action, practice_id, frequency, frequency_days[], nudge_enabled, nudge_time, nudge_message, lumen_reflection) |
+All rewrite tables have RLS enabled.
 
 ---
 
@@ -204,7 +206,11 @@ All 5 rewrite tables have RLS enabled.
 34. **`create_or_update_file` replaces the ENTIRE file** — never use it for single-line changes in large files. It sets the file to exactly the `content` field provided. For surgical changes to large files, use `push_files` with the full correct content, or `push_files` with the patched content from bash manipulation.
 35. **Use It nav goes to `/use-it.html` (the hub), not `/wearable.html`** — `wearable.html` is one tool inside Use It. Users land on the hub first and choose their tool.
 36. **Mission pages auth pattern** — all mission pages redirect to `signin.html?next=/mission-X.html` if no Supabase session. They do NOT have inline auth forms. Never add an inline auth form to a mission page — it won't work correctly with existing sessions.
-37. **Mission 7 feedback cards use `entries` table with `tool='feedback-card'`** — same pattern as Mission 6 trigger diary (`tool='trigger-diary'`). One row per person/card. `entry_data` jsonb stores: `person_name`, `why`, `focus_area`, `plus`, `ebi`, `landed`, `status` (pending/received).
+37. **Mission 7 feedback cards use `entries` table with `tool='feedback-card'`** — same pattern as Mission 6 trigger diary (`tool='trigger-diary'`). One row per person/card. `entry_data` jsonb stores: `person_name`, `why`, `focus_area`, `plus`, `ebi`, `landed`, `not_landed`, `status` (pending/received).
+38. **Mission 7 feedback card ID swap pattern** — cards start with temp ID `card-[timestamp]`. On first save, a real UUID is inserted and ALL element IDs are swapped (card, body, clp, clm, clr, toggle, status-badge, status-pending, status-received). `attachCardListeners` uses a `ref = { id: cardId }` object stored on `fc._ref` — the closure captures `ref`, not the ID string, so it always has the current UUID after swap.
+39. **Mission 7 all card buttons use `data-action` event delegation** — status toggle, Lumen open/close/send, delete, and header toggle are all wired via `card.addEventListener('click')` using `e.target.closest('[data-action]')`. Never use inline `onclick` with hardcoded card IDs — they break after the temp→UUID swap.
+40. **lumen.js requires at least one user message** — the Anthropic API returns an error if `messages` is empty, which falls through to the "Lumen is quiet" fallback. When auto-firing Lumen on card open (no user text), `sendCardLumenMessage` must add a silent `{role:'user', content:'Please reflect on this feedback record.'}` message before calling the API.
+41. **Deploy protocol for large files** — fetch raw file from GitHub -> manipulate in bash with Python string replacement -> verify with `node --check` -> `present_files` for Simon to push via GitHub web editor (Cmd+A, paste, commit). Never rely on `create_or_update_file` for files >~40KB — the tool passes the literal content parameter, not filesystem content.
 
 ---
 
@@ -242,7 +248,7 @@ HRV 40% / Recovery 25% / Sleep consistency 20% / Respiratory rate 15%
 
 ---
 
-## Lumen Architecture — UPDATED 12 Apr 2026
+## Lumen Architecture — UPDATED 15 Apr 2026
 
 ### The New Prompt — Six Moves
 `api/lumen.js` now contains a full methodology prompt extracted from 65 real coaching transcripts. The six moves:
@@ -264,14 +270,37 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 3. "What do you need to integrate?"
 4. "And what are you going to do — specifically?"
 
-### Simon's Coaching Language — in Lumen prompt
-"Here's the irony..." / "Your code" / "The overplayed value always creates the opposite of the value" / "You can't escape it" / "Is it actually true?" / "That belief was built for a different chapter" / "Get on the balcony of this"
-
 ### Mission 7 Lumen — four moments
 1. Bridge from Mission 6 (reads trigger they named, reflects it back)
-2. Per-card: names the gap between what was heard and what was expected. Per-card conversations saved in memory.
+2. Per-card: reads all fields (who, why, focus, plus, ebi, landed, not_landed). Names the gap between what was heard and what was expected. Fires only when card has content. If empty shows "Fill in some of the card first..."
 3. Cross-card pattern: reads all cards together, names the theme appearing across multiple people
 4. Arc close: names the shift others see that the person is beginning to own
+
+---
+
+## Rewrite It — Architecture (UPDATED 15 Apr 2026)
+
+### New three-tab structure
+**Today tab:** Declaration hero at top. Practices checklist (tick off inline). Balcony check-in anchored to declaration.
+**Plan tab:** Weekly intention (Lumen reflects on it). Planned moments list — each moment has action, practice link, frequency, day picker, nudge toggle + time + message, "Ask Lumen" per moment.
+**History tab:** Read-only balcony entries. Chronological.
+
+### Two new Supabase tables (created 15 Apr 2026, RLS enabled)
+- `rewrite_weekly_plans` — `user_id, week_start, intention, lumen_reflection`
+- `rewrite_planned_moments` — `user_id, week_start, action, practice_id, frequency, frequency_days[], nudge_enabled, nudge_time, nudge_message, lumen_reflection`
+
+### nudge-whatsapp.js updated (15 Apr 2026)
+Now fires two types of nudge:
+1. Balcony reminders (existing)
+2. Planned moment nudges — respects `frequency` and `frequency_days`. Commit SHA `7c9e8a60`.
+
+### Live data state (verified 14 Apr 2026 — Simon's account)
+- Declaration: "Believes rest is productive"
+- Running as: "I am lazy if I don't carry it all and I stop"
+- Becoming: "I rest to stay productive"
+- 1 practice: "I will check my mind talk and breathe when I feel the anger / When they arise"
+- 2 beliefs: productivity belief + sustainable productivity value
+- 1 balcony entry: 10 Apr — "I am being calmer, managing the thoughts in my mind"
 
 ---
 
@@ -280,10 +309,10 @@ If the offer is rejected — treat it as data. Ask: "What would you say instead?
 - Finds users where `nudge_time` (UTC) matches current UTC minute
 - Skips if balcony practice already completed today
 - Fetches today's `wearable_entries` — shows recovery/HRV/signal if session done today, otherwise sends without data
+- **Also fires planned moment nudges** (added 15 Apr) — respects frequency/days per moment
 - Message: "Time to get on the balcony." + body signal line (if available) + link to `wearable.html`
 - Twilio sandbox: `+14155238886`. Join keyword: `join suggest-obtain`
 - Simon opted in. Nudge confirmed working at 18:25 UTC 12 Apr 2026.
-- Other participants need to opt in to Twilio sandbox and set nudge time in Rewrite It -> Practices
 
 ---
 
@@ -304,112 +333,28 @@ Signal -> Body -> Questions -> Belief Named -> Origin Surfaced -> Reframe -> Pra
 
 ---
 
-## Rewrite It — Architecture
-**Five Supabase tables:** `rewrite_trees`, `rewrite_beliefs`, `rewrite_practices`, `rewrite_diary`, `rewrite_nudge_settings` — all with RLS.
-**Four screens (current):** Tree / Balcony / Practices / History
-**Nudge settings UI:** pre-fills saved number + time on load. Shows "Nudge active" status badge. UTC label with BST hint.
-
-### Live data state (verified 14 Apr 2026 — Simon's account)
-- Declaration: "Believes rest is productive"
-- Running as: "I am lazy if I don't carry it all and I stop"
-- Becoming: "I rest to stay productive"
-- 1 practice: "I will check my mind talk and breathe when I feel the anger / When they arise"
-- 2 beliefs: productivity belief + sustainable productivity value
-- 1 balcony entry: 10 Apr — "I am being calmer, managing the thoughts in my mind"
-- Lumen reply on that entry was good: named the connection between the declaration and specific actions
-
----
-
-## Platform Audit — 14 Apr 2026
-
-### What's working well
-- Nav consistency complete — dark topbar, identical across all 4 pages
-- Use It hub (`use-it.html`) — clear entry point to tools, right abstraction level
-- Body Signal — strongest product. Signal read -> questions -> Lumen reflection is a coherent loop
-- Dashboard mission list — clear, progress tracked, Lumen sidebar is the right idea
-- Rewrite It data model — solid. Declaration + beliefs + practices + diary + nudge all wired up
-- Lumen in rewrite.html is already pulling body signal state from last wearable entry — the integration exists, just not visible to user
-
-### Problems identified
-
-**1. Rewrite It structural confusion (MAIN ISSUE)**
-The four tabs flatten two different types of thing:
-- Tree = the identity artefact (destination, output of mission work)
-- Balcony + Practices = daily habits (separate layer)
-- History = retrospective
-A user arriving has no sense of what to do first or why. The two daily habit tabs (Balcony + Practices) should be one scroll, not two separate screens.
-
-**2. Learn It -> Rewrite It handover gap**
-Someone completes Mission 1 (Case for Change) and writes a detailed commitment — but nothing connects this to Rewrite It. The declaration in Rewrite It should emerge from mission work but the platform doesn't say so or assist the transfer. Mission 1's commitment section should CTA directly to Rewrite It with pre-populated fields.
-
-**3. Body Signal -> Rewrite It loop not visible**
-`rewrite_diary` already stores `body_signal_state` from last wearable entry — the data connection exists. But Lumen's balcony reflection doesn't name the signal. Making this explicit would make the two halves feel like one system.
-
-**4. WhatsApp nudge settings buried**
-Nudge settings live inside the Practices tab. Should be in a settings/profile area rather than inline in the tool.
-
-**5. Beliefs orphaned from practices**
-The data model links beliefs to practices but the UI shows "No practices yet" under each belief with no guidance on what to do.
-
----
-
-## Next Build Priorities
-
-### 1. Rewrite It restructure (biggest impact, medium effort)
-**Goal:** Make it feel like one coherent thing, not four parallel tools.
-
-Proposed changes:
-- **Remove the four-tab structure.** Replace with a single scrolling view:
-  1. Declaration hero at top (large, prominent)
-  2. Identity shift card (Running as -> Becoming)
-  3. Today's practices checklist (tick off inline)
-  4. Balcony reflection below (one form, daily)
-  5. Beliefs section below that
-- **First-time empty state:** explicit prompt that ties to mission work. "This is where your mission work lands. Start by naming your shift." Not a generic empty state.
-- **Keep History as a separate tab** — it's genuinely retrospective and different in nature
-- **Merge the Balcony + Practices into one daily "check in" experience** — one scroll, one save
-
-### 2. Mission 1 -> Rewrite It handover (critical for coherence, lower effort)
-- At end of Mission 1 commitment section: CTA -> "Take this to Rewrite It and set your declaration"
-- Link pre-populates declaration modal with their Case for Change answer
-- After Mission 2 (Immunity Map): "Running as" field pre-populates from their HALS answer
-- This is a data pass between `answers` table (mission work) and `rewrite_trees` (declaration)
-
-### 3. Body Signal -> Rewrite It explicit loop (medium effort)
-- When Lumen reflects on a Balcony entry, explicitly reference the body signal state if one exists
-- Show "Your body was carrying something yesterday — here's what you wrote about how you showed up anyway" when signal was red/amber and balcony shows growth
-- Makes the biometric loop visible to the user
-
-### 4. Missions 4, 5, 8-14 (ongoing)
-Missions 1, 2, 3, 6, 7 are live. The rest need building.
-
----
-
-## Study Outcome Measure
-After each Lumen conversation: "Did this process surface something useful?" 1-5 + optional free text.
-Saved to `wearable_entries.feedback_score` + `wearable_entries.feedback_text`.
-
----
-
 ## Outstanding Work
 
-### Immediate
+### Immediate — still pending
+- [ ] **Push mission-7.html** — the empty-messages fix (Lumen auto-fire on cards) was patched in-browser this session but NOT yet deployed to GitHub. Must push the file from outputs.
 - [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens expired — needs OAuth reconnect from their devices)
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
-- [x] Supabase confirmation email template — DONE 14 Apr (Rewrite Your Life branding)
 - [ ] Verify `daily_state` table populating correctly (load wearable.html, check Supabase)
+- [ ] Clean up any remaining empty `{}` feedback card entries in Supabase for Simon
 
 ### Next build
-- [ ] Rewrite It restructure — single scroll view (see Next Build Priorities above)
-- [ ] Mission 1 -> Rewrite It handover CTA
+- [ ] Mission 1 -> Rewrite It handover CTA (pre-populate declaration from Case for Change answer)
+- [ ] "See what Lumen notices across your feedback" button — same empty messages bug as card Lumen, same one-line fix needed
 - [ ] Missions 4, 5, 8-14 to build (1, 2, 3, 6, 7 live)
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
-- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda: most history — due mid-April)
+- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda: most history — due mid-April, OVERDUE)
 - [ ] Jackson 30-day follow-up — does Body Signal confirm the identity shift?
 
 ### Infrastructure
+- [ ] WHOOP cross-user isolation bug — fix files ready (`whoop-data.js`, `wearable.html`, `whoop-callback.html`) but never pushed
+- [ ] Supabase SQL pending: `UPDATE whoop_connections SET user_id='a64f2289-f8d9-409c-9807-c58996c13b20' WHERE whoop_member_id='34690349'` then Melinda reconnects WHOOP
 - [ ] Submit Safe Browsing false positive: `safebrowsing.google.com/safebrowsing/report_error/`
 - [ ] Twilio sandbox -> production WhatsApp Business API (when study scales)
 
@@ -470,7 +415,8 @@ open('file.js', 'w').write(fixed)
 | 13 Apr 2026 AM | Fixed lumenSystemPrompt bug — wearable.html sendToLumen() was rebuilding a blank system prompt after message 1. wearable.html accidentally wiped twice during session by create_or_update_file with partial content — root cause: old @modelcontextprotocol/server-github npx server silently truncated large file payloads. |
 | 13 Apr 2026 PM | Switched to official GitHub MCP server. daily_state write added to whoop-data.js. signin.html confirm-email panel added. Bad session (Jaroslav work) changed Node.js to 24.x and corrupted whoop-data.js with markdown fences — caused 10+ failed builds. Fixed: Node.js pinned back to 20.x in Vercel settings, whoop-data.js restored from clean container copy. Rules 28-32 added. |
 | 14 Apr 2026 AM | Nav consistency completed across all 4 pages. Dark sticky topbar, identical structure, all Use It links -> /use-it.html. use-it.html got auth check + sign out. rewrite.html streak fixed (separate topbar-streak span, email stays in topbar-user). Rules 33-35 added. Full platform audit completed — structural issues with Rewrite It documented. Next build priorities set: Rewrite It restructure + Mission 1->Rewrite It handover. |
-| 14 Apr 2026 PM | Supabase confirmation email branded as Rewrite Your Life. Mission 7 (Feedback is a Gift) built and deployed — feedback cards (one per person), +EBI split, Pending/Received status toggle, Lumen reads across all cards for pattern analysis. Dashboard updated: Mission 7 link activated, mission-7 added to MISSION_QUESTIONS for progress tracking. Auth bug fixed: mission-7 now redirects to signin.html if no session (inline auth form removed). Rules 36-37 added. |
+| 14 Apr 2026 PM | Supabase confirmation email branded as Rewrite Your Life. Mission 7 (Feedback is a Gift) built and deployed — feedback cards (one per person), EBI split, Pending/Received status toggle, Lumen reads across all cards for pattern analysis. Dashboard updated: Mission 7 link activated. Auth bug fixed: mission-7 now redirects to signin.html if no session. Rules 36-37 added. |
+| 15 Apr 2026 | **Mission 7 full bug fix session.** Fixed: (1) inline onkeydown syntax error killing JS; (2) 14 duplicate empty card entries from closure bug — closure captured temp ID not ref, every keystroke re-inserted instead of updating. Fixed with `ref = {id}` object on `fc._ref`, updated on UUID swap. (3) All inline onclick attributes replaced with `data-action` event delegation — status toggle, Lumen open/close/send, delete, header toggle all survive temp→UUID swap. (4) Lumen auto-fire on empty card now shows "Fill in some of the card first..." instead of API call on blank data. (5) Lumen stale convo check now catches both "Fill in some" and "Lumen is quiet" messages. (6) Lumen requires at least one user message — empty `messages[]` returns fallback; added silent message on auto-fire. (7) Two new card fields: "What has landed?" and "What has not landed yet?" (`data-field="not_landed"`). Both feed Lumen context. **Rewrite It restructured** — new Today/Plan/History tabs. Two new Supabase tables. nudge-whatsapp updated for planned moment nudges. Rules 38-41 added. |
 
 ---
 
