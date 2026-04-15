@@ -690,13 +690,17 @@
 
     function attachCardListeners(cardId) {
       const card = document.getElementById(cardId); if (!card) return;
+      // Use a ref object so the closure always gets the current ID after UUID swap
+      const ref = { id: cardId };
+      const fc = feedbackCards.find(c => c.id === cardId);
+      if (fc) fc._ref = ref;
       card.querySelectorAll('textarea[data-field], input[data-field]').forEach(el => {
-        el.addEventListener('input', () => saveFeedbackCard(cardId));
+        el.addEventListener('input', () => saveFeedbackCard(ref.id));
       });
       const replyTa = document.getElementById('clr-' + cardId);
       if (replyTa) {
         replyTa.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCardLumenReply(cardId); }
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCardLumenReply(ref.id); }
         });
       }
     }
@@ -755,8 +759,16 @@
             const fcEntry = feedbackCards.find(c => c.id === cardId);
             if (fcEntry) {
               fcEntry.id = data.id; fcEntry.entry_data = entryData;
+              if (fcEntry._ref) fcEntry._ref.id = data.id;
               const cardEl = document.getElementById(cardId); if (cardEl) cardEl.id = data.id;
               const bodyEl = document.getElementById('body-' + cardId); if (bodyEl) bodyEl.id = 'body-' + data.id;
+              const lumenEl = document.getElementById('clp-' + cardId); if (lumenEl) lumenEl.id = 'clp-' + data.id;
+              const msgsEl = document.getElementById('clm-' + cardId); if (msgsEl) msgsEl.id = 'clm-' + data.id;
+              const replyEl = document.getElementById('clr-' + cardId); if (replyEl) replyEl.id = 'clr-' + data.id;
+              const toggleEl = document.getElementById('toggle-' + cardId); if (toggleEl) toggleEl.id = 'toggle-' + data.id;
+              const badgeEl = document.getElementById('status-badge-' + cardId); if (badgeEl) badgeEl.id = 'status-badge-' + data.id;
+              const pendingEl = document.getElementById('status-pending-' + cardId); if (pendingEl) pendingEl.id = 'status-pending-' + data.id;
+              const receivedEl = document.getElementById('status-received-' + cardId); if (receivedEl) receivedEl.id = 'status-received-' + data.id;
             }
           }
         } else {
