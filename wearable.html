@@ -904,6 +904,33 @@
     }
     @media (max-width: 600px) { .feedback-card { margin: 0 20px 32px; } }
 
+    /* ── BALCONY CLOSE ── */
+    .lumen-close-area {
+      padding: 0 40px 32px;
+      max-width: 680px;
+      display: flex; justify-content: center;
+    }
+    .lumen-close-area.hidden { display: none !important; }
+    .btn-balcony-close {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--mid);
+      border-radius: 24px;
+      padding: 10px 20px;
+      font-size: 13px; font-weight: 400;
+      font-family: 'Rubik', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-balcony-close:hover {
+      border-color: var(--mid);
+      color: var(--dark);
+      background: rgba(55,115,100,0.04);
+    }
+    @media (max-width: 600px) {
+      .lumen-close-area { padding: 0 20px 80px; }
+    }
+
     /* ── ARCHETYPES SECTION ── */
     .archetypes-section {
       margin-bottom: 28px;
@@ -1390,6 +1417,10 @@
       placeholder="Reply to Lumen..."
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendToLumen();}"></textarea>
     <button class="lumen-send" onclick="sendToLumen()">Send →</button>
+  </div>
+
+  <div class="lumen-close-area" id="lumen-close-area">
+    <button class="btn-balcony-close" id="btn-balcony-close" onclick="closeWithBalcony()">Where have we got to? →</button>
   </div>
 
   <div class="feedback-card" id="feedback-card">
@@ -2114,6 +2145,13 @@ async function submitEntry() {
 function buildLumenScreen(entry) {
   lumenConvo = [];
   document.getElementById('lumen-msgs').innerHTML = '';
+  // Reset input + close area visibility for a fresh session
+  const inputArea = document.querySelector('.lumen-input-area');
+  const closeArea = document.getElementById('lumen-close-area');
+  const closeBtn = document.getElementById('btn-balcony-close');
+  if (inputArea) inputArea.style.display = '';
+  if (closeArea) closeArea.style.display = '';
+  if (closeBtn) { closeBtn.disabled = false; closeBtn.textContent = 'Where have we got to? \u2192'; }
   const pills = document.getElementById('entry-pills-display');
   const isGreen = entry.mode === 'green';
   pills.innerHTML = [
@@ -2141,7 +2179,7 @@ async function triggerLumenReflection(entry) {
       ).join(' || ')}`
     : '';
 
-  const system = `You are Lumen - the AI mirror companion for the Reframe platform by Simon Lamb.\n\n${modeContext}\n\nThe person's WHOOP data today: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nADDITIONAL SIGNAL: HRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green - do not lead with this. After your primary green observation, add ONE sentence noting that HRV has been unusually variable night to night, and invite them to notice if anything in their life might explain that inconsistency.` : ''}\n\n${historyContext}\n\nTheir answers to the reflection questions:\n${answerSummary}\n\nRULES:\n- 3 sentences maximum in your first response\n- One observation. One question. Nothing more.\n- No advice, no prescriptions, no "you should"\n- If there is a pattern across previous entries, name it precisely\n- If this is a glimmer, help them name the code that runs their healthy system\n- If this is a trigger, surface what the body already knows\n- You are a mirror, not a coach`;
+  const system = `SESSION CONTEXT\n\n${modeContext}\n\nToday's WHOOP data: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nHRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green - do not lead with this. After your primary green observation, add one sentence noting the HRV variability and invite them to notice if anything in their life might explain the inconsistency.` : ''}\n\n${historyContext}\n\nTheir answers to the opening reflection:\n${answerSummary}\n\nThis is the start of the session. Open with warmth. Surface first - do not rush to name the code. Follow the six-move methodology. Use offers when you have heard something twice; use questions when you are still excavating. If the person has already arrived at something real, reflect it back - do not ask another question.`;
 
   lumenSystemPrompt = system;
   addThinking();
@@ -2171,6 +2209,53 @@ async function triggerLumenReflection(entry) {
   }
 }
 
+async function closeWithBalcony() {
+  const btn = document.getElementById('btn-balcony-close');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = 'Reading the thread...';
+
+  // Signal to Lumen that it's time to close with the balcony move
+  lumenConvo.push({
+    role: 'user',
+    content: 'This feels like a good place to stop. Get on the balcony of what came up in this conversation - not the data, what I said. Name what you notice about the thread. What does it look like from here? Close with something that lands, not another question.'
+  });
+
+  addThinking();
+
+  const closingContext = (lumenSystemPrompt || '') + '\n\nTHIS IS THE CLOSE. Get on the balcony of the conversation. Name the thread precisely - the belief or code running underneath what they said. Reflect what seems to have shifted, if anything. End with a landing, not a question. 3-4 sentences.';
+
+  try {
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: getLumenHeaders(),
+      body: JSON.stringify({ systemExtra: closingContext, messages: lumenConvo })
+    });
+    const data = await res.json();
+    removeThinking();
+    const reply = data.reply || 'That is enough for today. The thread is there.';
+    lumenConvo.push({ role: 'assistant', content: reply });
+    addMsg('lumen', reply);
+
+    // Save the final Lumen reply to the entry
+    if (entries[0]) {
+      await updateEntryLumenReply(entries[0], reply);
+    }
+
+    // Hide input and close button, reveal feedback card
+    const inputArea = document.querySelector('.lumen-input-area');
+    const closeArea = document.getElementById('lumen-close-area');
+    if (inputArea) inputArea.style.display = 'none';
+    if (closeArea) closeArea.style.display = 'none';
+    showFeedbackCard();
+  } catch(e) {
+    removeThinking();
+    addMsg('lumen', 'Lumen is quiet right now. What you wrote is still with you.');
+    btn.disabled = false;
+    btn.textContent = 'Where have we got to? →';
+  }
+}
+
 async function sendToLumen() {
   const ta = document.getElementById('lumen-ta');
   const text = ta.value.trim();
@@ -2179,7 +2264,7 @@ async function sendToLumen() {
   addMsg('user', text);
   lumenConvo.push({ role: 'user', content: text });
   addThinking();
-  const system = lumenSystemPrompt || 'You are Lumen - the AI mirror companion for the Reframe platform by Simon Lamb. You are a mirror, not a coach. 2-3 sentences maximum. One observation, one question. No advice.';
+  const system = lumenSystemPrompt || 'SESSION CONTEXT: Mid-conversation. Follow the six-move methodology. Offers over questions when something has surfaced twice.';
   try {
     const res = await fetch('/api/lumen', {
       method: 'POST',
