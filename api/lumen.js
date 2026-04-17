@@ -224,7 +224,7 @@ export default async function handler(req) {
     });
   }
 
-  const { systemExtra, messages } = await req.json();
+  const { systemExtra, messages, maxTokens } = await req.json();
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -235,7 +235,7 @@ export default async function handler(req) {
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 300,
+      max_tokens: Math.min(Math.max(maxTokens || 600, 100), 1200),
       system: LUMEN_SYSTEM + (systemExtra ? '\n\n' + systemExtra : ''),
       messages
     })
