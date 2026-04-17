@@ -543,6 +543,13 @@ export default async function handler(req) {
       signal_confidence: confidence,
       days_trend:        daily.slice(0, 7).map(d => d.hrv_ms).filter(Boolean),
       recovery_trend:    daily.slice(0, 7).map(d => d.recovery_pct).filter(Boolean),
+      // Arc series: last 7 days for the visual (oldest first, today last)
+      arc_series:        daily.slice(0, 7).reverse().map(d => ({
+        date:         d.date,
+        recovery_pct: d.recovery_pct,
+        hrv_ms:       d.hrv_ms,
+        day_strain:   d.day_strain,
+      })),
       date:              today.date,
       data_source:       'whoop_live',
       days_of_history:   historicalDays.length,
