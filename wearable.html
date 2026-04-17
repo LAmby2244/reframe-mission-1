@@ -2119,11 +2119,24 @@ function renderArc(d) {
     return 'red';
   }
 
+  // Today's dot uses the engine's detected signal state (agrees with the card)
+  // Historical dots fall back to recovery thresholds (simpler signal)
+  function todayClassFromState(state) {
+    if (!state) return null;
+    if (state.startsWith('red_')) return 'red';
+    if (state.startsWith('amb_')) return 'amber';
+    if (state.startsWith('grn_')) return 'green';
+    return null;
+  }
+
+  const todaySignalClass = todayClassFromState(d.signal_state);
+
   // Build the dots + labels
   const dotsHtml = aligned.map((day, idx) => {
     const isToday = idx === 6;
     const rec = day ? day.recovery_pct : null;
-    const cls = dayClass(rec);
+    // For today, prefer the detected signal state; fall back to threshold
+    const cls = (isToday && todaySignalClass) ? todaySignalClass : dayClass(rec);
     const todayCls = isToday && day ? ' today' : '';
     const labelCls = isToday ? ' today-label' : '';
     return `
