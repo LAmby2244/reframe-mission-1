@@ -2073,7 +2073,7 @@ async function init() {
   btn.className = 'btn-primary-signal ' + (currentMode === 'red' ? 'btn-red' : currentMode === 'amber' ? 'btn-amber' : 'btn-green');
 
   highlightActiveArchetype();
-  renderLumenOpening();
+  renderLumenOpening();  // async - fires and populates when ready
 }
 
 // Render the 7-day arc: coloured dots by signal state + subtle recovery line
@@ -2182,70 +2182,86 @@ function highlightActiveArchetype() {
   }
 }
 
-function renderLumenOpening() {
+async function renderLumenOpening() {
   const existing = document.getElementById('lumen-opening');
   if (existing) existing.remove();
+
   const d = currentData;
-  const mode = currentMode;
   const arc = d.arc_series || [];
 
-  // Read the arc: count red/amber/green days, find turning points
-  const arcReads = arc.slice(0, -1).map(day => {
-    const r = day.recovery_pct;
-    if (r == null) return null;
-    if (r >= 67) return 'green';
-    if (r >= 34) return 'amber';
-    return 'red';
-  }).filter(Boolean);
-  const redCount = arcReads.filter(s => s === 'red').length;
-  const amberCount = arcReads.filter(s => s === 'amber').length;
-  const greenCount = arcReads.filter(s => s === 'green').length;
-  const arcLen = arcReads.length;
-
-  // Build a short arc read (only if we have prior days)
-  let arcRead = '';
-  if (arcLen >= 3) {
-    if (redCount >= 3) {
-      arcRead = `The last ${arcLen} days have carried load — ${redCount} red, ${amberCount} amber. `;
-    } else if (greenCount >= arcLen - 1) {
-      arcRead = `The last ${arcLen} days have run well — mostly green. `;
-    } else if (redCount >= 1 && greenCount >= 1) {
-      arcRead = `The last ${arcLen} days have been mixed — ${redCount} red, ${amberCount} amber, ${greenCount} green. `;
-    } else if (amberCount >= arcLen - 1) {
-      arcRead = `The last ${arcLen} days have been in the middle — mostly amber. `;
-    }
-  }
-
-  // The moment read (what's live now)
-  let momentRead = '';
-  if (mode === 'red') {
-    if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
-      momentRead = `Today HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
-    } else if (d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1])) {
-      momentRead = `HRV has been declining without a change in training load. Something has been accumulating.`;
-    } else {
-      momentRead = `Your body registered significant load today with no workout to explain it. Worth naming what happened.`;
-    }
-  } else if (mode === 'amber') {
-    momentRead = `Today recovery is in the middle range — something is asking for attention before it becomes a pattern.`;
-  } else {
-    const hrvBelowBaseline = d.hrv < d.hrv_baseline;
-    if (hrvBelowBaseline) {
-      momentRead = `Today recovery is strong but HRV is still below your baseline. Something is working — but the nervous system hasn't fully let go yet.`;
-    } else {
-      momentRead = `Today recovery is holding well. There's a thread worth naming before it becomes unconscious again.`;
-    }
-  }
-
-  const obs = arcRead + momentRead;
-  if (!obs) return;
+  // Place the observation container immediately so the user sees Lumen is thinking
   const container = document.getElementById('data-section');
   const ctaEl = container.querySelector('.signal-cta');
   const div = document.createElement('div');
   div.id = 'lumen-opening';
   div.style.cssText = `display:flex;align-items:flex-start;gap:12px;background:rgba(255,190,25,0.07);border:1px solid rgba(255,190,25,0.15);border-radius:12px;padding:14px 16px;margin-bottom:20px;margin-top:4px;`;
-  div.innerHTML = `<div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div><div style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">${obs}</div>`;
+  div.innerHTML = `<div style="width:26px;height:26px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--dark);flex-shrink:0;">L</div><div id="lumen-opening-text" style="font-size:13px;font-weight:300;color:var(--dark);line-height:1.65;font-style:italic;">Reading your signal...</div>`;
   ctaEl.parentNode.insertBefore(div, ctaEl);
+
+  if (!authToken) {
+    document.getElementById('lumen-opening-text').textContent = 'Sign in to see what Lumen notices.';
+    return;
+  }
+
+  // Build the arc summary with signal state colour classes
+  const arcSummary = arc.length
+    ? arc.map(a => {
+        if (a.recovery_pct == null) return '-';
+        const band = a.recovery_pct >= 67 ? 'green' : a.recovery_pct >= 34 ? 'amber' : 'red';
+        return `${a.date}: ${a.recovery_pct}% recovery, HRV ${a.hrv_ms}ms, strain ${a.day_strain != null ? a.day_strain.toFixed(1) : '-'} (${band})`;
+      }).join('\n')
+    : 'No prior days.';
+
+  // Compose the observation context for Lumen
+  const openingSystem = `OPENING OBSERVATION TASK
+
+The user has just opened Body Signal. They have not yet entered reflection. You are writing the opening observation they see on the landing page - a short paragraph that reads across both the 7-day arc and today's signal.
+
+Today's data:
+- Recovery: ${d.recovery}%
+- HRV: ${d.hrv}ms (baseline ${d.hrv_baseline}ms)
+- Last night's sleep: ${d.sleep_hours}h
+- Today's strain so far: ${d.today_strain_so_far != null ? d.today_strain_so_far : 'not yet tracked'}
+- Signal state detected: ${d.signal_state || 'undetected'} (${d.signal_confidence || 'low'} confidence)
+- Pattern: ${currentPattern?.title || 'unnamed'}
+
+7-day arc (oldest to today):
+${arcSummary}
+
+GUIDELINES FOR THIS OPENING OBSERVATION:
+- 3 sentences maximum. No more.
+- Read the arc as a story, not a count. What has the last stretch actually been? Name the shape - building load, steady, drifting, a shift, a bounce, consistent.
+- Then arrive at today. Connect today to the arc where meaningful. What does today look like in the context of the arc?
+- Close with a small invitation toward reflection - not a prescribed question, just a sense of what is worth noticing.
+- Do not count dots ("3 red, 2 amber"). That is telemetry, not observation. A seasoned coach reads shape.
+- Do not ask a question. This is an observation, not a prompt. The user will enter reflection when ready.
+- Do not use the words "arc" or "signal state" or "WHOOP". Speak in their register - body, nervous system, the last week, today.
+- Be specific. Use actual values when they matter. Avoid generic phrases like "something is building" unless the arc genuinely shows that.
+- Write as Lumen: clear, grounded, warm. No preamble. No "I notice that...". Start with what is true.
+
+Respond with only the observation text. No framing, no header, no sign-off.`;
+
+  try {
+    const res = await fetch('/api/lumen', {
+      method: 'POST',
+      headers: getLumenHeaders(),
+      body: JSON.stringify({
+        systemExtra: openingSystem,
+        messages: [{ role: 'user', content: 'Give me the opening observation for what you see across the arc and today.' }],
+        maxTokens: 400
+      })
+    });
+    const data = await res.json();
+    const reply = (data.reply || '').trim();
+    if (reply) {
+      document.getElementById('lumen-opening-text').textContent = reply;
+    } else {
+      document.getElementById('lumen-opening-text').textContent = 'Lumen is quiet right now. The card and the arc speak for themselves.';
+    }
+  } catch (e) {
+    console.warn('Lumen opening failed:', e.message);
+    document.getElementById('lumen-opening-text').textContent = 'Lumen is quiet right now. The card and the arc speak for themselves.';
+  }
 }
 
 function beginQuestions() {
