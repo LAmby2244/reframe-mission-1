@@ -165,6 +165,69 @@
     .data-big {
       font-size: 28px; font-weight: 700; line-height: 1;
     }
+    /* 7-day arc visual */
+    .arc-card {
+      background: var(--dark);
+      border-radius: 20px;
+      padding: 24px 28px 28px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0.92;
+    }
+    .arc-card-label {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 18px;
+      font-size: 10px; font-weight: 600; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5);
+    }
+    .arc-card-sub {
+      font-size: 9px; font-weight: 400;
+      letter-spacing: 1px; color: rgba(255,255,255,0.3);
+      text-transform: none;
+    }
+    .arc-viz {
+      position: relative;
+      height: 70px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .arc-viz svg.arc-line {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .arc-day {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 6px;
+      position: relative; z-index: 2;
+    }
+    .arc-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1.5px solid transparent;
+      margin-bottom: 4px;
+    }
+    .arc-dot.red    { background: #E8534A; }
+    .arc-dot.amber  { background: #FFBE19; }
+    .arc-dot.green  { background: var(--green-mid); }
+    .arc-dot.empty  {
+      background: transparent;
+      border-color: rgba(255,255,255,0.18);
+    }
+    .arc-dot.today {
+      box-shadow: 0 0 0 2px var(--dark), 0 0 0 3.5px rgba(255,255,255,0.35);
+    }
+    .arc-day-label {
+      font-size: 9px; font-weight: 500;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.3px;
+    }
+    .arc-day-label.today-label {
+      color: rgba(255,255,255,0.75);
+      font-weight: 600;
+    }
+
     /* Legacy - kept for safety but no longer used by new card */
     .data-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
     .metric { display: flex; flex-direction: column; gap: 4px; }
@@ -1305,25 +1368,16 @@
 
     <div class="signal-eyebrow">Body Signal · Today</div>
 
-    <!-- WHOOP data card - three-row sequence -->
+    <!-- WHOOP data card - two-row moment read -->
     <div class="data-card">
       <div class="data-card-inner">
         <div class="data-card-label">
           <div class="data-source-dot"></div>
-          <span id="data-source-label">WHOOP · How you're arriving at today</span>
+          <span id="data-source-label">WHOOP · The moment</span>
         </div>
-        <div class="data-subtitle">Yesterday's load → last night's sleep → today's starting strain</div>
+        <div class="data-subtitle">Last night's sleep · today so far</div>
 
-        <!-- Row 1: Yesterday's load (hidden for first-time users) -->
-        <div class="data-row" id="row-yesterday" style="display:none;">
-          <div class="data-row-label">Yesterday's load</div>
-          <div class="data-row-value">
-            <div class="data-big" id="m-yesterday-strain">-</div>
-            <div class="data-row-caption" id="m-yesterday-caption">Strain</div>
-          </div>
-        </div>
-
-        <!-- Row 2: Last night's sleep -->
+        <!-- Row 1: Last night's sleep -->
         <div class="data-row">
           <div class="data-row-label">Last night's sleep</div>
           <div class="data-row-metrics">
@@ -1342,7 +1396,7 @@
           </div>
         </div>
 
-        <!-- Row 3: Today so far -->
+        <!-- Row 2: Today so far -->
         <div class="data-row data-row-last">
           <div class="data-row-label">Today so far</div>
           <div class="data-row-value">
@@ -1351,6 +1405,15 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 7-day arc visual -->
+    <div class="arc-card" id="arc-card">
+      <div class="arc-card-label">
+        <span>The last 7 days</span>
+        <span class="arc-card-sub">signal state · recovery trend</span>
+      </div>
+      <div class="arc-viz" id="arc-viz"></div>
     </div>
 
     <!-- Signal interpretation -->
@@ -1977,22 +2040,7 @@ async function init() {
     sleepEl.className = 'data-big';
   }
 
-  // Row 1: Yesterday's load (hidden for first-time users with <2 days)
-  const yRow = document.getElementById('row-yesterday');
-  const yStrainEl = document.getElementById('m-yesterday-strain');
-  const yCaptionEl = document.getElementById('m-yesterday-caption');
-  if (d.yesterday_strain != null && d.days_of_history >= 1) {
-    yRow.style.display = '';
-    yStrainEl.textContent = d.yesterday_strain.toFixed(1);
-    const heavyDay = d.yesterday_strain >= strainBaseline * 1.2;
-    const lightDay = d.yesterday_strain < strainBaseline * 0.6;
-    yStrainEl.className = 'data-big ' + (heavyDay ? 'val-amber' : lightDay ? 'val-green' : '');
-    yCaptionEl.textContent = heavyDay ? 'Strain · heavy day' : lightDay ? 'Strain · light day' : 'Strain';
-  } else {
-    yRow.style.display = 'none';
-  }
-
-  // Row 3: Today so far
+  // Row 2: Today so far (the climbing strain)
   const strainEl = document.getElementById('m-strain');
   const strainCaptionEl = document.getElementById('m-strain-caption');
   if (d.today_strain_so_far != null && d.today_strain_so_far > 0) {
@@ -2006,6 +2054,9 @@ async function init() {
     strainEl.style.color = 'rgba(255,255,255,0.3)';
     strainCaptionEl.textContent = 'Not yet tracked';
   }
+
+  // Arc: render last 7 days
+  renderArc(d);
 
   const card = document.getElementById('signal-card');
   card.className = 'signal-read ' + (currentMode === 'red' ? 'red-signal' : currentMode === 'amber' ? 'amber-signal' : 'green-signal');
@@ -2023,6 +2074,86 @@ async function init() {
 
   highlightActiveArchetype();
   renderLumenOpening();
+}
+
+// Render the 7-day arc: coloured dots by signal state + subtle recovery line
+function renderArc(d) {
+  const arc = d.arc_series || [];
+  const viz = document.getElementById('arc-viz');
+  const card = document.getElementById('arc-card');
+  if (!arc.length) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+
+  // Pad to 7 slots if fewer days
+  const slots = [];
+  for (let i = 0; i < 7; i++) {
+    slots.push(arc[i] || null);
+  }
+  // Reverse to show oldest → newest (right = today)
+  // Actually: arc_series from API is already oldest first (we reversed in whoop-data),
+  // so today is the LAST entry. If we have <7 days, today is at arc.length - 1.
+
+  const today = new Date();
+  const labels = [];
+  for (let i = 6; i >= 0; i--) {
+    const day = new Date(today);
+    day.setDate(today.getDate() - i);
+    labels.push(day.toLocaleDateString('en-GB', { weekday: 'narrow' }));
+  }
+
+  // Align data: arc is oldest→newest (length can be 1-7)
+  // We want 7 slots where the right-most = today
+  const aligned = new Array(7).fill(null);
+  for (let i = 0; i < arc.length; i++) {
+    aligned[7 - arc.length + i] = arc[i];
+  }
+
+  // Compute colour for each day based on signal state thresholds
+  function dayClass(rec) {
+    if (rec == null) return 'empty';
+    if (rec >= 67) return 'green';
+    if (rec >= 34) return 'amber';
+    return 'red';
+  }
+
+  // Build the dots + labels
+  const dotsHtml = aligned.map((day, idx) => {
+    const isToday = idx === 6;
+    const rec = day ? day.recovery_pct : null;
+    const cls = dayClass(rec);
+    const todayCls = isToday && day ? ' today' : '';
+    const labelCls = isToday ? ' today-label' : '';
+    return `
+      <div class="arc-day">
+        <div class="arc-dot ${cls}${todayCls}"></div>
+        <div class="arc-day-label${labelCls}">${labels[idx]}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Build the recovery line SVG
+  const points = aligned
+    .map((day, idx) => day == null ? null : {
+      x: (idx / 6) * 100,
+      y: 100 - Math.min(100, Math.max(0, day.recovery_pct))
+    })
+    .filter(Boolean);
+  let linePath = '';
+  if (points.length >= 2) {
+    linePath = points.map((p, i) =>
+      (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)
+    ).join(' ');
+  }
+  const lineHtml = linePath
+    ? `<svg class="arc-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+         <path d="${linePath}" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+       </svg>`
+    : '';
+
+  viz.innerHTML = lineHtml + dotsHtml;
 }
 
 function highlightActiveArchetype() {
@@ -2043,29 +2174,57 @@ function renderLumenOpening() {
   if (existing) existing.remove();
   const d = currentData;
   const mode = currentMode;
-  let obs = '';
-  if (mode === 'red') {
-    if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
-      obs = `Your HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
-    } else if (d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1])) {
-      obs = `HRV has been declining for several days without a change in training load. Something has been accumulating.`;
-    } else {
-      obs = `Your body registered significant load today with no workout to explain it. Worth naming what happened.`;
-    }
-  } else if (mode === 'amber') {
-    obs = `Recovery is in the middle range - something is asking for attention before it becomes a pattern.`;
-  } else {
-    const noWorkout = !d.workout_logged;
-    const lastWo = d.last_workout_days_ago;
-    const hrvBelowBaseline = d.hrv < d.hrv_baseline;
-    if (noWorkout && lastWo > 3) {
-      obs = `Recovery is holding well - but no workout in ${lastWo} days. The body is restoring, not being challenged. What's the thread, and is rest itself the pattern?`;
-    } else if (hrvBelowBaseline) {
-      obs = `Recovery is strong but HRV is still below your baseline. Something is working - but the nervous system hasn't fully let go yet. What's still being held?`;
-    } else {
-      obs = `Several consecutive days of strong recovery. There's a thread running through this. Let's name it before it becomes unconscious again.`;
+  const arc = d.arc_series || [];
+
+  // Read the arc: count red/amber/green days, find turning points
+  const arcReads = arc.slice(0, -1).map(day => {
+    const r = day.recovery_pct;
+    if (r == null) return null;
+    if (r >= 67) return 'green';
+    if (r >= 34) return 'amber';
+    return 'red';
+  }).filter(Boolean);
+  const redCount = arcReads.filter(s => s === 'red').length;
+  const amberCount = arcReads.filter(s => s === 'amber').length;
+  const greenCount = arcReads.filter(s => s === 'green').length;
+  const arcLen = arcReads.length;
+
+  // Build a short arc read (only if we have prior days)
+  let arcRead = '';
+  if (arcLen >= 3) {
+    if (redCount >= 3) {
+      arcRead = `The last ${arcLen} days have carried load — ${redCount} red, ${amberCount} amber. `;
+    } else if (greenCount >= arcLen - 1) {
+      arcRead = `The last ${arcLen} days have run well — mostly green. `;
+    } else if (redCount >= 1 && greenCount >= 1) {
+      arcRead = `The last ${arcLen} days have been mixed — ${redCount} red, ${amberCount} amber, ${greenCount} green. `;
+    } else if (amberCount >= arcLen - 1) {
+      arcRead = `The last ${arcLen} days have been in the middle — mostly amber. `;
     }
   }
+
+  // The moment read (what's live now)
+  let momentRead = '';
+  if (mode === 'red') {
+    if (d.hrv_z < -0.8 && d.sleep_suff >= 0.85) {
+      momentRead = `Today HRV dropped to ${d.hrv}ms despite decent sleep. Something non-physical is in the system.`;
+    } else if (d.days_trend && d.days_trend.every((v,i) => i === 0 || v < d.days_trend[i-1])) {
+      momentRead = `HRV has been declining without a change in training load. Something has been accumulating.`;
+    } else {
+      momentRead = `Your body registered significant load today with no workout to explain it. Worth naming what happened.`;
+    }
+  } else if (mode === 'amber') {
+    momentRead = `Today recovery is in the middle range — something is asking for attention before it becomes a pattern.`;
+  } else {
+    const hrvBelowBaseline = d.hrv < d.hrv_baseline;
+    if (hrvBelowBaseline) {
+      momentRead = `Today recovery is strong but HRV is still below your baseline. Something is working — but the nervous system hasn't fully let go yet.`;
+    } else {
+      momentRead = `Today recovery is holding well. There's a thread worth naming before it becomes unconscious again.`;
+    }
+  }
+
+  const obs = arcRead + momentRead;
   if (!obs) return;
   const container = document.getElementById('data-section');
   const ctaEl = container.querySelector('.signal-cta');
@@ -2200,7 +2359,17 @@ async function triggerLumenReflection(entry) {
       ).join(' || ')}`
     : '';
 
-  const system = `SESSION CONTEXT\n\n${modeContext}\n\nToday's WHOOP data: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nHRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green - do not lead with this. After your primary green observation, add one sentence noting the HRV variability and invite them to notice if anything in their life might explain the inconsistency.` : ''}\n\n${historyContext}\n\nTheir answers to the opening reflection:\n${answerSummary}\n\nThis is the start of the session. Open with warmth. Surface first - do not rush to name the code. Follow the six-move methodology. Use offers when you have heard something twice; use questions when you are still excavating. If the person has already arrived at something real, reflect it back - do not ask another question.`;
+  // 7-day arc summary for Lumen
+  const arcSeries = currentData.arc_series || [];
+  const arcSummary = arcSeries.length >= 2
+    ? 'Last 7 days (oldest → today): ' + arcSeries.map(a => {
+        if (a.recovery_pct == null) return '—';
+        const label = a.recovery_pct >= 67 ? 'green' : a.recovery_pct >= 34 ? 'amber' : 'red';
+        return `${a.date.slice(5)}:${a.recovery_pct}% ${label}`;
+      }).join(', ')
+    : '';
+
+  const system = `SESSION CONTEXT\n\n${modeContext}\n\nToday's WHOOP data: Recovery ${entry.data.recovery}%, HRV ${entry.data.hrv}ms, Strain ${entry.data.strain}. Pattern detected: "${entry.patternTitle}".${entry.volatility_flag ? `\n\nHRV coefficient of variation is ${entry.hrv_cv}% over the past 7 nights (threshold: >20% = moderate instability). The overall state is green - do not lead with this. After your primary green observation, add one sentence noting the HRV variability and invite them to notice if anything in their life might explain the inconsistency.` : ''}\n\n${arcSummary ? arcSummary + '\n\n' : ''}${historyContext}\n\nTheir answers to the opening reflection:\n${answerSummary}\n\nThis is the start of the session. Open with warmth. When relevant, read across the 7-day arc — not just today. Surface first - do not rush to name the code. Follow the six-move methodology. Use offers when you have heard something twice; use questions when you are still excavating. If the person has already arrived at something real, reflect it back - do not ask another question.`;
 
   lumenSystemPrompt = system;
   addThinking();
