@@ -126,26 +126,51 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
-    .data-metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+    .data-subtitle {
+      font-size: 11px; font-weight: 300;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.5; margin-bottom: 22px;
     }
-    .metric {
-      display: flex; flex-direction: column; gap: 4px;
+    .data-row {
+      padding: 14px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; gap: 16px;
     }
-    .metric-value {
-      font-size: 36px; font-weight: 700; line-height: 1;
+    .data-row-last {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .metric-label {
-      font-size: 11px; font-weight: 400;
+    .data-row + .data-row-last {
+      /* nothing extra */
+    }
+    .data-row-label {
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      width: 90px; flex-shrink: 0;
+    }
+    .data-row-value {
+      flex: 1; display: flex; align-items: baseline; gap: 8px;
+    }
+    .data-row-caption {
+      font-size: 10px; font-weight: 400;
       color: rgba(255,255,255,0.4); letter-spacing: 0.5px;
-    }
-    .metric-trend {
-      font-size: 11px; font-weight: 500;
-      display: flex; align-items: center; gap: 3px;
       margin-top: 2px;
     }
+    .data-row-metrics {
+      flex: 1; display: flex; gap: 20px;
+    }
+    .data-metric-sm {
+      display: flex; flex-direction: column;
+    }
+    .data-big {
+      font-size: 28px; font-weight: 700; line-height: 1;
+    }
+    /* Legacy - kept for safety but no longer used by new card */
+    .data-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .metric { display: flex; flex-direction: column; gap: 4px; }
+    .metric-value { font-size: 36px; font-weight: 700; line-height: 1; }
+    .metric-label { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.4); letter-spacing: 0.5px; }
+    .metric-trend { font-size: 11px; font-weight: 500; display: flex; align-items: center; gap: 3px; margin-top: 2px; }
 
     /* Metric colours */
     .val-red   { color: #E8534A; }
@@ -836,6 +861,10 @@
       .history-page { padding: 24px 20px 80px; }
       .data-metrics { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .metric-value { font-size: 28px; }
+      .data-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .data-row-label { width: auto; }
+      .data-row-metrics { gap: 14px; width: 100%; justify-content: space-between; }
+      .data-big { font-size: 24px; }
       .bottom-nav { padding: 10px 20px; }
     }
     /* ── FEEDBACK CARD ── */
@@ -1276,33 +1305,49 @@
 
     <div class="signal-eyebrow">Body Signal · Today</div>
 
-    <!-- WHOOP data card -->
+    <!-- WHOOP data card - three-row sequence -->
     <div class="data-card">
       <div class="data-card-inner">
         <div class="data-card-label">
           <div class="data-source-dot"></div>
-          <span id="data-source-label">WHOOP · Today's data</span>
+          <span id="data-source-label">WHOOP · How you're arriving at today</span>
         </div>
-        <div class="data-metrics">
-          <div class="metric">
-            <div class="metric-value" id="m-recovery">-</div>
-            <div class="metric-label">Recovery</div>
-            <div class="metric-trend" id="t-recovery"></div>
+        <div class="data-subtitle">Yesterday's load → last night's sleep → today's starting strain</div>
+
+        <!-- Row 1: Yesterday's load (hidden for first-time users) -->
+        <div class="data-row" id="row-yesterday" style="display:none;">
+          <div class="data-row-label">Yesterday's load</div>
+          <div class="data-row-value">
+            <div class="data-big" id="m-yesterday-strain">-</div>
+            <div class="data-row-caption" id="m-yesterday-caption">Strain</div>
           </div>
-          <div class="metric">
-            <div class="metric-value" id="m-hrv">-</div>
-            <div class="metric-label">HRV (ms)</div>
-            <div class="metric-trend" id="t-hrv"></div>
+        </div>
+
+        <!-- Row 2: Last night's sleep -->
+        <div class="data-row">
+          <div class="data-row-label">Last night's sleep</div>
+          <div class="data-row-metrics">
+            <div class="data-metric-sm">
+              <div class="data-big" id="m-recovery">-</div>
+              <div class="data-row-caption">Recovery</div>
+            </div>
+            <div class="data-metric-sm">
+              <div class="data-big" id="m-hrv">-</div>
+              <div class="data-row-caption">HRV (ms)</div>
+            </div>
+            <div class="data-metric-sm">
+              <div class="data-big" id="m-sleep-hours">-</div>
+              <div class="data-row-caption">Sleep</div>
+            </div>
           </div>
-          <div class="metric">
-            <div class="metric-value" id="m-strain">-</div>
-            <div class="metric-label">Strain</div>
-            <div class="metric-trend" id="t-strain"></div>
-          </div>
-          <div class="metric">
-            <div class="metric-value" id="m-workout" style="font-size:18px;">-</div>
-            <div class="metric-label">Last workout</div>
-            <div class="metric-trend" id="t-workout"></div>
+        </div>
+
+        <!-- Row 3: Today so far -->
+        <div class="data-row data-row-last">
+          <div class="data-row-label">Today so far</div>
+          <div class="data-row-value">
+            <div class="data-big" id="m-strain">-</div>
+            <div class="data-row-caption" id="m-strain-caption">Strain · still climbing</div>
           </div>
         </div>
       </div>
@@ -1908,51 +1953,58 @@ async function init() {
   currentPattern = scoreWhoopData(currentData);
   currentMode = currentPattern.mode;
 
+  const d = currentData;
+  const strainBaseline = d.strain_baseline || 8;
+
+  // Row 2: Last night's sleep - Recovery
   const recEl = document.getElementById('m-recovery');
-  recEl.textContent = currentData.recovery + '%';
-  recEl.className = 'metric-value ' + (currentData.recovery >= 67 ? 'val-green' : currentData.recovery >= 34 ? 'val-amber' : 'val-red');
+  recEl.textContent = d.recovery != null ? d.recovery + '%' : '-';
+  recEl.className = 'data-big ' + (d.recovery >= 67 ? 'val-green' : d.recovery >= 34 ? 'val-amber' : 'val-red');
 
+  // Row 2: Last night's sleep - HRV
   const hrvEl = document.getElementById('m-hrv');
-  hrvEl.textContent = currentData.hrv;
-  const hrv_ok = currentData.hrv_baseline ? currentData.hrv >= currentData.hrv_baseline * 0.9 : true;
-  hrvEl.className = 'metric-value ' + (hrv_ok ? 'val-green' : 'val-red');
+  hrvEl.textContent = d.hrv != null ? d.hrv : '-';
+  const hrv_ok = d.hrv_baseline ? d.hrv >= d.hrv_baseline * 0.9 : true;
+  hrvEl.className = 'data-big ' + (hrv_ok ? 'val-green' : 'val-red');
 
-  const strainEl = document.getElementById('m-strain');
-  strainEl.textContent = currentData.strain != null ? currentData.strain.toFixed(1) : '-';
-  strainEl.className = 'metric-value val-amber';
-
-  const daysTrend = currentData.days_trend || [];
-  const lastTrend = daysTrend.length ? daysTrend[daysTrend.length - 1] : 0;
-  document.getElementById('t-recovery').innerHTML = lastTrend > 0
-    ? '<span class="trend-up">\u2191 vs yesterday</span>'
-    : lastTrend < 0
-    ? '<span class="trend-down">\u2193 vs yesterday</span>'
-    : '<span class="trend-flat">- steady</span>';
-
-  document.getElementById('t-hrv').innerHTML = (!currentData.hrv_baseline || currentData.hrv >= currentData.hrv_baseline)
-    ? '<span class="trend-up">\u2191 above baseline</span>'
-    : '<span class="trend-down">\u2193 below baseline</span>';
-
-  document.getElementById('t-strain').innerHTML = !currentData.workout_logged
-    ? '<span class="trend-down">No workout logged</span>'
-    : '<span class="trend-up">Workout logged</span>';
-
-  const workoutEl = document.getElementById('m-workout');
-  const lastWo = currentData.last_workout_days_ago;
-  if (lastWo === 0) {
-    workoutEl.textContent = 'Today'; workoutEl.className = 'metric-value val-green';
-    document.getElementById('t-workout').innerHTML = '<span class="trend-up">\u2191 active</span>';
-  } else if (lastWo === 1) {
-    workoutEl.textContent = 'Yesterday'; workoutEl.className = 'metric-value val-green';
-    document.getElementById('t-workout').innerHTML = '<span class="trend-flat">- recent</span>';
-  } else if (lastWo != null) {
-    workoutEl.textContent = `${lastWo}d ago`;
-    workoutEl.className = 'metric-value ' + (lastWo <= 3 ? 'val-amber' : 'val-red');
-    document.getElementById('t-workout').innerHTML = lastWo > 3
-      ? '<span class="trend-down">\u2193 overdue</span>' : '<span class="trend-flat">- ok</span>';
+  // Row 2: Last night's sleep - Sleep hours
+  const sleepEl = document.getElementById('m-sleep-hours');
+  if (d.sleep_hours != null) {
+    sleepEl.textContent = d.sleep_hours.toFixed(1) + 'h';
+    sleepEl.className = 'data-big ' + (d.sleep_hours >= 7 ? 'val-green' : d.sleep_hours >= 6 ? 'val-amber' : 'val-red');
   } else {
-    workoutEl.textContent = '-'; workoutEl.className = 'metric-value val-amber';
-    document.getElementById('t-workout').innerHTML = '<span class="trend-flat">No data</span>';
+    sleepEl.textContent = '-';
+    sleepEl.className = 'data-big';
+  }
+
+  // Row 1: Yesterday's load (hidden for first-time users with <2 days)
+  const yRow = document.getElementById('row-yesterday');
+  const yStrainEl = document.getElementById('m-yesterday-strain');
+  const yCaptionEl = document.getElementById('m-yesterday-caption');
+  if (d.yesterday_strain != null && d.days_of_history >= 1) {
+    yRow.style.display = '';
+    yStrainEl.textContent = d.yesterday_strain.toFixed(1);
+    const heavyDay = d.yesterday_strain >= strainBaseline * 1.2;
+    const lightDay = d.yesterday_strain < strainBaseline * 0.6;
+    yStrainEl.className = 'data-big ' + (heavyDay ? 'val-amber' : lightDay ? 'val-green' : '');
+    yCaptionEl.textContent = heavyDay ? 'Strain · heavy day' : lightDay ? 'Strain · light day' : 'Strain';
+  } else {
+    yRow.style.display = 'none';
+  }
+
+  // Row 3: Today so far
+  const strainEl = document.getElementById('m-strain');
+  const strainCaptionEl = document.getElementById('m-strain-caption');
+  if (d.today_strain_so_far != null && d.today_strain_so_far > 0) {
+    strainEl.textContent = d.today_strain_so_far.toFixed(1);
+    strainEl.className = 'data-big';
+    strainEl.style.color = 'rgba(255,255,255,0.85)';
+    strainCaptionEl.textContent = 'Strain · still climbing';
+  } else {
+    strainEl.textContent = '—';
+    strainEl.className = 'data-big';
+    strainEl.style.color = 'rgba(255,255,255,0.3)';
+    strainCaptionEl.textContent = 'Not yet tracked';
   }
 
   const card = document.getElementById('signal-card');
