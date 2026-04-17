@@ -28,38 +28,21 @@ function sd(arr) {
 }
 
 // -- HRV VOLATILITY (COEFFICIENT OF VARIATION) --
-// Measures night-to-night instability in HRV, independent of absolute level or trend.
-// CV = SD / mean x 100. Normalises instability relative to the person's own baseline.
-// Requires minimum 5 days of HRV data to fire.
-//
-// Thresholds (per HRV literature):
-//   CV < 10%  = very stable (no flag)
-//   CV 10-20% = normal variation (no flag)
-//   CV 20-30% = moderate instability -> hrv_volatility_flag: true (green preserved)
-//   CV > 30%, 5+ days sustained -> amb_volatile state
-//
-// Per WHOOP AI validation: volatility alone cannot trigger red -- needs a second signal.
 function computeHRVVolatility(history) {
   const hrvValues = history.slice(0, 7).map(d => d.hrv_ms).filter(Boolean);
-
   if (hrvValues.length < 5) {
     return { cv_pct: null, volatility_score: 0, volatile: false, volatile_high: false };
   }
-
   const m = mean(hrvValues);
   if (m === 0) return { cv_pct: null, volatility_score: 0, volatile: false, volatile_high: false };
-
   const s = sd(hrvValues);
   const cv_pct = (s / m) * 100;
-
   let volatility_score = 0;
   if (cv_pct > 30) volatility_score = 1.0;
   else if (cv_pct > 20) volatility_score = 0.6;
   else if (cv_pct > 10) volatility_score = 0.2;
-
   const volatile = cv_pct > 20;
   const volatile_high = cv_pct > 30 && hrvValues.length >= 5;
-
   return {
     cv_pct: parseFloat(cv_pct.toFixed(1)),
     volatility_score: parseFloat(volatility_score.toFixed(2)),
@@ -73,25 +56,20 @@ function zScore(value, baseline_mean, baseline_sd) {
   return (value - baseline_mean) / baseline_sd;
 }
 
-// -- COMPOSITE LOAD INDEX --
-// Weights: HRV 40% / Recovery 25% / Sleep consistency 20% / RR 15%
 function computeCompositeLoad(todayScored, baselines, history) {
   const { hrv_z, rec_z, rr_bpm, recovery_pct } = todayScored;
-
   let hrv_score = 0;
   if (hrv_z !== null) {
     if (hrv_z < -1.0) hrv_score = 1.0;
     else if (hrv_z < -0.5) hrv_score = 0.6;
     else if (hrv_z < 0) hrv_score = 0.3;
   }
-
   let rec_score = 0;
   if (rec_z !== null) {
     if (rec_z < -1.0) rec_score = 1.0;
     else if (rec_z < -0.5) rec_score = 0.6;
     else if (rec_z < 0) rec_score = 0.3;
   }
-
   const onsetHours = history.slice(0, 6)
     .map(d => d.sleep_onset_hour)
     .filter(h => h !== null && h !== undefined);
@@ -105,7 +83,6 @@ function computeCompositeLoad(todayScored, baselines, history) {
     else if (sd_minutes > 60) consistency_score = 0.7;
     else if (sd_minutes > 45) consistency_score = 0.4;
   }
-
   let rr_score = 0;
   const last2rr = history.slice(0, 2).map(d => d.rr_bpm).filter(Boolean);
   const rr_baseline = history.slice(2, 14).map(d => d.rr_bpm).filter(Boolean);
@@ -117,13 +94,10 @@ function computeCompositeLoad(todayScored, baselines, history) {
     else if (rr_elevation > 1.0 && prev_elevated) rr_score = 0.7;
     else if (rr_elevation > 1.0) rr_score = 0.4;
   }
-
   const composite = (hrv_score * 0.40) + (rec_score * 0.25) +
                     (consistency_score * 0.20) + (rr_score * 0.15);
-
   const impaired_count = [hrv_score, rec_score, consistency_score, rr_score]
     .filter(s => s >= 0.5).length;
-
   return {
     composite,
     impaired_count,
@@ -143,9 +117,7 @@ function computeCompositeLoad(todayScored, baselines, history) {
 function applyStateEscalation(state, confidence, compositeLoad, todayScored, history) {
   const { impaired_count, consistency_score } = compositeLoad;
   const { hrv_z } = todayScored;
-
   if (state && state.startsWith('red_')) return { state, confidence };
-
   if (impaired_count >= 2) {
     if (state && state.startsWith('amb_')) {
       return { state: 'red_psych', confidence: 'medium' };
@@ -154,7 +126,6 @@ function applyStateEscalation(state, confidence, compositeLoad, todayScored, his
       return { state: 'amb_load', confidence: 'medium' };
     }
   }
-
   if (consistency_score >= 0.7) {
     const chronicDays = history.slice(0, 5)
       .filter(d => {
@@ -166,7 +137,6 @@ function applyStateEscalation(state, confidence, compositeLoad, todayScored, his
       return { state: 'amb_load', confidence: 'low' };
     }
   }
-
   return { state, confidence };
 }
 
@@ -176,19 +146,15 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     sleep_suff, sleep_debt_7d, sleep_stress,
     workout_logged, recovery_pct, hrv_ms
   } = today;
-
   const last3hrv = history.slice(0, 3).map(d => d.hrv_ms).filter(Boolean);
   const hrv3dMean = mean(last3hrv);
   const hrvDeclining = last3hrv.length >= 2 && last3hrv[0] < last3hrv[last3hrv.length - 1];
-
   const last3rec = history.slice(0, 3).map(d => d.recovery_pct).filter(Boolean);
   const recRising = last3rec.length >= 2 && last3rec[0] > last3rec[last3rec.length - 1];
-
   const hrvAtOrAboveBaseline = hrv_z !== null && hrv_z >= 0;
   const recoveryIsGreen = recovery_pct !== null && recovery_pct >= 67;
   const strainIsLowMod = strain_z === null || strain_z < 1.0;
   const physiologicallyWell = recoveryIsGreen && hrvAtOrAboveBaseline && strainIsLowMod;
-
   if (
     rec_z !== null && rec_z < -0.8 &&
     sleep_suff !== null && sleep_suff >= 0.85 &&
@@ -197,7 +163,6 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'red_psych', confidence: 'high' };
   }
-
   if (
     hrvDeclining &&
     hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) &&
@@ -214,7 +179,6 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
       return { state: 'amb_trend', confidence: 'medium' };
     }
   }
-
   if (
     strain_z !== null && strain_z > 1.0 &&
     !workout_logged &&
@@ -222,11 +186,9 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'red_strain', confidence: 'high' };
   }
-
   if (rec_z !== null && rec_z < -0.8 && sleep_suff >= 0.85) {
     return { state: 'red_psych', confidence: 'medium' };
   }
-
   if (hrvDeclining && strain_z < 0.5 && !physiologicallyWell) {
     const hasEnoughHistory = history.length >= 7;
     const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
@@ -235,7 +197,6 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     }
     return { state: 'amb_trend', confidence: 'low' };
   }
-
   if (
     rec_z !== null && rec_z > 0.5 &&
     hrv_z !== null && hrv_z >= 0.0 &&
@@ -243,7 +204,6 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'grn_thriving', confidence: 'high' };
   }
-
   if (
     rec_z !== null && rec_z > 0.3 &&
     recRising &&
@@ -252,24 +212,19 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'grn_bounce', confidence: 'high' };
   }
-
   const consecutiveGreen = last3rec.filter(r => r >= 67).length;
   if (consecutiveGreen >= 3) {
     return { state: 'grn_streak', confidence: 'high' };
   }
-
   if (physiologicallyWell) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
-
   if (rec_z !== null && rec_z > 0.5) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
-
   if (hrvVolatility && hrvVolatility.volatile_high) {
     return { state: 'amb_volatile', confidence: 'medium' };
   }
-
   return { state: null, confidence: 'low' };
 }
 
@@ -407,6 +362,11 @@ export default async function handler(req) {
     const cycleById = {};
     cycles.forEach(c => { cycleById[c.id] = c; });
 
+    // -- TODAY'S OPEN CYCLE (for still-climbing strain) --
+    // An open cycle has no `end` timestamp. Used for the "today so far" row.
+    const openCycle = cycles.find(c => !c.end) || null;
+    const today_strain_so_far = openCycle?.score?.strain ?? null;
+
     const workoutDates = new Set(workouts.map(w => w.start?.split('T')[0]).filter(Boolean));
 
     const daily = recoveries.map(rec => {
@@ -476,6 +436,14 @@ export default async function handler(req) {
     };
 
     const today = daily[0];
+    const yesterday = daily[1] || null;
+
+    // -- STRAIN NOW USES YESTERDAY'S COMPLETED CYCLE --
+    // The scoring engine (red_strain etc.) needs a *completed* strain value.
+    // Using today[0].day_strain was unreliable when read mid-day.
+    // Yesterday's completed cycle gives the strain that preceded last night's sleep.
+    const scoringStrain = yesterday?.day_strain ?? today.day_strain ?? null;
+
     const sleep_debt_7d = daily.slice(0, 7).reduce((acc, d) => {
       if (d.sleep_need_hours && d.sleep_hours) return acc + Math.max(0, d.sleep_need_hours - d.sleep_hours);
       return acc;
@@ -483,10 +451,11 @@ export default async function handler(req) {
 
     const todayScored = {
       ...today,
+      day_strain: scoringStrain,
       rec_z:    zScore(today.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
       hrv_z:    zScore(today.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
       rhr_z:    zScore(today.rhr_bpm, baselines.rhr_mean, baselines.rhr_sd),
-      strain_z: zScore(today.day_strain, baselines.strain_mean, baselines.strain_sd),
+      strain_z: zScore(scoringStrain, baselines.strain_mean, baselines.strain_sd),
       nas_z: null,
       sleep_debt_7d,
     };
@@ -514,7 +483,7 @@ export default async function handler(req) {
         recovery_pct:      today.recovery_pct   !== null ? Math.round(today.recovery_pct)   : null,
         hrv_ms:            today.hrv_ms          !== null ? parseFloat(today.hrv_ms.toFixed(1)) : null,
         rhr_bpm:           today.rhr_bpm          !== null ? Math.round(today.rhr_bpm)          : null,
-        day_strain:        today.day_strain       !== null ? parseFloat(today.day_strain.toFixed(1)) : null,
+        day_strain:        scoringStrain          !== null ? parseFloat(scoringStrain.toFixed(1)) : null,
         sleep_perf_pct:    today.sleep_perf_pct   !== null ? Math.round(today.sleep_perf_pct)  : null,
         sleep_hours:       today.sleep_hours      !== null ? parseFloat(today.sleep_hours.toFixed(2)) : null,
         respiratory_rate:  today.rr_bpm           !== null ? parseFloat((today.rr_bpm).toFixed(2)) : null,
@@ -550,10 +519,14 @@ export default async function handler(req) {
     const response = {
       recovery:          today.recovery_pct,
       hrv:               today.hrv_ms ? parseFloat(today.hrv_ms.toFixed(1)) : null,
-      strain:            today.day_strain ? parseFloat(today.day_strain.toFixed(1)) : null,
+      // strain = scoring value (yesterday's completed cycle when available)
+      strain:            scoringStrain !== null ? parseFloat(scoringStrain.toFixed(1)) : null,
+      // New three-row card fields
+      yesterday_strain:     yesterday?.day_strain !== null && yesterday?.day_strain !== undefined ? parseFloat(yesterday.day_strain.toFixed(1)) : null,
+      today_strain_so_far:  today_strain_so_far !== null ? parseFloat(today_strain_so_far.toFixed(1)) : null,
+      sleep_hours:       today.sleep_hours ? parseFloat(today.sleep_hours.toFixed(1)) : null,
       rhr:               today.rhr_bpm,
       sleep_score:       today.sleep_perf_pct,
-      sleep_hours:       today.sleep_hours ? parseFloat(today.sleep_hours.toFixed(1)) : null,
       sleep_need:        today.sleep_need_hours ? parseFloat(today.sleep_need_hours.toFixed(1)) : null,
       sleep_stress:      today.sleep_stress,
       workout_logged:    today.workout_logged,
