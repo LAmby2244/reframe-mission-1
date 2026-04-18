@@ -1978,6 +1978,20 @@ async function updateEntryLumenReply(entry, reply) {
   } catch(e) { console.warn('Supabase update failed:', e.message); }
 }
 
+// Append a turn to the Lumen conversation log (both locally and in Supabase)
+async function appendLumenMessage(entry, role, content) {
+  if (!entry) return;
+  if (!entry.lumenMessages) entry.lumenMessages = [];
+  entry.lumenMessages.push({ role, content, at: new Date().toISOString() });
+  localStorage.setItem('wb_entries', JSON.stringify(entries.slice(0, 50)));
+  if (!sb || !entry.supabaseId) return;
+  try {
+    await sb.from('wearable_entries')
+      .update({ lumen_messages: entry.lumenMessages })
+      .eq('id', entry.supabaseId);
+  } catch(e) { console.warn('Lumen message append failed:', e.message); }
+}
+
 async function loadEntries() {
   entries = JSON.parse(localStorage.getItem('wb_entries') || '[]');
   if (!sb || !authToken) return;
@@ -1995,7 +2009,8 @@ async function loadEntries() {
       id: row.id, supabaseId: row.id, date: row.created_at,
       mode: row.mode, pattern: row.pattern_id, patternTitle: row.pattern_title,
       data: { recovery: row.recovery, hrv: row.hrv, strain: row.strain },
-      answers: row.answers || {}, lumenReply: row.lumen_reply
+      answers: row.answers || {}, lumenReply: row.lumen_reply,
+      lumenMessages: row.lumen_messages || []
     }));
     localStorage.setItem('wb_entries', JSON.stringify(entries));
   } catch(e) { console.warn('Supabase load failed, using localStorage:', e.message); }
@@ -2343,7 +2358,7 @@ async function submitEntry() {
     pattern: currentPattern.id, mode: currentMode,
     patternTitle: currentPattern.title,
     data: { recovery: currentData.recovery, hrv: currentData.hrv, strain: currentData.strain },
-    answers: { ...answers }, lumenReply: null
+    answers: { ...answers }, lumenReply: null, lumenMessages: []
   };
   await saveEntry(entry);
   showScreen('lumen');
@@ -2420,7 +2435,9 @@ async function triggerLumenReflection(entry) {
     const reply = data.reply || 'Lumen is quiet. Stay with what you wrote.';
     lumenConvo.push({ role: 'assistant', content: reply });
     addMsg('lumen', reply);
+    // Persist: first Lumen reply becomes lumen_reply (opening read), and also goes to messages
     await updateEntryLumenReply(entries[0], reply);
+    await appendLumenMessage(entries[0], 'assistant', reply);
     showFeedbackCard();
   } catch(e) {
     removeThinking();
@@ -2435,10 +2452,10 @@ async function closeWithBalcony() {
   btn.textContent = 'Reading the thread...';
 
   // Signal to Lumen that it's time to close with the balcony move
-  lumenConvo.push({
-    role: 'user',
-    content: 'This feels like a good place to stop. Get on the balcony of what came up in this conversation - not the data, what I said. Name what you notice about the thread. What does it look like from here? Close with something that lands, not another question.'
-  });
+  const closeRequest = 'This feels like a good place to stop. Get on the balcony of what came up in this conversation - not the data, what I said. Name what you notice about the thread. What does it look like from here? Close with something that lands, not another question.';
+  lumenConvo.push({ role: 'user', content: closeRequest });
+  // Log as a system-triggered user turn (for research clarity)
+  await appendLumenMessage(entries[0], 'user', '[close requested by user]');
 
   addThinking();
 
@@ -2456,9 +2473,9 @@ async function closeWithBalcony() {
     lumenConvo.push({ role: 'assistant', content: reply });
     addMsg('lumen', reply);
 
-    // Save the final Lumen reply to the entry
+    // Log the balcony close separately - does NOT overwrite the opening read (lumen_reply)
     if (entries[0]) {
-      await updateEntryLumenReply(entries[0], reply);
+      await appendLumenMessage(entries[0], 'balcony', reply);
     }
 
     // Hide input and close button, reveal feedback card
@@ -2482,6 +2499,8 @@ async function sendToLumen() {
   ta.value = '';
   addMsg('user', text);
   lumenConvo.push({ role: 'user', content: text });
+  // Log user turn immediately
+  await appendLumenMessage(entries[0], 'user', text);
   addThinking();
   const system = lumenSystemPrompt || 'SESSION CONTEXT: Mid-conversation. Follow the six-move methodology. Offers over questions when something has surfaced twice.';
   try {
@@ -2495,6 +2514,8 @@ async function sendToLumen() {
     const reply = data.reply || 'Lumen is quiet. Keep going.';
     lumenConvo.push({ role: 'assistant', content: reply });
     addMsg('lumen', reply);
+    // Log assistant turn
+    await appendLumenMessage(entries[0], 'assistant', reply);
   } catch(e) {
     removeThinking();
     addMsg('lumen', 'Lumen is quiet right now. Try again in a moment.');
