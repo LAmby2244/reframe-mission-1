@@ -1,1 +1,87 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Body Signal - Reframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange:   #F56914;
+      --yellow:   #FFBE19;
+      --dark:     #0A3228;
+      --mid:      #377364;
+      --light:    #F5E6CD;
+      --white:    #ffffff;
+      --border:   rgba(10,50,40,0.12);
+      --sky:      #9BD7E6;
+      --sky-dark: #2a7a96;
+      --blush:    #FFB9AA;
+
+      /* Signal colours */
+      --red:      #C0392B;
+      --red-bg:   #FDF0EE;
+      --red-mid:  #E8534A;
+      --green:    #27AE60;
+      --green-bg: #EEF7F1;
+      --green-mid:#2ECC71;
+      --amber:    #E67E22;
+      --amber-bg: #FEF5EC;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* -- TOPBAR -- */
+    .topbar {
+      background: var(--dark); padding: 12px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 200;
+    }
+    .topbar-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .topbar-mark {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-mark svg { width: 12px; height: 12px; fill: white; }
+    .topbar-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); }
+    .topbar-right { display: flex; align-items: center; gap: 20px; }
+    .topbar-user { font-size: 12px; color: rgba(255,255,255,0.35); }
+    .topbar-signout {
+      background: none; border: none; color: rgba(255,255,255,0.35);
+      font-size: 12px; cursor: pointer; font-family: 'Rubik', sans-serif;
+      transition: color 0.2s;
+    }
+    .topbar-signout:hover { color: rgba(255,255,255,0.65); }
+    .topbar-nav { display: flex; align-items: center; gap: 4px; }
+    .topbar-nav-link {
+      font-size: 12px; color: rgba(255,255,255,0.4); text-decoration: none;
+      padding: 5px 12px; border-radius: 20px; transition: all 0.2s;
+    }
+    .topbar-nav-link:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+    .topbar-nav-link.active { color: var(--yellow); background: rgba(255,190,25,0.1); }
+
+    /* -- SCREENS -- */
+    .screen { display: none; }
+    .screen.active { display: block; }
+  </style>
+</head>
+<body>
+<div style="padding:40px;text-align:center;font-family:sans-serif">
+<h1 style="color:#C0392B">Site temporarily unavailable</h1>
+<p>We're restoring this page. Please try again in a moment.</p>
+</div>
+</body>
+</html>
