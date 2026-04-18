@@ -596,8 +596,49 @@ export default async function handler(req) {
           exploration_score: exploration_score,
           sleep_debt_7d:     parseFloat(sleep_debt_7d.toFixed(2)),
           days_of_history:   daily.length - 1 - dayIndex,
+          reason_missing:    null,
         };
       });
+
+      // -- STEP 4: Band-dropout stubs --
+      // For each of the 7 expected arc dates (today back 6 days), if WHOOP
+      // returned no recovery for that date, write a stub row with
+      // reason_missing='band_dropout'. This lets PRR analysis distinguish
+      // "band wasn't worn" from "user didn't open the app".
+      const dailyDates = new Set(daily.map(d => d.date));
+      const nowUtc = new Date();
+      for (let daysBack = 0; daysBack < 7; daysBack++) {
+        const target = new Date(nowUtc);
+        target.setUTCDate(target.getUTCDate() - daysBack);
+        const targetStr = target.toISOString().split('T')[0];
+        if (!dailyDates.has(targetStr)) {
+          dailyStateRows.push({
+            user_id:           userId,
+            date:              targetStr,
+            recovery_pct:      null,
+            hrv_ms:            null,
+            rhr_bpm:           null,
+            day_strain:        null,
+            sleep_perf_pct:    null,
+            sleep_hours:       null,
+            respiratory_rate:  null,
+            workout_logged:    false,
+            sleep_suff:        null,
+            signal_state:      null,
+            signal_confidence: null,
+            rec_z:             null,
+            hrv_z:             null,
+            strain_z:          null,
+            composite_load:    null,
+            impaired_signals:  null,
+            hrv_cv:            null,
+            exploration_score: null,
+            sleep_debt_7d:     null,
+            days_of_history:   null,
+            reason_missing:    'band_dropout',
+          });
+        }
+      }
 
       try {
         const writeRes = await fetch(
