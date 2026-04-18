@@ -2,6 +2,8 @@
  * /api/whoop-data.js
  * Vercel Edge Function -- WHOOP Data + Scoring Engine
  * Validated against WHOOP AI and HRV research literature
+ *
+ * Phase 1: writes 7 days to daily_state (not 1). Arc shows per-day signal state.
  */
 export const config = { runtime: 'edge' };
 
@@ -27,9 +29,17 @@ function sd(arr) {
   return Math.max(Math.sqrt(variance), 0.1);
 }
 
+function zScore(value, baseline_mean, baseline_sd) {
+  if (value === null || value === undefined) return null;
+  return (value - baseline_mean) / baseline_sd;
+}
+
 // -- HRV VOLATILITY (COEFFICIENT OF VARIATION) --
-function computeHRVVolatility(history) {
-  const hrvValues = history.slice(0, 7).map(d => d.hrv_ms).filter(Boolean);
+// For day at dayIndex: compute CV over the 7 nights *before* that day
+// (matches the original engine's `history.slice(0, 7)` semantics).
+function computeHRVVolatility(dayIndex, daily) {
+  const window = daily.slice(dayIndex + 1, dayIndex + 8);
+  const hrvValues = window.map(d => d.hrv_ms).filter(Boolean);
   if (hrvValues.length < 5) {
     return { cv_pct: null, volatility_score: 0, volatile: false, volatile_high: false };
   }
@@ -51,41 +61,49 @@ function computeHRVVolatility(history) {
   };
 }
 
-function zScore(value, baseline_mean, baseline_sd) {
-  if (value === null || value === undefined) return null;
-  return (value - baseline_mean) / baseline_sd;
-}
+// -- COMPOSITE LOAD --
+// For day at dayIndex: look at the 6 days *before* it for sleep consistency,
+// and the 2 days *before* it for RR elevation (with a 12-day RR baseline
+// starting 2 days before the target).
+function computeCompositeLoad(dayIndex, daily, todayScored) {
+  const { hrv_z, rec_z, rr_bpm } = todayScored;
 
-function computeCompositeLoad(todayScored, baselines, history) {
-  const { hrv_z, rec_z, rr_bpm, recovery_pct } = todayScored;
   let hrv_score = 0;
   if (hrv_z !== null) {
     if (hrv_z < -1.0) hrv_score = 1.0;
     else if (hrv_z < -0.5) hrv_score = 0.6;
     else if (hrv_z < 0) hrv_score = 0.3;
   }
+
   let rec_score = 0;
   if (rec_z !== null) {
     if (rec_z < -1.0) rec_score = 1.0;
     else if (rec_z < -0.5) rec_score = 0.6;
     else if (rec_z < 0) rec_score = 0.3;
   }
-  const onsetHours = history.slice(0, 6)
+
+  // Sleep consistency: 6 days before the target day
+  const onsetHours = daily.slice(dayIndex + 1, dayIndex + 7)
     .map(d => d.sleep_onset_hour)
     .filter(h => h !== null && h !== undefined);
   let consistency_score = 0;
+  let sleep_consistency_sd_mins = null;
   if (onsetHours.length >= 3) {
     const m = onsetHours.reduce((a, b) => a + b, 0) / onsetHours.length;
     const variance = onsetHours.reduce((a, b) => a + Math.pow(b - m, 2), 0) / onsetHours.length;
     const sd_hours = Math.sqrt(variance);
     const sd_minutes = sd_hours * 60;
+    sleep_consistency_sd_mins = parseFloat(sd_minutes.toFixed(1));
     if (sd_minutes > 90) consistency_score = 1.0;
     else if (sd_minutes > 60) consistency_score = 0.7;
     else if (sd_minutes > 45) consistency_score = 0.4;
   }
+
+  // Respiratory rate: 2 days before target for elevation check,
+  // days 2-13 before target as the RR baseline.
   let rr_score = 0;
-  const last2rr = history.slice(0, 2).map(d => d.rr_bpm).filter(Boolean);
-  const rr_baseline = history.slice(2, 14).map(d => d.rr_bpm).filter(Boolean);
+  const last2rr = daily.slice(dayIndex + 1, dayIndex + 3).map(d => d.rr_bpm).filter(Boolean);
+  const rr_baseline = daily.slice(dayIndex + 3, dayIndex + 15).map(d => d.rr_bpm).filter(Boolean);
   if (rr_bpm && rr_baseline.length >= 3) {
     const rr_mean = rr_baseline.reduce((a, b) => a + b, 0) / rr_baseline.length;
     const rr_elevation = rr_bpm - rr_mean;
@@ -94,10 +112,12 @@ function computeCompositeLoad(todayScored, baselines, history) {
     else if (rr_elevation > 1.0 && prev_elevated) rr_score = 0.7;
     else if (rr_elevation > 1.0) rr_score = 0.4;
   }
+
   const composite = (hrv_score * 0.40) + (rec_score * 0.25) +
                     (consistency_score * 0.20) + (rr_score * 0.15);
   const impaired_count = [hrv_score, rec_score, consistency_score, rr_score]
     .filter(s => s >= 0.5).length;
+
   return {
     composite,
     impaired_count,
@@ -105,19 +125,18 @@ function computeCompositeLoad(todayScored, baselines, history) {
     rec_score,
     consistency_score,
     rr_score,
-    sleep_consistency_sd_mins: (() => {
-      if (onsetHours.length < 3) return null;
-      const m = onsetHours.reduce((a, b) => a + b, 0) / onsetHours.length;
-      const variance = onsetHours.reduce((a, b) => a + Math.pow(b - m, 2), 0) / onsetHours.length;
-      return parseFloat((Math.sqrt(variance) * 60).toFixed(1));
-    })()
+    sleep_consistency_sd_mins
   };
 }
 
-function applyStateEscalation(state, confidence, compositeLoad, todayScored, history) {
+// -- STATE ESCALATION --
+// Uses the 5 days *before* the target day to check chronic sleep-consistency.
+function applyStateEscalation(dayIndex, daily, state, confidence, compositeLoad, todayScored) {
   const { impaired_count, consistency_score } = compositeLoad;
   const { hrv_z } = todayScored;
+
   if (state && state.startsWith('red_')) return { state, confidence };
+
   if (impaired_count >= 2) {
     if (state && state.startsWith('amb_')) {
       return { state: 'red_psych', confidence: 'medium' };
@@ -126,8 +145,9 @@ function applyStateEscalation(state, confidence, compositeLoad, todayScored, his
       return { state: 'amb_load', confidence: 'medium' };
     }
   }
+
   if (consistency_score >= 0.7) {
-    const chronicDays = history.slice(0, 5)
+    const chronicDays = daily.slice(dayIndex + 1, dayIndex + 6)
       .filter(d => {
         if (!d.sleep_onset_hour) return false;
         return true;
@@ -137,24 +157,34 @@ function applyStateEscalation(state, confidence, compositeLoad, todayScored, his
       return { state: 'amb_load', confidence: 'low' };
     }
   }
+
   return { state, confidence };
 }
 
-function scoreSignalState(today, baselines, history, hrvVolatility) {
+// -- SIGNAL STATE --
+// Scores any day given its index in the newest-first `daily` array.
+// `history` = the days strictly *before* the target day.
+function scoreSignalState(dayIndex, daily, todayScored, baselines, hrvVolatility) {
+  const history = daily.slice(dayIndex + 1);
   const {
     rec_z, hrv_z, rhr_z, strain_z, nas_z,
     sleep_suff, sleep_debt_7d, sleep_stress,
     workout_logged, recovery_pct, hrv_ms
-  } = today;
+  } = todayScored;
+
+  // last3hrv = the 3 days *before* the target (not including target)
   const last3hrv = history.slice(0, 3).map(d => d.hrv_ms).filter(Boolean);
   const hrv3dMean = mean(last3hrv);
   const hrvDeclining = last3hrv.length >= 2 && last3hrv[0] < last3hrv[last3hrv.length - 1];
+
   const last3rec = history.slice(0, 3).map(d => d.recovery_pct).filter(Boolean);
   const recRising = last3rec.length >= 2 && last3rec[0] > last3rec[last3rec.length - 1];
+
   const hrvAtOrAboveBaseline = hrv_z !== null && hrv_z >= 0;
   const recoveryIsGreen = recovery_pct !== null && recovery_pct >= 67;
   const strainIsLowMod = strain_z === null || strain_z < 1.0;
   const physiologicallyWell = recoveryIsGreen && hrvAtOrAboveBaseline && strainIsLowMod;
+
   if (
     rec_z !== null && rec_z < -0.8 &&
     sleep_suff !== null && sleep_suff >= 0.85 &&
@@ -163,6 +193,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'red_psych', confidence: 'high' };
   }
+
   if (
     hrvDeclining &&
     hrv3dMean < (baselines.hrv_mean - 0.7 * baselines.hrv_sd) &&
@@ -179,6 +210,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
       return { state: 'amb_trend', confidence: 'medium' };
     }
   }
+
   if (
     strain_z !== null && strain_z > 1.0 &&
     !workout_logged &&
@@ -186,9 +218,11 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'red_strain', confidence: 'high' };
   }
+
   if (rec_z !== null && rec_z < -0.8 && sleep_suff >= 0.85) {
     return { state: 'red_psych', confidence: 'medium' };
   }
+
   if (hrvDeclining && strain_z < 0.5 && !physiologicallyWell) {
     const hasEnoughHistory = history.length >= 7;
     const recoveryIsLow = recovery_pct !== null && recovery_pct < 67;
@@ -197,6 +231,7 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
     }
     return { state: 'amb_trend', confidence: 'low' };
   }
+
   if (
     rec_z !== null && rec_z > 0.5 &&
     hrv_z !== null && hrv_z >= 0.0 &&
@@ -204,33 +239,41 @@ function scoreSignalState(today, baselines, history, hrvVolatility) {
   ) {
     return { state: 'grn_thriving', confidence: 'high' };
   }
+
   if (
     rec_z !== null && rec_z > 0.3 &&
     recRising &&
-    history.length >= 2 &&
-    history[1].rec_z < -0.3
+    daily.length > dayIndex + 2 &&
+    daily[dayIndex + 2] && daily[dayIndex + 2].recovery_pct != null &&
+    zScore(daily[dayIndex + 2].recovery_pct, baselines.recovery_mean, baselines.recovery_sd) < -0.3
   ) {
     return { state: 'grn_bounce', confidence: 'high' };
   }
+
   const consecutiveGreen = last3rec.filter(r => r >= 67).length;
   if (consecutiveGreen >= 3) {
     return { state: 'grn_streak', confidence: 'high' };
   }
+
   if (physiologicallyWell) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
+
   if (rec_z !== null && rec_z > 0.5) {
     return { state: 'grn_thriving', confidence: 'medium' };
   }
+
   if (hrvVolatility && hrvVolatility.volatile_high) {
     return { state: 'amb_volatile', confidence: 'medium' };
   }
+
   return { state: null, confidence: 'low' };
 }
 
-function computeExplorationScore(today, baselines, history) {
+function computeExplorationScore(dayIndex, daily, todayScored, baselines) {
+  const history = daily.slice(dayIndex + 1);
   let score = 0;
-  const { rec_z, hrv_z, strain_z, nas_z, sleep_suff, sleep_debt_7d, sleep_stress, workout_logged } = today;
+  const { rec_z, hrv_z, strain_z, nas_z, sleep_suff, sleep_debt_7d, sleep_stress, workout_logged } = todayScored;
   const last3hrv = history.slice(0, 3).map(d => d.hrv_ms).filter(Boolean);
   const hrv3dMean = mean(last3hrv);
   const hrvDeclining = last3hrv.length >= 2 && last3hrv[0] < last3hrv[last3hrv.length - 1];
@@ -242,6 +285,59 @@ function computeExplorationScore(today, baselines, history) {
   if (nas_z !== null && nas_z > 1.5) score += 1;
   if (hrv_z !== null && hrv_z < -1.5) score += 1;
   return score;
+}
+
+// -- scoreDay: score any day at `dayIndex` in `daily` (newest-first) --
+// Returns everything needed to build a daily_state row + arc_series entry.
+function scoreDay(dayIndex, daily, baselines) {
+  const day = daily[dayIndex];
+  if (!day) return null;
+
+  // For today (dayIndex 0), today's cycle may still be open (mid-day).
+  // Use yesterday's completed strain for scoring. Past days are already complete.
+  const scoringStrain = dayIndex === 0
+    ? (daily[1]?.day_strain ?? day.day_strain ?? null)
+    : (day.day_strain ?? null);
+
+  // Per-day 7-day sleep debt looking back from this day
+  const window7 = daily.slice(dayIndex, dayIndex + 7);
+  const sleep_debt_7d = window7.reduce((acc, d) => {
+    if (d.sleep_need_hours && d.sleep_hours) return acc + Math.max(0, d.sleep_need_hours - d.sleep_hours);
+    return acc;
+  }, 0);
+
+  const scored = {
+    ...day,
+    day_strain: scoringStrain,
+    rec_z:    zScore(day.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
+    hrv_z:    zScore(day.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
+    rhr_z:    zScore(day.rhr_bpm, baselines.rhr_mean, baselines.rhr_sd),
+    strain_z: zScore(scoringStrain, baselines.strain_mean, baselines.strain_sd),
+    nas_z: null,
+    sleep_debt_7d,
+  };
+
+  const hrvVolatility = computeHRVVolatility(dayIndex, daily);
+  const { state: baseState, confidence: baseConfidence } =
+    scoreSignalState(dayIndex, daily, scored, baselines, hrvVolatility);
+  const compositeLoad = computeCompositeLoad(dayIndex, daily, scored);
+  const { state, confidence } =
+    applyStateEscalation(dayIndex, daily, baseState, baseConfidence, compositeLoad, scored);
+  const exploration_score = computeExplorationScore(dayIndex, daily, scored, baselines);
+
+  const isGreen = state && state.startsWith('grn_');
+  const hrv_volatility_flag = isGreen && hrvVolatility.volatile && !hrvVolatility.volatile_high;
+
+  return {
+    scored,
+    state,
+    confidence,
+    compositeLoad,
+    hrvVolatility,
+    hrv_volatility_flag,
+    exploration_score,
+    sleep_debt_7d,
+  };
 }
 
 export default async function handler(req) {
@@ -363,7 +459,6 @@ export default async function handler(req) {
     cycles.forEach(c => { cycleById[c.id] = c; });
 
     // -- TODAY'S OPEN CYCLE (for still-climbing strain) --
-    // An open cycle has no `end` timestamp. Used for the "today so far" row.
     const openCycle = cycles.find(c => !c.end) || null;
     const today_strain_so_far = openCycle?.score?.strain ?? null;
 
@@ -421,6 +516,9 @@ export default async function handler(req) {
       ? Math.round((new Date(todayStr) - new Date(lastWorkoutDate)) / 86400000)
       : null;
 
+    // Baselines computed over everything except today (historicalDays).
+    // Applied as the *same* baseline for every arc day (Phase 1 decision:
+    // current-window baselines. Phase 2 cron will use rolling per-day baselines.)
     const historicalDays = daily.slice(1);
     const baselines = {
       recovery_mean: mean(historicalDays.map(d => d.recovery_pct).filter(Boolean)),
@@ -435,72 +533,58 @@ export default async function handler(req) {
       nas_sd: 1,
     };
 
+    // Score today (dayIndex 0) and the 6 preceding days for the arc + daily_state.
+    const arcDaysToScore = Math.min(7, daily.length);
+    const scoredDays = [];
+    for (let i = 0; i < arcDaysToScore; i++) {
+      const result = scoreDay(i, daily, baselines);
+      if (result) scoredDays.push({ dayIndex: i, ...result });
+    }
+
+    // Today is dayIndex 0. Response fields that used to come from `todayScored`:
+    const todayResult = scoredDays[0];
     const today = daily[0];
     const yesterday = daily[1] || null;
-
-    // -- STRAIN NOW USES YESTERDAY'S COMPLETED CYCLE --
-    // The scoring engine (red_strain etc.) needs a *completed* strain value.
-    // Using today[0].day_strain was unreliable when read mid-day.
-    // Yesterday's completed cycle gives the strain that preceded last night's sleep.
     const scoringStrain = yesterday?.day_strain ?? today.day_strain ?? null;
+    const todayScored = todayResult.scored;
+    const state = todayResult.state;
+    const confidence = todayResult.confidence;
+    const compositeLoad = todayResult.compositeLoad;
+    const hrvVolatility = todayResult.hrvVolatility;
+    const hrv_volatility_flag = todayResult.hrv_volatility_flag;
+    const exploration_score = todayResult.exploration_score;
+    const sleep_debt_7d = todayResult.sleep_debt_7d;
 
-    const sleep_debt_7d = daily.slice(0, 7).reduce((acc, d) => {
-      if (d.sleep_need_hours && d.sleep_hours) return acc + Math.max(0, d.sleep_need_hours - d.sleep_hours);
-      return acc;
-    }, 0);
-
-    const todayScored = {
-      ...today,
-      day_strain: scoringStrain,
-      rec_z:    zScore(today.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
-      hrv_z:    zScore(today.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
-      rhr_z:    zScore(today.rhr_bpm, baselines.rhr_mean, baselines.rhr_sd),
-      strain_z: zScore(scoringStrain, baselines.strain_mean, baselines.strain_sd),
-      nas_z: null,
-      sleep_debt_7d,
-    };
-
-    const history = daily.slice(1).map(d => ({
-      ...d,
-      rec_z: zScore(d.recovery_pct, baselines.recovery_mean, baselines.recovery_sd),
-      hrv_z: zScore(d.hrv_ms, baselines.hrv_mean, baselines.hrv_sd),
-    }));
-
-    const hrvVolatility = computeHRVVolatility(history);
-    const { state: baseState, confidence: baseConfidence } = scoreSignalState(todayScored, baselines, history, hrvVolatility);
-    const compositeLoad = computeCompositeLoad(todayScored, baselines, history);
-    const { state, confidence } = applyStateEscalation(baseState, baseConfidence, compositeLoad, todayScored, history);
-    const exploration_score = computeExplorationScore(todayScored, baselines, history);
-
-    const isGreen = state && state.startsWith('grn_');
-    const hrv_volatility_flag = isGreen && hrvVolatility.volatile && !hrvVolatility.volatile_high;
-
-    // -- WRITE TO daily_state --
+    // -- WRITE TO daily_state (batch of up to 7 rows) --
     if (userId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
-      const dailyStateRow = {
-        user_id:           userId,
-        date:              today.date,
-        recovery_pct:      today.recovery_pct   !== null ? Math.round(today.recovery_pct)   : null,
-        hrv_ms:            today.hrv_ms          !== null ? parseFloat(today.hrv_ms.toFixed(1)) : null,
-        rhr_bpm:           today.rhr_bpm          !== null ? Math.round(today.rhr_bpm)          : null,
-        day_strain:        scoringStrain          !== null ? parseFloat(scoringStrain.toFixed(1)) : null,
-        sleep_perf_pct:    today.sleep_perf_pct   !== null ? Math.round(today.sleep_perf_pct)  : null,
-        sleep_hours:       today.sleep_hours      !== null ? parseFloat(today.sleep_hours.toFixed(2)) : null,
-        respiratory_rate:  today.rr_bpm           !== null ? parseFloat((today.rr_bpm).toFixed(2)) : null,
-        workout_logged:    today.workout_logged   || false,
-        sleep_suff:        today.sleep_suff       !== null ? parseFloat(today.sleep_suff.toFixed(3)) : null,
-        signal_state:      state || null,
-        signal_confidence: confidence || null,
-        rec_z:             todayScored.rec_z      !== null ? parseFloat(todayScored.rec_z.toFixed(3))  : null,
-        hrv_z:             todayScored.hrv_z      !== null ? parseFloat(todayScored.hrv_z.toFixed(3))  : null,
-        strain_z:          todayScored.strain_z   !== null ? parseFloat(todayScored.strain_z.toFixed(3)) : null,
-        composite_load:    parseFloat(compositeLoad.composite.toFixed(3)),
-        impaired_signals:  compositeLoad.impaired_count,
-        hrv_cv:            hrvVolatility.cv_pct,
-        exploration_score: exploration_score,
-        sleep_debt_7d:     parseFloat(sleep_debt_7d.toFixed(2)),
-        days_of_history:   historicalDays.length,
-      };
+      const dailyStateRows = scoredDays.map(({ dayIndex, scored, state, confidence, compositeLoad, hrvVolatility, exploration_score, sleep_debt_7d }) => {
+        const d = daily[dayIndex];
+        return {
+          user_id:           userId,
+          date:              d.date,
+          recovery_pct:      d.recovery_pct   !== null ? Math.round(d.recovery_pct)   : null,
+          hrv_ms:            d.hrv_ms          !== null ? parseFloat(d.hrv_ms.toFixed(1)) : null,
+          rhr_bpm:           d.rhr_bpm          !== null ? Math.round(d.rhr_bpm)          : null,
+          day_strain:        d.day_strain       !== null ? parseFloat(d.day_strain.toFixed(1)) : null,
+          sleep_perf_pct:    d.sleep_perf_pct   !== null ? Math.round(d.sleep_perf_pct)  : null,
+          sleep_hours:       d.sleep_hours      !== null ? parseFloat(d.sleep_hours.toFixed(2)) : null,
+          respiratory_rate:  d.rr_bpm           !== null ? parseFloat((d.rr_bpm).toFixed(2)) : null,
+          workout_logged:    d.workout_logged   || false,
+          sleep_suff:        d.sleep_suff       !== null ? parseFloat(d.sleep_suff.toFixed(3)) : null,
+          signal_state:      state || null,
+          signal_confidence: confidence || null,
+          rec_z:             scored.rec_z      !== null ? parseFloat(scored.rec_z.toFixed(3))  : null,
+          hrv_z:             scored.hrv_z      !== null ? parseFloat(scored.hrv_z.toFixed(3))  : null,
+          strain_z:          scored.strain_z   !== null ? parseFloat(scored.strain_z.toFixed(3)) : null,
+          composite_load:    parseFloat(compositeLoad.composite.toFixed(3)),
+          impaired_signals:  compositeLoad.impaired_count,
+          hrv_cv:            hrvVolatility.cv_pct,
+          exploration_score: exploration_score,
+          sleep_debt_7d:     parseFloat(sleep_debt_7d.toFixed(2)),
+          days_of_history:   daily.length - 1 - dayIndex,
+        };
+      });
+
       fetch(
         `${process.env.SUPABASE_URL}/rest/v1/daily_state`,
         {
@@ -511,17 +595,34 @@ export default async function handler(req) {
             'Content-Type': 'application/json',
             'Prefer': 'resolution=merge-duplicates'
           },
-          body: JSON.stringify(dailyStateRow)
+          body: JSON.stringify(dailyStateRows)
         }
-      ).catch(e => console.error('daily_state write error:', e.message));
+      ).then(async r => {
+        if (!r.ok) {
+          const txt = await r.text().catch(() => '');
+          console.error('daily_state write failed:', r.status, txt);
+        }
+      }).catch(e => console.error('daily_state write error:', e.message));
     }
+
+    // Build arc_series with per-day signal state
+    // scoredDays is newest-first (index 0 = today). Reverse for oldest-first display.
+    const arc_series = scoredDays.slice().reverse().map(({ dayIndex, state, confidence }) => {
+      const d = daily[dayIndex];
+      return {
+        date:              d.date,
+        recovery_pct:      d.recovery_pct,
+        hrv_ms:            d.hrv_ms,
+        day_strain:        d.day_strain,
+        signal_state:      state || null,
+        signal_confidence: confidence || null,
+      };
+    });
 
     const response = {
       recovery:          today.recovery_pct,
       hrv:               today.hrv_ms ? parseFloat(today.hrv_ms.toFixed(1)) : null,
-      // strain = scoring value (yesterday's completed cycle when available)
       strain:            scoringStrain !== null ? parseFloat(scoringStrain.toFixed(1)) : null,
-      // New three-row card fields
       yesterday_strain:     yesterday?.day_strain !== null && yesterday?.day_strain !== undefined ? parseFloat(yesterday.day_strain.toFixed(1)) : null,
       today_strain_so_far:  today_strain_so_far !== null ? parseFloat(today_strain_so_far.toFixed(1)) : null,
       sleep_hours:       today.sleep_hours ? parseFloat(today.sleep_hours.toFixed(1)) : null,
@@ -543,13 +644,7 @@ export default async function handler(req) {
       signal_confidence: confidence,
       days_trend:        daily.slice(0, 7).map(d => d.hrv_ms).filter(Boolean),
       recovery_trend:    daily.slice(0, 7).map(d => d.recovery_pct).filter(Boolean),
-      // Arc series: last 7 days for the visual (oldest first, today last)
-      arc_series:        daily.slice(0, 7).reverse().map(d => ({
-        date:         d.date,
-        recovery_pct: d.recovery_pct,
-        hrv_ms:       d.hrv_ms,
-        day_strain:   d.day_strain,
-      })),
+      arc_series,
       date:              today.date,
       data_source:       'whoop_live',
       days_of_history:   historicalDays.length,
