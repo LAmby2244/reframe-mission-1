@@ -1,7 +1,47 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last updated: 2026-04-18 PM — Gap closed. 16-17 Apr reconstructed from chat transcripts. Archetype system shipped, arc visual shipped, Lumen conversation logging live. Production incident recovered.
+## Last updated: 2026-04-18 PM — 4-step roll-out plan documented. Step 1 done. Steps 2-4 outstanding. Gap closed.
+
+---
+
+## THE 4-STEP ROLL-OUT PLAN — sort the data gathering + arc before inviting trial users
+
+Fix the research instrument first. Everything else (roll-out, nudges, new missions) waits until these four steps are clean.
+
+**Step 1 — Phase 1: score every arc day and write to `daily_state` on page load** ✅ **DONE 18 Apr 2026 AM**
+- Every `whoop-data.js` call scores up to 7 days and batch-upserts them into `daily_state`
+- Commits: `fee670bf` (score all days) -> `79fb07dc` (await the write) -> `a74b6cd8` (on_conflict param)
+- Verified 7 rows written for Simon Apr 11-18 (Apr 15 missing = genuine WHOOP dropout, not a bug)
+- First red_psych captured in live study conditions (Simon 17 Apr, 46% recovery / HRV 34.1ms / rec_z -1.42)
+
+**Step 2 — Phase 2: daily cron (~09:00 UTC) for all active study_participants** ⬜ NOT STARTED
+- Currently `daily_state` only gets written when someone opens the app
+- Participants who skip a day = no row = research gap disguised as a user-engagement gap
+- Cron flow: for each active study_participant -> refresh WHOOP token if needed -> fetch WHOOP v2 (yesterday's cycle) -> run same scoring engine as `whoop-data.js` -> upsert to `daily_state` with `?on_conflict=user_id,date`
+- Keep `whoop-data.js` page-load write (it's idempotent via the same upsert) — the cron just guarantees coverage
+- Must use the exact same scoring code path as `whoop-data.js` — extract the scoring logic into a shared module OR call the same endpoint from the cron
+
+**Step 3 — Arc-colour patches 2 + 3 (so Lumen reads what the user sees)** ⬜ NOT STARTED
+- Patch 1 shipped 17 Apr: today's arc dot uses `signal_state` (not recovery band)
+- Patches 2 + 3 fix Lumen's arc summary strings, which still describe days using raw recovery bands — so Lumen says "amber" for a day the dot shows red
+- **Patch 2** — in `renderLumenOpening()`, replace the recovery-band helper (e.g. `const band = a.recovery_pct >= 67 ? 'green' : ...`) with a `stateBand(s)` helper reading `a.signal_state`
+- **Patch 3** — same transformation in `triggerLumenReflection()`, inside the `arcSeries.map` block
+- Related (group under step 3 when building): historical arc dots should also use `signal_state`, not recovery threshold. Needs `daily_state` lookup per day fed into `arc_series` in `whoop-data.js`. Once Step 2 is live this is easy — just join the cron output in
+- **Deploy protocol reminder: this is the patch that triggered the 18 Apr PLACEHOLDER incident.** Use Rule 41: fetch raw file -> Python string replacement in bash -> `node --check` -> present for Simon to push via GitHub web editor. Do NOT use `push_files` with any placeholder string.
+
+**Step 4 — Research-design gap-labelling in `daily_state.reason_missing`** ⬜ NOT STARTED
+- Requires new column: `ALTER TABLE daily_state ADD COLUMN reason_missing text` (nullable)
+- When a day has no complete row, distinguish:
+  - `pre_enrolment` — user joined the study after this date
+  - `user_didnt_open` — user enrolled, app not opened, cron wrote the row with partial data (requires Step 2)
+  - `whoop_couldnt_score` — WHOOP API returned no recovery (band not worn, not enough sleep tracked)
+  - `band_dropout` — explicit "no recovery record" returned from WHOOP
+- Populated by both `whoop-data.js` (page-load writes) AND the Phase 2 cron
+- Without this, missing rows at the 30/60/90-day PRR analysis are ambiguous — can't separate user-behaviour signal from data-instrument noise
+- Gates the first credible PRR analysis
+
+Once all four are done -> clean research instrument -> invite trial users.
 
 ---
 
@@ -55,7 +95,7 @@ All 4 participants in `study_participants` table (added 12 Apr 2026).
 - Recovery 46%, HRV 34.1ms, rec_z -1.42, composite_load 0.49
 - Signal state: `red_psych` / medium confidence
 - WHOOP's native band showed amber; engine correctly surfaced this as red because rec_z was deeply below baseline with HRV also below baseline and no sleep/strain explanation
-- Product insight: arc should show `signal_state`, not WHOOP's recovery band (patches 2 and 3 still pending, see Outstanding Work)
+- Product insight: arc should show `signal_state`, not WHOOP's recovery band (Step 3 patches above)
 
 ---
 
@@ -173,7 +213,9 @@ Array of `{ role, content, at }` objects appended live during each Lumen session
 - `lumen_reply` stays as the opening read (no longer overwritten by balcony close)
 
 ### daily_state — Phase 1 write verified 18 Apr 2026
-Written on every `whoop-data.js` call (fire-and-forget). One row per user per day. `whoop-data.js` sends all 7 days of scored state in a single upsert with `?on_conflict=user_id,date` in the URL. Verified 7 rows written for Simon Apr 11-18 (Apr 15 missing — WHOOP band dropout, not a bug).
+Written on every `whoop-data.js` call. One row per user per day. `whoop-data.js` sends all 7 days of scored state in a single upsert with `?on_conflict=user_id,date` in the URL. Verified 7 rows written for Simon Apr 11-18 (Apr 15 missing — WHOOP band dropout, not a bug).
+
+Step 4 will add a `reason_missing` column to label why a date has no complete row.
 
 | Table | Purpose |
 |---|---|
@@ -260,11 +302,11 @@ All rewrite tables have RLS enabled.
 41. **Deploy protocol for large files** — fetch raw file from GitHub -> manipulate in bash with Python string replacement -> verify with `node --check` -> `present_files` for Simon to push via GitHub web editor (Cmd+A, paste, commit). Never rely on `create_or_update_file` for partial content.
 42. **Recovery path when a production file is broken** — do NOT keep retrying `create_or_update_file` or `push_files` from the Claude container. `raw.githubusercontent.com` is not in the bash allowlist, so re-fetching the good content back into Claude is unreliable. Reliable recovery = Simon runs `git checkout <good-sha> -- <file>` from his local terminal, or uses GitHub web UI Raw -> select all -> paste into edit view. Claude provides the good commit SHA, Simon does the restore.
 43. **daily_state writes must use `?on_conflict=user_id,date` in the URL** — Supabase REST upsert needs conflict columns in the query string, not just the `Prefer: resolution=merge-duplicates` header. Without it, upsert silently falls back to plain insert and fails on the unique constraint.
-44. **Arc card: today's dot uses signal_state; historical dots still use recovery thresholds** — shipped 17 Apr. Patch 2 + 3 still outstanding: also use signal_state in the arcSummary strings passed to Lumen in `renderLumenOpening()` and `triggerLumenReflection()` so Lumen's prose matches what the user sees. See Outstanding Work.
-45. **NEW — Lumen opening is a real API call, not a template** — `renderLumenOpening()` is async, calls `/api/lumen` with full arc + today + signal state. Do NOT regress to rule-based string construction. Template opening was removed 17 Apr for feeling narrow.
-46. **NEW — lumen.js `max_tokens` default is 600, cap 1200** — raised from 300 on 17 Apr. Frontend can pass `maxTokens` override per call (opening uses 400). Don't reduce back to 300 — Lumen needs room to read the arc.
-47. **NEW — balcony close logs as `role: 'balcony'`, not `role: 'assistant'`** — distinct role for research filtering. Balcony close never overwrites `lumen_reply` (opening stays there). See Lumen Architecture.
-48. **NEW — WHOOP cycle timing gotcha** — WHOOP recoveries are keyed by sleep (forward-looking to the next cycle). `daily[0].day_strain` is today's partial strain, not yesterday's completed. For "yesterday's load" in the scoring engine, use yesterday's completed cycle strain, not `daily[1]`. The two-row card side-steps this by not trying to show yesterday's strain at all — the arc visualisation handles it cleanly.
+44. **Arc card: today's dot uses signal_state; historical dots still use recovery thresholds** — shipped 17 Apr. Step 3 of the roll-out plan still outstanding: also use signal_state in the arcSummary strings passed to Lumen in `renderLumenOpening()` and `triggerLumenReflection()` so Lumen's prose matches what the user sees.
+45. **Lumen opening is a real API call, not a template** — `renderLumenOpening()` is async, calls `/api/lumen` with full arc + today + signal state. Do NOT regress to rule-based string construction. Template opening was removed 17 Apr for feeling narrow.
+46. **lumen.js `max_tokens` default is 600, cap 1200** — raised from 300 on 17 Apr. Frontend can pass `maxTokens` override per call (opening uses 400). Don't reduce back to 300 — Lumen needs room to read the arc.
+47. **Balcony close logs as `role: 'balcony'`, not `role: 'assistant'`** — distinct role for research filtering. Balcony close never overwrites `lumen_reply` (opening stays there). See Lumen Architecture.
+48. **WHOOP cycle timing gotcha** — WHOOP recoveries are keyed by sleep (forward-looking to the next cycle). `daily[0].day_strain` is today's partial strain, not yesterday's completed. For "yesterday's load" in the scoring engine, use yesterday's completed cycle strain, not `daily[1]`. The two-row card side-steps this by not trying to show yesterday's strain at all — the arc visualisation handles it cleanly.
 
 ---
 
@@ -407,23 +449,17 @@ Both are quick Ctrl+F jobs in Word.
 
 ## Outstanding Work
 
-### Immediate
-- [ ] **Arc-colour patches 2 + 3** — arc dots use signal_state for today (shipped 17 Apr) but Lumen's internal arc summary strings still use recovery bands. Two remaining transformations:
-  1. `renderLumenOpening()` arcSummary — replace `const band = a.recovery_pct >= 67 ? 'green' : ...` with a `stateBand(s)` helper reading `a.signal_state`
-  2. `triggerLumenReflection()` arcSummary — same transformation in the `arcSeries.map` block
+**The 4-step roll-out plan lives at the top of this file. Steps 2, 3, 4 are the priority — everything below is downstream or parallel.**
+
+### Supporting fixes (do alongside the 4 steps)
 - [ ] **Delete `.claude-restore-marker`** from repo root (junk from 18 Apr incident)
 - [ ] Research paper: apply two manual fixes (date + Mission 7 mention)
-- [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens likely expired)
+- [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens likely expired) — becomes less urgent once Step 2 cron is live
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
 - [ ] Clean up any remaining empty `{}` feedback card entries in Supabase for Simon
+- [ ] **Arc alignment bug** — when a day is missing, dots mislabelled S/M/T/W/T/F/S instead of actual dates (tied to Step 4)
 
-### Phase 2 — daily_state
-- [ ] **Phase 2 daily cron (~09:00 UTC)** to refresh tokens and write daily_state for all active study_participants, not just users who open the app
-- [ ] **Arc alignment bug** — when a day is missing, dots mislabelled S/M/T/W/T/F/S instead of actual dates
-- [ ] **Research-design gap-labelling** — distinguish pre-enrolment / user-didn't-open / WHOOP-couldn't-score in `daily_state.reason_missing`
-- [ ] **Historical arc dots should also use signal_state** — would need daily_state lookup per day in `arc_series`, so Lumen and arc agree on historical days too (not just today)
-
-### Next build
+### After the 4 steps — next build
 - [ ] Mission 1 -> Rewrite It handover CTA (pre-populate declaration from Case for Change answer)
 - [ ] "See what Lumen notices across your feedback" button — cross-card Lumen
 - [ ] Missions 4, 5, 8-14 to build
@@ -431,7 +467,7 @@ Both are quick Ctrl+F jobs in Word.
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
-- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda most history — OVERDUE)
+- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda most history — OVERDUE) — requires Step 4 for clean gap-labelling
 - [ ] Jackson 30-day follow-up — does Body Signal confirm the identity shift?
 - [ ] **Log first red_psych capture (Simon 17 Apr) in research paper** — first live-study catch of the engine detecting a psychological red day under real conditions
 
@@ -443,8 +479,8 @@ Both are quick Ctrl+F jobs in Word.
 
 ## How to Start a Session
 1. Fetch this file fresh: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md`
-2. Read outstanding issues and next build priorities
-3. Ask Simon what he wants to work on
+2. Read the 4-step roll-out plan at the top — that's the governing frame
+3. Ask Simon what he wants to work on (most likely Step 2, 3, or 4)
 4. Before touching any file: fetch it fresh from GitHub
 5. Run `node --check` on any JS before presenting
 6. Check for non-ASCII chars in any JS file before pushing
@@ -503,9 +539,9 @@ git push
 | 17 Apr 2026 MID | **Lumen "relentless" fix:** removed "One observation. One question. Nothing more." override. Added balcony-close button ("Where have we got to?"). Rule 45 added. |
 | 17 Apr 2026 PM | **Three-row card -> two-row card + 7-day arc visual:** tried three-row (yesterday/last night/today) but WHOOP cycle timing made strain-alignment impossible. Pivoted to two-row card + 7-day arc visual below. Arc dots coloured by signal_state for today, recovery thresholds for history. Rule 44 + 48 added. |
 | 17 Apr 2026 EVE | **Lumen opening moved from template to real API call.** `renderLumenOpening()` now async, calls `/api/lumen` with full arc + today + signal state. `max_tokens` in lumen.js raised 300 -> 600 default, 1200 cap. Rules 45 + 46 added. |
-| 18 Apr 2026 AM | **Full Lumen conversation logging live.** `lumen_messages jsonb` column added. `appendLumenMessage()` logs every turn as it happens. Balcony close logs as `role: 'balcony'` (distinct), no longer overwrites `lumen_reply`. Simon's 08:00 UTC session reconstructed from pasted transcript (44 turns, "her stress means I'm not loved" arc). Jackson's 16 Apr session reconstructed from screenshots (23 turns). **Prominent yellow balcony-close button** shipped for trial launch. **Phase 1 daily_state scoring shipped.** Three commits: `fee670bf`, `79fb07dc`, `a74b6cd8`. Final fix: `?on_conflict=user_id,date` in URL + awaited fetch. Rules 43 + 47 added. |
-| 18 Apr 2026 PM | **Production incident + recovery.** While trying to set up arc-colour patch 2+3, Claude called `github:push_files` with `content: "PLACEHOLDER"` on wearable.html (commit `8362aff`). Pushed a 3KB maintenance page on top (`dce0230`). Created junk `.claude-restore-marker` (`7bfff13`). Extended failed recovery attempts (raw.githubusercontent.com, api.github.com, Vercel previews, inline create_file — all blocked or truncated). **Simon restored manually** via `git checkout a74b6cd8 -- wearable.html` from local terminal. Production verified back at 14:18 UTC. Rule 34 updated. Rule 42 added. Arc-colour patches 2+3 still pending. |
-| 18 Apr 2026 EVE | **Gap closed.** 16-17 Apr reconstructed from chat transcripts (CHAT_FOR_CLAUDE_part_1.docx + chart_for_claude_part_2.docx). This README rewritten with the full picture: 10 archetypes documented, Lumen conversation logging architecture, research paper update status, Jackson case study v3 state, methodology question status. |
+| 18 Apr 2026 AM | **STEP 1 OF ROLL-OUT PLAN SHIPPED — Phase 1 daily_state scoring.** Three commits: `fee670bf`, `79fb07dc`, `a74b6cd8`. Final fix: `?on_conflict=user_id,date` in URL + awaited fetch. 7 rows verified for Simon. Also shipped: **Full Lumen conversation logging** (`lumen_messages jsonb`, `appendLumenMessage`, `role: 'balcony'` distinct, `lumen_reply` preserved). Simon 08:00 UTC session reconstructed (44 turns, pasted transcript). Jackson 16 Apr session reconstructed (23 turns, screenshots). Prominent yellow balcony-close button for trial launch. Rules 43 + 47 added. |
+| 18 Apr 2026 PM | **Production incident + recovery.** While trying to set up Step 3 (arc-colour patches 2+3), Claude called `github:push_files` with `content: "PLACEHOLDER"` on wearable.html (commit `8362aff`). Pushed a 3KB maintenance page on top (`dce0230`). Created junk `.claude-restore-marker` (`7bfff13`). Extended failed recovery attempts (raw.githubusercontent.com, api.github.com, Vercel previews, inline create_file — all blocked or truncated). **Simon restored manually** via `git checkout a74b6cd8 -- wearable.html` from local terminal. Production verified back at 14:18 UTC. Rule 34 updated. Rule 42 added. Step 3 still pending — lesson: use Rule 41 deploy protocol. |
+| 18 Apr 2026 EVE | **Gap closed + 4-step roll-out plan documented at top of README.** 16-17 Apr reconstructed from chat transcripts (CHAT_FOR_CLAUDE_part_1.docx + chart_for_claude_part_2.docx). README restructured so the governing frame is: Step 1 done; Steps 2 (Phase 2 daily cron), 3 (arc-colour patches 2+3), 4 (`daily_state.reason_missing` gap-labelling) are the path to trial roll-out. |
 
 ---
 
