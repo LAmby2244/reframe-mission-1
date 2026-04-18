@@ -2236,7 +2236,7 @@ async function renderLumenOpening() {
   const arcSummary = arc.length
     ? arc.map(a => {
         if (a.recovery_pct == null) return '-';
-        const band = a.recovery_pct >= 67 ? 'green' : a.recovery_pct >= 34 ? 'amber' : 'red';
+        const band = a.signal_state ? (a.signal_state.startsWith('red_') ? 'red' : a.signal_state.startsWith('amb_') ? 'amber' : a.signal_state.startsWith('grn_') ? 'green' : 'unclassified') : (a.recovery_pct >= 67 ? 'green' : a.recovery_pct >= 34 ? 'amber' : 'red');
         return `${a.date}: ${a.recovery_pct}% recovery, HRV ${a.hrv_ms}ms, strain ${a.day_strain != null ? a.day_strain.toFixed(1) : '-'} (${band})`;
       }).join('\n')
     : 'No prior days.';
@@ -2422,7 +2422,7 @@ async function triggerLumenReflection(entry) {
   const arcSummary = arcSeries.length >= 2
     ? 'Last 7 days (oldest → today): ' + arcSeries.map(a => {
         if (a.recovery_pct == null) return '—';
-        const label = a.recovery_pct >= 67 ? 'green' : a.recovery_pct >= 34 ? 'amber' : 'red';
+        const label = a.signal_state ? (a.signal_state.startsWith('red_') ? 'red' : a.signal_state.startsWith('amb_') ? 'amber' : a.signal_state.startsWith('grn_') ? 'green' : 'unclassified') : (a.recovery_pct >= 67 ? 'green' : a.recovery_pct >= 34 ? 'amber' : 'red');
         return `${a.date.slice(5)}:${a.recovery_pct}% ${label}`;
       }).join(', ')
     : '';
