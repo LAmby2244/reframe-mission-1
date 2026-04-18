@@ -590,23 +590,26 @@ export default async function handler(req) {
 
       try {
         const writeRes = await fetch(
-          `${process.env.SUPABASE_URL}/rest/v1/daily_state`,
+          `${process.env.SUPABASE_URL}/rest/v1/daily_state?on_conflict=user_id,date`,
           {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
               apikey: process.env.SUPABASE_SERVICE_KEY,
               'Content-Type': 'application/json',
-              'Prefer': 'resolution=merge-duplicates'
+              'Prefer': 'resolution=merge-duplicates,return=minimal'
             },
             body: JSON.stringify(dailyStateRows)
           }
         );
         if (!writeRes.ok) {
           const txt = await writeRes.text().catch(() => '');
-          console.error('daily_state write failed:', writeRes.status, txt);
+          // Log in pieces so Vercel viewer doesn't truncate the useful bit
+          console.error('daily_state status', writeRes.status);
+          console.error('daily_state body', txt.slice(0, 500));
+          console.error('daily_state first row', JSON.stringify(dailyStateRows[0]).slice(0, 500));
         } else {
-          console.log('daily_state wrote', dailyStateRows.length, 'rows for user', userId);
+          console.log('daily_state wrote', dailyStateRows.length, 'rows');
         }
       } catch (e) {
         console.error('daily_state write error:', e.message);
