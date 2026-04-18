@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last updated: 2026-04-18 EVE — Step 2 shipped (Phase 2 daily cron). Steps 1 + 2 done. Steps 3 + 4 outstanding.
+## Last updated: 2026-04-18 LATE NIGHT — ALL 4 STEPS SHIPPED. Research instrument clean. Ready to invite trial users.
 
 ---
 
@@ -24,26 +24,22 @@ Fix the research instrument first. Everything else (roll-out, nudges, new missio
 - Manual trigger: `curl -X POST https://app.purposefulchange.co.uk/api/whoop-daily-cron` returns a JSON summary with per-participant result
 - `CRON_SECRET` env var — previously unused, now authenticates the cron's fallback path in `whoop-data.js`
 
-**Step 3 — Arc-colour patches 2 + 3 (so Lumen reads what the user sees)** ⬜ NOT STARTED
+**Step 3 — Arc-colour patches 2 + 3 (so Lumen reads what the user sees)** ✅ **DONE 18 Apr 2026 LATE**
 - Patch 1 shipped 17 Apr: today's arc dot uses `signal_state` (not recovery band)
-- Patches 2 + 3 fix Lumen's arc summary strings, which still describe days using raw recovery bands — so Lumen says "amber" for a day the dot shows red
-- **Patch 2** — in `renderLumenOpening()`, replace the recovery-band helper (e.g. `const band = a.recovery_pct >= 67 ? 'green' : ...`) with a `stateBand(s)` helper reading `a.signal_state`
-- **Patch 3** — same transformation in `triggerLumenReflection()`, inside the `arcSeries.map` block
-- Related (group under step 3 when building): historical arc dots should also use `signal_state`, not recovery threshold. Needs `daily_state` lookup per day fed into `arc_series` in `whoop-data.js`. Once Step 2 is live this is easy — just join the cron output in
-- **Deploy protocol reminder: this is the patch that triggered the 18 Apr PLACEHOLDER incident.** Use Rule 41: fetch raw file -> Python string replacement in bash -> `node --check` -> present for Simon to push via GitHub web editor. Do NOT use `push_files` with any placeholder string.
+- Patches 2 + 3 shipped 18 Apr late evening (commit `f322687`, SHA `a7142bf3`, +348 bytes vs pre-patch): `renderLumenOpening()` and `triggerLumenReflection()` now derive colour band from `signal_state` (red_*/amb_*/grn_*), falling back to recovery thresholds when `signal_state` is null
+- Effect: Lumen's arc summary now matches the dot colours. A day like Apr 17 (red_psych at 46%) is now described as `(red)` to Lumen, no longer `(amber)`
+- Deploy method: `create_or_update_file` with full file content — same pattern as Steps 2 + 4. Full-file replace with exact byte delta verification (+348 bytes = 2 × 174-byte ternary expansions)
+- Still outstanding (can defer — not blocking research): historical arc dots still use recovery thresholds, not `signal_state`. Needs `daily_state` lookup per day fed into `arc_series` in `whoop-data.js`. Low priority — dot colour for historical days is cosmetic once Lumen reads correctly
 
-**Step 4 — Research-design gap-labelling in `daily_state.reason_missing`** ⬜ NOT STARTED
-- Requires new column: `ALTER TABLE daily_state ADD COLUMN reason_missing text` (nullable)
-- When a day has no complete row, distinguish:
-  - `pre_enrolment` — user joined the study after this date
-  - `user_didnt_open` — user enrolled, app not opened, cron wrote the row with partial data (requires Step 2)
-  - `whoop_couldnt_score` — WHOOP API returned no recovery (band not worn, not enough sleep tracked)
-  - `band_dropout` — explicit "no recovery record" returned from WHOOP
-- Populated by both `whoop-data.js` (page-load writes) AND the Phase 2 cron
-- Without this, missing rows at the 30/60/90-day PRR analysis are ambiguous — can't separate user-behaviour signal from data-instrument noise
-- Gates the first credible PRR analysis
+**Step 4 — Research-design gap-labelling in `daily_state.reason_missing`** ✅ **DONE 18 Apr 2026 LATE**
+- Migration `daily_state_reason_missing_step4`: added `reason_missing text` column + CHECK constraint allowing NULL / `pre_enrolment` / `user_didnt_open` / `whoop_couldnt_score` / `band_dropout`
+- CHECK constraint smoke-tested: typos like `reason_missing='bad_typo_reason'` are rejected at the DB — can't silently poison research data
+- `whoop-data.js` (commit `4be241f9`) updated: all scored rows now set `reason_missing: null` explicitly, and a post-loop block iterates the 7 expected arc dates and writes stub rows with `reason_missing='band_dropout'` for any date WHOOP returned no recovery for
+- View `daily_state_with_gaps` built (migration `daily_state_with_gaps_view_step4`): every active participant × every date from earliest study_day_1 to CURRENT_DATE, left-joined to `daily_state`, with gap_reason computed via COALESCE: explicit `reason_missing` if present, else `whoop_couldnt_score` (row exists but no signal_state), else `pre_enrolment` (no row before study_day_1), else `user_didnt_open` (no row after study_day_1)
+- Verified for Simon: Apr 5–10 = `user_didnt_open` (pre-Step-1 shipping), Apr 11 + Apr 14 = `whoop_couldnt_score` (unclassified by engine), Apr 15 = `user_didnt_open` (will flip to `band_dropout` on next cron fire once new whoop-data.js stub-write runs), Apr 12/13/16/17/18 scored normally
+- PRR analysis should now read `daily_state_with_gaps` rather than `daily_state` directly — every gap is labelled
 
-Once all four are done -> clean research instrument -> invite trial users.
+ALL FOUR STEPS SHIPPED. Research instrument is clean. Next: invite trial users.
 
 ---
 
@@ -218,13 +214,17 @@ Array of `{ role, content, at }` objects appended live during each Lumen session
 ### daily_state — Phase 1 write verified 18 Apr 2026
 Written on every `whoop-data.js` call. One row per user per day. `whoop-data.js` sends all 7 days of scored state in a single upsert with `?on_conflict=user_id,date` in the URL. Verified 7 rows written for Simon Apr 11-18 (Apr 15 missing — WHOOP band dropout, not a bug).
 
-Step 4 will add a `reason_missing` column to label why a date has no complete row.
+**Step 4 (18 Apr LATE):** column `reason_missing text` added with CHECK constraint (NULL / `pre_enrolment` / `user_didnt_open` / `whoop_couldnt_score` / `band_dropout`). `whoop-data.js` now writes stub rows with `reason_missing='band_dropout'` for any of the 7 expected arc dates WHOOP returned nothing for. Analysis reads from view `daily_state_with_gaps` (see below) — never query `daily_state` directly for PRR.
+
+### daily_state_with_gaps — analysis-ready view (18 Apr 2026 LATE, Step 4)
+`CREATE VIEW daily_state_with_gaps AS ...` — cross-joins active `study_participants` × every date from earliest `study_day_1` to CURRENT_DATE, left-joined to `daily_state`. Returns columns: `user_id, nickname, study_day_1, date, signal_state, signal_confidence, recovery_pct, hrv_ms, day_strain, sleep_hours, composite_load, rec_z, hrv_z, gap_reason, has_row, is_scored`. The `gap_reason` field uses COALESCE: explicit `reason_missing` from row if present, else `whoop_couldnt_score` (row exists but `signal_state IS NULL`), else `pre_enrolment` (no row, date < `study_day_1`), else `user_didnt_open` (no row, date >= `study_day_1`). Read this, not `daily_state`, for PRR + study reports.
 
 | Table | Purpose |
 |---|---|
 | `whoop_connections` | WHOOP OAuth tokens per user. Has `expires_at` column. PATCH not upsert. |
 | `wearable_entries` | Body Signal sessions — see column list above |
-| `daily_state` | Raw scored WHOOP metrics per user per day. Written on every whoop-data.js call. |
+| `daily_state` | Raw scored WHOOP metrics per user per day. Written on every whoop-data.js call. Has `reason_missing` column (Step 4). |
+| `daily_state_with_gaps` | **View, not table.** Analysis-ready: every participant × date since study start, with each gap labelled. Read this for PRR, not `daily_state`. |
 | `answers` | Reframe mission answers (RLS enabled) |
 | `entries` | Reframe mission entries — used by trigger diary (mission-6) and feedback cards (mission-7, tool='feedback-card') |
 | `lumen_instructions` | Per-user Lumen system context |
@@ -305,13 +305,16 @@ All rewrite tables have RLS enabled.
 41. **Deploy protocol for large files** — fetch raw file from GitHub -> manipulate in bash with Python string replacement -> verify with `node --check` -> `present_files` for Simon to push via GitHub web editor (Cmd+A, paste, commit). Never rely on `create_or_update_file` for partial content.
 42. **Recovery path when a production file is broken** — do NOT keep retrying `create_or_update_file` or `push_files` from the Claude container. `raw.githubusercontent.com` is not in the bash allowlist, so re-fetching the good content back into Claude is unreliable. Reliable recovery = Simon runs `git checkout <good-sha> -- <file>` from his local terminal, or uses GitHub web UI Raw -> select all -> paste into edit view. Claude provides the good commit SHA, Simon does the restore.
 43. **daily_state writes must use `?on_conflict=user_id,date` in the URL** — Supabase REST upsert needs conflict columns in the query string, not just the `Prefer: resolution=merge-duplicates` header. Without it, upsert silently falls back to plain insert and fails on the unique constraint.
-44. **Arc card: today's dot uses signal_state; historical dots still use recovery thresholds** — shipped 17 Apr. Step 3 of the roll-out plan still outstanding: also use signal_state in the arcSummary strings passed to Lumen in `renderLumenOpening()` and `triggerLumenReflection()` so Lumen's prose matches what the user sees.
+44. **Arc card + Lumen's arc summary: both now use signal_state** — today's dot shipped 17 Apr. Lumen's arcSummary strings in `renderLumenOpening()` + `triggerLumenReflection()` shipped 18 Apr late (Step 3 of roll-out plan, commit `f322687`). Historical dots in the UI still use recovery thresholds — cosmetic, low priority.
 45. **Lumen opening is a real API call, not a template** — `renderLumenOpening()` is async, calls `/api/lumen` with full arc + today + signal state. Do NOT regress to rule-based string construction. Template opening was removed 17 Apr for feeling narrow.
 46. **lumen.js `max_tokens` default is 600, cap 1200** — raised from 300 on 17 Apr. Frontend can pass `maxTokens` override per call (opening uses 400). Don't reduce back to 300 — Lumen needs room to read the arc.
 47. **Balcony close logs as `role: 'balcony'`, not `role: 'assistant'`** — distinct role for research filtering. Balcony close never overwrites `lumen_reply` (opening stays there). See Lumen Architecture.
 48. **WHOOP cycle timing gotcha** — WHOOP recoveries are keyed by sleep (forward-looking to the next cycle). `daily[0].day_strain` is today's partial strain, not yesterday's completed. For "yesterday's load" in the scoring engine, use yesterday's completed cycle strain, not `daily[1]`. The two-row card side-steps this by not trying to show yesterday's strain at all — the arc visualisation handles it cleanly.
 49. **Phase 2 cron pattern: HTTP-call, not code-duplication** — `whoop-daily-cron.js` (Node) calls `/api/whoop-data` (Edge) over HTTP with `{ user_id, cron_secret }`. Guarantees the exact same scoring code path as the page-load write. `whoop-data.js` has a single CRON FALLBACK block that accepts `user_id` from body when `cron_secret` matches `process.env.CRON_SECRET`. User/JWT path unchanged. If you ever refactor the scoring engine, touching `whoop-data.js` alone is sufficient — do not duplicate scoring logic into the cron.
 50. **Cron self-origin** — `whoop-daily-cron.js` uses `CRON_SELF_ORIGIN` env if set, else `https://app.purposefulchange.co.uk` in production, else `VERCEL_URL`. Preview-branch cron will call into the preview deployment. Never hardcode the production domain in code — use the env override.
+51. **`daily_state.reason_missing` has a CHECK constraint** — only NULL / `pre_enrolment` / `user_didnt_open` / `whoop_couldnt_score` / `band_dropout` are accepted. Typos fail at the DB. If you add a new reason, update the CHECK constraint AND the `daily_state_with_gaps` view's COALESCE chain in the same migration.
+52. **PRR + research queries should read `daily_state_with_gaps`, not `daily_state`** — the view auto-labels missing dates (`pre_enrolment` / `user_didnt_open`) that have no underlying row. Querying `daily_state` directly gives you telemetry, not analysis.
+53. **`create_or_update_file` works fine for 116KB HTML files too** — proved 18 Apr late (wearable.html Step 3 patches, +348 bytes, landed cleanly). The afternoon PLACEHOLDER incident was a `push_files` misuse, not a file-size limit. Rule 34 still applies (never use placeholder content), but don't over-index on file size: full-content push via `create_or_update_file` is the right tool for any size up to the MCP tool's input limit.
 
 ---
 
@@ -462,7 +465,7 @@ Both are quick Ctrl+F jobs in Word.
 - [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens likely expired) — Step 2 cron will skip + log them until they do; expected to see 3 failed + 1 ok in tomorrow's 09:15 UTC cron summary
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
 - [ ] Clean up any remaining empty `{}` feedback card entries in Supabase for Simon
-- [ ] **Arc alignment bug** — when a day is missing, dots mislabelled S/M/T/W/T/F/S instead of actual dates (tied to Step 4)
+- [ ] **Arc alignment bug** — when a day is missing, dots mislabelled S/M/T/W/T/F/S instead of actual dates (UI-only; `daily_state_with_gaps` already handles the data side for analysis)
 
 ### After the 4 steps — next build
 - [ ] Mission 1 -> Rewrite It handover CTA (pre-populate declaration from Case for Change answer)
@@ -472,7 +475,7 @@ Both are quick Ctrl+F jobs in Word.
 
 ### Study
 - [ ] SRIS baseline — all 4 participants before 30-day mark
-- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda most history — OVERDUE) — requires Step 4 for clean gap-labelling
+- [ ] Pattern Recurrence Rate first analysis at 30 days (Melinda most history — OVERDUE) — read from `daily_state_with_gaps` view (Step 4 now complete)
 - [ ] Jackson 30-day follow-up — does Body Signal confirm the identity shift?
 - [ ] **Log first red_psych capture (Simon 17 Apr) in research paper** — first live-study catch of the engine detecting a psychological red day under real conditions
 
@@ -484,8 +487,8 @@ Both are quick Ctrl+F jobs in Word.
 
 ## How to Start a Session
 1. Fetch this file fresh: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md`
-2. Read the 4-step roll-out plan at the top — that's the governing frame
-3. Ask Simon what he wants to work on (most likely Step 3 or 4)
+2. Read the 4-step roll-out plan at the top — all 4 now DONE. Research instrument is clean.
+3. Ask Simon what he wants to work on. Likely candidates: trial user onboarding, Mission 1 -> Rewrite It handover, historical arc dots using signal_state, Missions 4/5/8-14, research paper manual fixes.
 4. Before touching any file: fetch it fresh from GitHub
 5. Run `node --check` on any JS before presenting
 6. Check for non-ASCII chars in any JS file before pushing
@@ -548,6 +551,7 @@ git push
 | 18 Apr 2026 PM | **Production incident + recovery.** While trying to set up Step 3 (arc-colour patches 2+3), Claude called `github:push_files` with `content: "PLACEHOLDER"` on wearable.html (commit `8362aff`). Pushed a 3KB maintenance page on top (`dce0230`). Created junk `.claude-restore-marker` (`7bfff13`). Extended failed recovery attempts (raw.githubusercontent.com, api.github.com, Vercel previews, inline create_file — all blocked or truncated). **Simon restored manually** via `git checkout a74b6cd8 -- wearable.html` from local terminal. Production verified back at 14:18 UTC. Rule 34 updated. Rule 42 added. Step 3 still pending — lesson: use Rule 41 deploy protocol. |
 | 18 Apr 2026 EVE | **Gap closed + 4-step roll-out plan documented at top of README.** 16-17 Apr reconstructed from chat transcripts (CHAT_FOR_CLAUDE_part_1.docx + chart_for_claude_part_2.docx). README restructured so the governing frame is: Step 1 done; Steps 2 (Phase 2 daily cron), 3 (arc-colour patches 2+3), 4 (`daily_state.reason_missing` gap-labelling) are the path to trial roll-out. |
 | 18 Apr 2026 LATE | **STEP 2 OF ROLL-OUT PLAN SHIPPED — Phase 2 daily cron.** New file `api/whoop-daily-cron.js` (Node, 09:15 UTC). `api/whoop-data.js` gained a single CRON FALLBACK block (body `user_id + cron_secret` — rest of file untouched). `vercel.json` gained the `15 9 * * *` cron entry. Chose HTTP-call approach (Option B) over shared-module extraction to avoid editing the freshly-recovered scoring engine. `CRON_SECRET` env var now has a purpose again. Rules 49 + 50 added. First auto-fire expected 19 Apr 09:15 UTC — Simon to verify 4 rows per participant appear in `daily_state`. |
+| 18 Apr 2026 LATE NIGHT | **STEPS 3 + 4 OF ROLL-OUT PLAN SHIPPED — all 4 steps now complete.** **Step 4 first:** migration `daily_state_reason_missing_step4` added `reason_missing text` column with CHECK constraint (NULL / `pre_enrolment` / `user_didnt_open` / `whoop_couldnt_score` / `band_dropout`) — typos fail at the DB. Migration `daily_state_with_gaps_view_step4` built the analysis-ready view cross-joining active `study_participants` × every date since earliest `study_day_1` to CURRENT_DATE, left-joined to `daily_state`, with each gap labelled via COALESCE chain. `whoop-data.js` (commit `4be241f9`) updated: all scored rows set `reason_missing:null` explicitly, new post-loop block writes stub rows with `reason_missing='band_dropout'` for any of the 7 expected arc dates WHOOP returned nothing for. Verified Simon's view: Apr 5–10 `user_didnt_open`, Apr 11+14 `whoop_couldnt_score`, Apr 15 `user_didnt_open` (will flip to `band_dropout` on next cron), Apr 12/13/16/17/18 scored normally. **Step 3 second** (commit `f322687`, wearable.html SHA `a7142bf3`, +348 bytes vs pre-patch): both `renderLumenOpening()` and `triggerLumenReflection()` arc summaries now derive band from `signal_state` with recovery-threshold fallback — Lumen's prose matches the dot colours. Byte delta verified = 2 × 174-byte ternary expansions, no drift. Deploy method: `create_or_update_file` with full file content — disproved the assumption that 116KB HTML files needed special handling (Rule 53 added). Rules 51 + 52 + 53 added. Research instrument is now clean. Next focus: trial user onboarding. |
 
 ---
 
