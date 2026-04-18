@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last updated: 2026-04-18 LATE NIGHT — ALL 4 STEPS SHIPPED. Research instrument clean. Ready to invite trial users.
+## Last updated: 2026-04-18 LATE NIGHT — ALL 4 STEPS SHIPPED. Rule 54 added: no direct pushes to main while study is live. Branch -> Vercel preview -> Simon tests -> merge.
 
 ---
 
@@ -315,6 +315,7 @@ All rewrite tables have RLS enabled.
 51. **`daily_state.reason_missing` has a CHECK constraint** — only NULL / `pre_enrolment` / `user_didnt_open` / `whoop_couldnt_score` / `band_dropout` are accepted. Typos fail at the DB. If you add a new reason, update the CHECK constraint AND the `daily_state_with_gaps` view's COALESCE chain in the same migration.
 52. **PRR + research queries should read `daily_state_with_gaps`, not `daily_state`** — the view auto-labels missing dates (`pre_enrolment` / `user_didnt_open`) that have no underlying row. Querying `daily_state` directly gives you telemetry, not analysis.
 53. **`create_or_update_file` works fine for 116KB HTML files too** — proved 18 Apr late (wearable.html Step 3 patches, +348 bytes, landed cleanly). The afternoon PLACEHOLDER incident was a `push_files` misuse, not a file-size limit. Rule 34 still applies (never use placeholder content), but don't over-index on file size: full-content push via `create_or_update_file` is the right tool for any size up to the MCP tool's input limit.
+54. **NEVER push code changes directly to `main` while the study is live — branch first, preview, then merge.** The live study cohort depends on the production deployment. Every non-trivial code change must go through this flow: (1) Claude creates a feature branch `step-N-short-description` via `create_or_update_file` with a `branch` parameter; (2) Vercel auto-deploys a preview URL of the form `reframe-mission-1-git-<branch>-simons-projects-9218b53a.vercel.app`; (3) Claude gives Simon the preview URL; (4) Simon opens it, signs in, clicks through the changed flow, confirms it works; (5) only after Simon confirms does Claude merge the branch to `main` (via `github:merge_pull_request` after opening a PR, or by copying the final content to `main` via `create_or_update_file` with `branch: 'main'`). **Exemption:** `README-DEV.md` and other pure-docs files (anything in `/docs`, `CHANGELOG.md`, `.md` files with no executable code) can be pushed directly to `main` — no code runs, no harm possible. Everything else — `.html`, `.js`, `.json`, migrations, anything in `/api/` — requires the branch-preview-merge flow. The cost of a bad push scales with cohort size; four pilot participants tolerate a 10-minute revert, but 40 or 400 won't. Build the habit now.
 
 ---
 
@@ -488,11 +489,13 @@ Both are quick Ctrl+F jobs in Word.
 ## How to Start a Session
 1. Fetch this file fresh: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md`
 2. Read the 4-step roll-out plan at the top — all 4 now DONE. Research instrument is clean.
-3. Ask Simon what he wants to work on. Likely candidates: trial user onboarding, Mission 1 -> Rewrite It handover, historical arc dots using signal_state, Missions 4/5/8-14, research paper manual fixes.
-4. Before touching any file: fetch it fresh from GitHub
-5. Run `node --check` on any JS before presenting
-6. Check for non-ASCII chars in any JS file before pushing
-7. Update this README at end of session before closing
+3. Read Rule 54 — code changes to `main` are forbidden while the study is live. Branch first, Simon tests the preview, then merge.
+4. Ask Simon what he wants to work on. Likely candidates: trial user onboarding, Mission 1 -> Rewrite It handover, historical arc dots using signal_state, Missions 4/5/8-14, research paper manual fixes.
+5. Before touching any file: fetch it fresh from GitHub
+6. For code changes: create a feature branch, push to it, give Simon the Vercel preview URL, wait for his confirmation, then merge to `main`. For README-DEV edits: direct-to-main is fine.
+7. Run `node --check` on any JS before presenting
+8. Check for non-ASCII chars in any JS file before pushing
+9. Update this README at end of session before closing
 
 ---
 
@@ -552,6 +555,7 @@ git push
 | 18 Apr 2026 EVE | **Gap closed + 4-step roll-out plan documented at top of README.** 16-17 Apr reconstructed from chat transcripts (CHAT_FOR_CLAUDE_part_1.docx + chart_for_claude_part_2.docx). README restructured so the governing frame is: Step 1 done; Steps 2 (Phase 2 daily cron), 3 (arc-colour patches 2+3), 4 (`daily_state.reason_missing` gap-labelling) are the path to trial roll-out. |
 | 18 Apr 2026 LATE | **STEP 2 OF ROLL-OUT PLAN SHIPPED — Phase 2 daily cron.** New file `api/whoop-daily-cron.js` (Node, 09:15 UTC). `api/whoop-data.js` gained a single CRON FALLBACK block (body `user_id + cron_secret` — rest of file untouched). `vercel.json` gained the `15 9 * * *` cron entry. Chose HTTP-call approach (Option B) over shared-module extraction to avoid editing the freshly-recovered scoring engine. `CRON_SECRET` env var now has a purpose again. Rules 49 + 50 added. First auto-fire expected 19 Apr 09:15 UTC — Simon to verify 4 rows per participant appear in `daily_state`. |
 | 18 Apr 2026 LATE NIGHT | **STEPS 3 + 4 OF ROLL-OUT PLAN SHIPPED — all 4 steps now complete.** **Step 4 first:** migration `daily_state_reason_missing_step4` added `reason_missing text` column with CHECK constraint (NULL / `pre_enrolment` / `user_didnt_open` / `whoop_couldnt_score` / `band_dropout`) — typos fail at the DB. Migration `daily_state_with_gaps_view_step4` built the analysis-ready view cross-joining active `study_participants` × every date since earliest `study_day_1` to CURRENT_DATE, left-joined to `daily_state`, with each gap labelled via COALESCE chain. `whoop-data.js` (commit `4be241f9`) updated: all scored rows set `reason_missing:null` explicitly, new post-loop block writes stub rows with `reason_missing='band_dropout'` for any of the 7 expected arc dates WHOOP returned nothing for. Verified Simon's view: Apr 5–10 `user_didnt_open`, Apr 11+14 `whoop_couldnt_score`, Apr 15 `user_didnt_open` (will flip to `band_dropout` on next cron), Apr 12/13/16/17/18 scored normally. **Step 3 second** (commit `f322687`, wearable.html SHA `a7142bf3`, +348 bytes vs pre-patch): both `renderLumenOpening()` and `triggerLumenReflection()` arc summaries now derive band from `signal_state` with recovery-threshold fallback — Lumen's prose matches the dot colours. Byte delta verified = 2 × 174-byte ternary expansions, no drift. Deploy method: `create_or_update_file` with full file content — disproved the assumption that 116KB HTML files needed special handling (Rule 53 added). Rules 51 + 52 + 53 added. Research instrument is now clean. Next focus: trial user onboarding. |
+| 18 Apr 2026 MIDNIGHT | **Deploy protocol formalised — Rule 54 added: no direct pushes to `main` while the study is live.** Simon raised it after discussing the PLACEHOLDER incident: "we don't deploy to a main branch without testing when we are live?" Correct answer: no, we don't, and up until tonight all pushes were going straight to `main`. New workflow: (1) Claude creates a feature branch `step-N-description`; (2) Vercel auto-deploys a preview URL; (3) Simon opens the preview, tests the change hands-on; (4) only after confirmation does Claude merge to `main`. `README-DEV.md` and other pure-docs files remain exempt (no code runs). "How to Start a Session" updated so every future Claude session defaults to the branch-first flow. Next: set GitHub branch protection on `main` so direct pushes are physically blocked, not just documented. |
 
 ---
 
