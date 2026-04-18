@@ -556,6 +556,9 @@ export default async function handler(req) {
     const sleep_debt_7d = todayResult.sleep_debt_7d;
 
     // -- WRITE TO daily_state (batch of up to 7 rows) --
+    // Await the write. Fire-and-forget is unreliable in Edge runtime -- the
+    // function terminates when the response is returned, which can cancel
+    // pending fetches. See https://vercel.com/docs/.../waitUntil
     if (userId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
       const dailyStateRows = scoredDays.map(({ dayIndex, scored, state, confidence, compositeLoad, hrvVolatility, exploration_score, sleep_debt_7d }) => {
         const d = daily[dayIndex];
@@ -585,24 +588,29 @@ export default async function handler(req) {
         };
       });
 
-      fetch(
-        `${process.env.SUPABASE_URL}/rest/v1/daily_state`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
-            apikey: process.env.SUPABASE_SERVICE_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          body: JSON.stringify(dailyStateRows)
+      try {
+        const writeRes = await fetch(
+          `${process.env.SUPABASE_URL}/rest/v1/daily_state`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+              apikey: process.env.SUPABASE_SERVICE_KEY,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify(dailyStateRows)
+          }
+        );
+        if (!writeRes.ok) {
+          const txt = await writeRes.text().catch(() => '');
+          console.error('daily_state write failed:', writeRes.status, txt);
+        } else {
+          console.log('daily_state wrote', dailyStateRows.length, 'rows for user', userId);
         }
-      ).then(async r => {
-        if (!r.ok) {
-          const txt = await r.text().catch(() => '');
-          console.error('daily_state write failed:', r.status, txt);
-        }
-      }).catch(e => console.error('daily_state write error:', e.message));
+      } catch (e) {
+        console.error('daily_state write error:', e.message);
+      }
     }
 
     // Build arc_series with per-day signal state
