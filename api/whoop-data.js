@@ -4,6 +4,8 @@
  * Validated against WHOOP AI and HRV research literature
  *
  * Phase 1: writes 7 days to daily_state (not 1). Arc shows per-day signal state.
+ * Phase 2: accepts server-side user_id + cron_secret from daily cron for participants
+ *          who haven't opened the app today.
  */
 export const config = { runtime: 'edge' };
 
@@ -362,6 +364,15 @@ export default async function handler(req) {
       const payload = JSON.parse(atob(jwt.split('.')[1]));
       userId = payload.sub || null;
     } catch (_) {}
+  }
+
+  // -- CRON FALLBACK --
+  // When the daily cron calls this endpoint on behalf of a participant,
+  // there is no user session -> no JWT. Accept server-side user_id from
+  // the body if the caller presents the matching CRON_SECRET.
+  if (!userId && body.user_id && body.cron_secret &&
+      process.env.CRON_SECRET && body.cron_secret === process.env.CRON_SECRET) {
+    userId = body.user_id;
   }
 
   if (!access_token && process.env.SUPABASE_URL) {
