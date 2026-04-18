@@ -1,7 +1,7 @@
 # README-DEV — Purposeful Change Platform
 ## Single source of truth across all Claude development sessions
 ## FOR CLAUDE: Fetch fresh at https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md at the start of every session. Do not rely on memory.
-## Last updated: 2026-04-18 PM — 4-step roll-out plan documented. Step 1 done. Steps 2-4 outstanding. Gap closed.
+## Last updated: 2026-04-18 EVE — Step 2 shipped (Phase 2 daily cron). Steps 1 + 2 done. Steps 3 + 4 outstanding.
 
 ---
 
@@ -15,12 +15,14 @@ Fix the research instrument first. Everything else (roll-out, nudges, new missio
 - Verified 7 rows written for Simon Apr 11-18 (Apr 15 missing = genuine WHOOP dropout, not a bug)
 - First red_psych captured in live study conditions (Simon 17 Apr, 46% recovery / HRV 34.1ms / rec_z -1.42)
 
-**Step 2 — Phase 2: daily cron (~09:00 UTC) for all active study_participants** ⬜ NOT STARTED
-- Currently `daily_state` only gets written when someone opens the app
-- Participants who skip a day = no row = research gap disguised as a user-engagement gap
-- Cron flow: for each active study_participant -> refresh WHOOP token if needed -> fetch WHOOP v2 (yesterday's cycle) -> run same scoring engine as `whoop-data.js` -> upsert to `daily_state` with `?on_conflict=user_id,date`
-- Keep `whoop-data.js` page-load write (it's idempotent via the same upsert) — the cron just guarantees coverage
-- Must use the exact same scoring code path as `whoop-data.js` — extract the scoring logic into a shared module OR call the same endpoint from the cron
+**Step 2 — Phase 2: daily cron (09:15 UTC) for all active study_participants** ✅ **DONE 18 Apr 2026 EVE**
+- New file `api/whoop-daily-cron.js` (Node.js). Scheduled `15 9 * * *` via `vercel.json`
+- Approach: cron HTTP-POSTs `/api/whoop-data` for each active `study_participants` row, passing `{ user_id, cron_secret }`. Guarantees the exact same scoring code path as the page-load write — literally the same endpoint
+- `whoop-data.js` gained a single additive block: if no JWT but body has `user_id + cron_secret` matching `process.env.CRON_SECRET`, use that `user_id`. User/JWT path completely unchanged
+- On expired refresh token: cron logs the user_id and moves on. Participant must reconnect. Step 4 will add `daily_state.reason_missing` to label these rows explicitly
+- Serial loop (not parallel) — WHOOP rate-limits, cohort is tiny, log-ordering stays sane
+- Manual trigger: `curl -X POST https://app.purposefulchange.co.uk/api/whoop-daily-cron` returns a JSON summary with per-participant result
+- `CRON_SECRET` env var — previously unused, now authenticates the cron's fallback path in `whoop-data.js`
 
 **Step 3 — Arc-colour patches 2 + 3 (so Lumen reads what the user sees)** ⬜ NOT STARTED
 - Patch 1 shipped 17 Apr: today's arc dot uses `signal_state` (not recovery band)
@@ -173,8 +175,9 @@ All mission pages (2, 3, 6, 7) redirect to `signin.html?next=/mission-X.html` if
 | `api/lumen.js` | Lumen AI companion | **Edge.** Full six-move methodology prompt. Requires at least one user message in `messages` array. `max_tokens` default 600, cap 1200 via `maxTokens` param. |
 | `api/whoop-webhook.js` | WHOOP webhook | Fires each morning when sleep scored |
 | `api/nudge-whatsapp.js` | WhatsApp nudge cron | **Node.js.** Balcony reminders + planned moment nudges. Runs every minute. |
+| `api/whoop-daily-cron.js` | Phase 2 daily cron | **Node.js.** Runs 09:15 UTC daily. Loops `study_participants`, POSTs `/api/whoop-data` with `{ user_id, cron_secret }` for each. Logs per-participant result. Expired tokens -> skip + log. |
 | `api/study-data.js` | Study dashboard data | Service role query across all participants |
-| `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. **No `functions` block.** |
+| `vercel.json` | Rewrites + cron schedule | `*/45 * * * *` for whoop-refresh. `* * * * *` for nudge-whatsapp. `15 9 * * *` for whoop-daily-cron. **No `functions` block.** |
 | `README-DEV.md` | This file | Update at end of every session. |
 | `transcripts/*.txt` | 65 coaching transcripts | Source of Lumen methodology. Fetchable via raw GitHub URL. |
 
@@ -251,7 +254,7 @@ All rewrite tables have RLS enabled.
 | `WHOOP_CLIENT_ID` | WHOOP OAuth app client ID |
 | `WHOOP_CLIENT_SECRET` | WHOOP OAuth app client secret |
 | `ANTHROPIC_API_KEY` | Claude API key for Lumen |
-| `CRON_SECRET` | Set but NOT used — auth check removed from both cron files |
+| `CRON_SECRET` | Authenticates `whoop-daily-cron.js` -> `whoop-data.js` server-side call (Phase 2). No longer auth-checks in `whoop-refresh.js` or `nudge-whatsapp.js` — they had it removed. |
 | `TWILIO_ACCOUNT_SID` | Set — starts with AC |
 | `TWILIO_AUTH_TOKEN` | Set |
 | `TWILIO_WHATSAPP_FROM` | `whatsapp:+14155238886` (Twilio sandbox) |
@@ -307,6 +310,8 @@ All rewrite tables have RLS enabled.
 46. **lumen.js `max_tokens` default is 600, cap 1200** — raised from 300 on 17 Apr. Frontend can pass `maxTokens` override per call (opening uses 400). Don't reduce back to 300 — Lumen needs room to read the arc.
 47. **Balcony close logs as `role: 'balcony'`, not `role: 'assistant'`** — distinct role for research filtering. Balcony close never overwrites `lumen_reply` (opening stays there). See Lumen Architecture.
 48. **WHOOP cycle timing gotcha** — WHOOP recoveries are keyed by sleep (forward-looking to the next cycle). `daily[0].day_strain` is today's partial strain, not yesterday's completed. For "yesterday's load" in the scoring engine, use yesterday's completed cycle strain, not `daily[1]`. The two-row card side-steps this by not trying to show yesterday's strain at all — the arc visualisation handles it cleanly.
+49. **Phase 2 cron pattern: HTTP-call, not code-duplication** — `whoop-daily-cron.js` (Node) calls `/api/whoop-data` (Edge) over HTTP with `{ user_id, cron_secret }`. Guarantees the exact same scoring code path as the page-load write. `whoop-data.js` has a single CRON FALLBACK block that accepts `user_id` from body when `cron_secret` matches `process.env.CRON_SECRET`. User/JWT path unchanged. If you ever refactor the scoring engine, touching `whoop-data.js` alone is sufficient — do not duplicate scoring logic into the cron.
+50. **Cron self-origin** — `whoop-daily-cron.js` uses `CRON_SELF_ORIGIN` env if set, else `https://app.purposefulchange.co.uk` in production, else `VERCEL_URL`. Preview-branch cron will call into the preview deployment. Never hardcode the production domain in code — use the env override.
 
 ---
 
@@ -454,7 +459,7 @@ Both are quick Ctrl+F jobs in Word.
 ### Supporting fixes (do alongside the 4 steps)
 - [ ] **Delete `.claude-restore-marker`** from repo root (junk from 18 Apr incident)
 - [ ] Research paper: apply two manual fixes (date + Mission 7 mention)
-- [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens likely expired) — becomes less urgent once Step 2 cron is live
+- [ ] Monica, Melinda, Jackson reconnect WHOOP (refresh tokens likely expired) — Step 2 cron will skip + log them until they do; expected to see 3 failed + 1 ok in tomorrow's 09:15 UTC cron summary
 - [ ] Monica, Melinda, Jackson opt in to Twilio sandbox + set nudge time in Rewrite It
 - [ ] Clean up any remaining empty `{}` feedback card entries in Supabase for Simon
 - [ ] **Arc alignment bug** — when a day is missing, dots mislabelled S/M/T/W/T/F/S instead of actual dates (tied to Step 4)
@@ -480,7 +485,7 @@ Both are quick Ctrl+F jobs in Word.
 ## How to Start a Session
 1. Fetch this file fresh: `https://raw.githubusercontent.com/LAmby2244/reframe-mission-1/main/README-DEV.md`
 2. Read the 4-step roll-out plan at the top — that's the governing frame
-3. Ask Simon what he wants to work on (most likely Step 2, 3, or 4)
+3. Ask Simon what he wants to work on (most likely Step 3 or 4)
 4. Before touching any file: fetch it fresh from GitHub
 5. Run `node --check` on any JS before presenting
 6. Check for non-ASCII chars in any JS file before pushing
@@ -542,6 +547,7 @@ git push
 | 18 Apr 2026 AM | **STEP 1 OF ROLL-OUT PLAN SHIPPED — Phase 1 daily_state scoring.** Three commits: `fee670bf`, `79fb07dc`, `a74b6cd8`. Final fix: `?on_conflict=user_id,date` in URL + awaited fetch. 7 rows verified for Simon. Also shipped: **Full Lumen conversation logging** (`lumen_messages jsonb`, `appendLumenMessage`, `role: 'balcony'` distinct, `lumen_reply` preserved). Simon 08:00 UTC session reconstructed (44 turns, pasted transcript). Jackson 16 Apr session reconstructed (23 turns, screenshots). Prominent yellow balcony-close button for trial launch. Rules 43 + 47 added. |
 | 18 Apr 2026 PM | **Production incident + recovery.** While trying to set up Step 3 (arc-colour patches 2+3), Claude called `github:push_files` with `content: "PLACEHOLDER"` on wearable.html (commit `8362aff`). Pushed a 3KB maintenance page on top (`dce0230`). Created junk `.claude-restore-marker` (`7bfff13`). Extended failed recovery attempts (raw.githubusercontent.com, api.github.com, Vercel previews, inline create_file — all blocked or truncated). **Simon restored manually** via `git checkout a74b6cd8 -- wearable.html` from local terminal. Production verified back at 14:18 UTC. Rule 34 updated. Rule 42 added. Step 3 still pending — lesson: use Rule 41 deploy protocol. |
 | 18 Apr 2026 EVE | **Gap closed + 4-step roll-out plan documented at top of README.** 16-17 Apr reconstructed from chat transcripts (CHAT_FOR_CLAUDE_part_1.docx + chart_for_claude_part_2.docx). README restructured so the governing frame is: Step 1 done; Steps 2 (Phase 2 daily cron), 3 (arc-colour patches 2+3), 4 (`daily_state.reason_missing` gap-labelling) are the path to trial roll-out. |
+| 18 Apr 2026 LATE | **STEP 2 OF ROLL-OUT PLAN SHIPPED — Phase 2 daily cron.** New file `api/whoop-daily-cron.js` (Node, 09:15 UTC). `api/whoop-data.js` gained a single CRON FALLBACK block (body `user_id + cron_secret` — rest of file untouched). `vercel.json` gained the `15 9 * * *` cron entry. Chose HTTP-call approach (Option B) over shared-module extraction to avoid editing the freshly-recovered scoring engine. `CRON_SECRET` env var now has a purpose again. Rules 49 + 50 added. First auto-fire expected 19 Apr 09:15 UTC — Simon to verify 4 rows per participant appear in `daily_state`. |
 
 ---
 
